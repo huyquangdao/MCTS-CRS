@@ -16,7 +16,7 @@ class PolicyModel(nn.Module):
         self.out_layer = nn.Linear(hidden_size, n_goals)
 
     def forward(self, inputs):
-        cls_token = self.plm(**inputs)[0]
+        cls_token = self.plm(**inputs)[0][:, 0, :]
         hidden = torch.relu(self.proj_layer(cls_token))
         logits = self.out_layer(hidden)
         return logits
