@@ -86,7 +86,6 @@ class DuRecdial(Dataset):
             "target_goal": conv['target_goal'],
             "target_topic": conv['target_topic'],
             "user_profile": conv['user_profile'],
-            "knowledge_base": conv['knowledge']
         }
         utts = []
         goals = []
@@ -98,7 +97,7 @@ class DuRecdial(Dataset):
             role = -1
         # print(conv.keys())
         # print(conv['goal_topic_list'])
-        for (utt, goal, topic) in list(zip(conv['conversation'], conv['goal_type_list'], conv['goal_topic_list'])):
+        for (utt, goal, topic, knowledge) in list(zip(conv['conversation'], conv['goal_type_list'], conv['goal_topic_list'], conv['knowledge'])):
             #### user responses.
             self.goals.append(goal)
             self.topics.append(topic)
@@ -117,6 +116,7 @@ class DuRecdial(Dataset):
                     "response": utt,
                     "goal": goal,
                     "topic": topic,
+                    "knowledge": knowledge,
                     "pre_goals": copy.deepcopy(goals),
                     "pre_topics": copy.deepcopy(topics),
                     "dialogue_context": copy.deepcopy(utts),

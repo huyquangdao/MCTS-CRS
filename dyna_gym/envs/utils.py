@@ -1,5 +1,5 @@
 import openai
-API_KEY = ""
+API_KEY = "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"
 MODEL = "gpt-3.5-turbo"
 openai.api_key = API_KEY
 

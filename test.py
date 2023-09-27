@@ -1,5 +1,6 @@
 from dataset.durecdial import DuRecdial
 from dyna_gym.envs.utils import generate_sys_resp, get_user_resp
+from dataset.data_utils import convert_example_to_feature
 
 
 if __name__ == '__main__':
@@ -12,8 +13,4 @@ if __name__ == '__main__':
                           dev_data_path=dev_data_path,
                           test_data_path=test_data_path)
     
-    resp = generate_sys_resp(durecdial.train_instances[0], action='Movie recommendation')    
-    user_resp = get_user_resp(durecdial.train_instances[0], resp)
-    
-    print(resp)
-    print(user_resp)
+    convert_example_to_feature(None, durecdial.train_instances[0])
