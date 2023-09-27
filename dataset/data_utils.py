@@ -65,7 +65,7 @@ def convert_example_to_feature(tokenizer, instance, max_sequence_length=512):
 
     input_str = f"{PROFILE_TOKEN}: {profile_str} {KNOW_TOKEN}: {knowledge_str} {PATH_TOKEN}: {path_str} {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
-    input_ids = input_ids[-(max_sequence_length - 2)]
+    input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = tokenizer.cls_token_id + input_ids + tokenizer.sep_token_id
     return input_ids
 
