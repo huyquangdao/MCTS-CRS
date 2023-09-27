@@ -18,6 +18,7 @@ class PolicyEvaluator:
 
     def reset_metric(self):
         self.metric['acc'] = 0
+        self.metric['count'] = 0
 
     def report(self):
         report = {}
