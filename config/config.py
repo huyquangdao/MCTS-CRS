@@ -6,6 +6,11 @@ SEP_TOKEN = "[SEP]"
 PROFILE_TOKEN = "[PROFILE]"
 CONTEXT_TOKEN = "[CONTEXT]"
 
+special_tokens_dict = {
+    'additional_special_tokens': [USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN,
+                                  CONTEXT_TOKEN],
+}
+
 DURECDIAL_TARGET_GOALS = [
     "Movie recommendation",
     "Food recommendation",

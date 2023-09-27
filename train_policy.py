@@ -19,7 +19,7 @@ from dyna_gym.models.policy import PolicyModel
 from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
-from config.config import
+from config.config import special_tokens_dict
 
 
 def parse_args():
@@ -113,10 +113,12 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    goal2id = {k:v for k,v in enumerate(dataset.goals)}
+    goal2id = {k: v for k, v in enumerate(dataset.goals)}
 
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+    tokenizer.add_special_tokens(special_tokens_dict)
+    plm.resize_token_embeddings(len(tokenizer))
 
     model = PolicyModel(
         plm=plm,
@@ -148,6 +150,7 @@ if __name__ == '__main__':
         instances=dataset.train_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
+        padding_ids=tokenizer.pad_token_id
 
     )
     dev_torch_dataset = BaseTorchDataset(
@@ -155,14 +158,14 @@ if __name__ == '__main__':
         instances=dataset.dev_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-
+        padding_ids=tokenizer.pad_token_id
     )
     test_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-
+        padding_ids=tokenizer.pad_token_id
     )
 
     train_dataloader = DataLoader(
