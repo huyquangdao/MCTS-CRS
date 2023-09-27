@@ -127,6 +127,8 @@ if __name__ == '__main__':
         lm_size=args.lm_size
     )
 
+    model.to(device)
+
     # optim & amp
     modules = [model]
     no_decay = ["bias", "LayerNorm.weight"]
@@ -228,7 +230,7 @@ if __name__ == '__main__':
         model.train()
         for step, batch in enumerate(train_dataloader):
             logits = model(batch['context'])
-            loss = model(logits, label=batch['labels']).conv_loss / args.gradient_accumulation_steps
+            loss = criterion(logits,batch['labels']) / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
             # optim step
