@@ -1,7 +1,9 @@
 import openai
-API_KEY = "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"
+
+API_KEY = ""
 MODEL = "gpt-3.5-turbo"
 openai.api_key = API_KEY
+
 
 def convert_list_to_str(lis):
     """function that converts a list of elements to a text string
@@ -18,6 +20,7 @@ def convert_list_to_str(lis):
             tmp = f"{k[0]} {k[1]} {k[2]} "
             output_str += tmp
     return output_str
+
 
 def generate_sys_resp(state, action):
     """ Generate a system response using ChatGPT.
@@ -47,7 +50,7 @@ def generate_sys_resp(state, action):
     return response.choices[0]['message']['content']
 
 
-def get_user_resp(state, sys_response, logit_bias = None):
+def get_user_resp(state, sys_response, logit_bias=None):
     if logit_bias is None:
         logit_bias = {}
     target_topic = state['task_background']['target_topic']
@@ -58,14 +61,15 @@ def get_user_resp(state, sys_response, logit_bias = None):
     You should respond to the recommender's response: {}
     '''.format(target_topic, sys_response)
     response = openai.Completion.create(
-        model='text-davinci-003', 
-        prompt=seeker_instruction, 
-        temperature=0, 
-        max_tokens=128, 
+        model='text-davinci-003',
+        prompt=seeker_instruction,
+        temperature=0,
+        max_tokens=128,
         stop='Recommender',
         logit_bias=logit_bias,
     )
     return response['choices'][0]['text']
+
 
 def update_state(state, action, sys_response, user_response):
     """function that updates the state of the conversation
