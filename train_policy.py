@@ -286,7 +286,7 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                logits = model(batch)
+                logits = model(batch['context'])
                 loss = criterion(logits, batch['labels'])
                 test_loss.append(float(loss))
                 evaluator.evaluate(logits, batch['labels'])
