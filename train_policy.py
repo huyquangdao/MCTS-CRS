@@ -19,6 +19,8 @@ from dyna_gym.models.policy import PolicyModel
 from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
+from config.config import
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -106,12 +108,19 @@ if __name__ == '__main__':
     if args.output_dir is not None:
         os.makedirs(args.output_dir, exist_ok=True)
 
+    dataset = DuRecdial(
+        train_data_path=args.train_data_path,
+        dev_data_path=args.dev_data_path,
+        test_data_path=args.test_data_path
+    )
+    goal2id = {k:v for k,v in enumerate(dataset.goals)}
+
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     model = PolicyModel(
         plm=plm,
-        n_goals=args.n_goals,
+        n_goals=len(dataset.goals),
         hidden_size=args.hidden_size,
         lm_size=args.lm_size
     )
@@ -134,27 +143,24 @@ if __name__ == '__main__':
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
     criterion = torch.nn.CrossEntropyLoss()
     # data
-    dataset = DuRecdial(
-        train_data_path=args.train_data_path,
-        dev_data_path=args.dev_data_path,
-        test_data_path=args.test_data_path
-    )
-
     train_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.train_instances,
+        goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
 
     )
     dev_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
+        goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
 
     )
     test_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
+        goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
 
     )
@@ -219,10 +225,8 @@ if __name__ == '__main__':
         train_loss = []
         model.train()
         for step, batch in enumerate(train_dataloader):
-            logits = model(
-                batch
-            )
-            loss = model(logits, label=batch['label']).conv_loss / args.gradient_accumulation_steps
+            logits = model(batch['context'])
+            loss = model(logits, label=batch['labels']).conv_loss / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
             # optim step
@@ -252,10 +256,10 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                logits = model(batch)
-                loss = criterion(logits, batch['label'])
+                logits = model(batch['context'])
+                loss = criterion(logits, batch['labels'])
                 valid_loss.append(float(loss))
-                evaluator.update(logits, batch['label'])
+                evaluator.evaluate(logits, batch['labels'])
 
         # metric
         accelerator.wait_for_everyone()
@@ -281,8 +285,9 @@ if __name__ == '__main__':
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
                 logits = model(batch)
-                loss = criterion(logits, batch['label'])
+                loss = criterion(logits, batch['labels'])
                 test_loss.append(float(loss))
+                evaluator.evaluate(logits, batch['labels'])
 
         # metric
         accelerator.wait_for_everyone()
@@ -297,4 +302,3 @@ if __name__ == '__main__':
         if run:
             run.log(test_report)
         evaluator.reset_metric()
-

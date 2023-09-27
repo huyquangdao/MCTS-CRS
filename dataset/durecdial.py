@@ -5,12 +5,13 @@ import copy
 from dataset.base import Dataset
 from config.config import DURECDIAL_TARGET_GOALS
 
+
 class DuRecdial(Dataset):
-    
-    def __init__(self, train_data_path, dev_data_path, test_data_path):
+
+    def __init__(self, train_data_path, dev_data_path, test_data_path, save_train_convs=True):
         self.target_goals = DURECDIAL_TARGET_GOALS
-        super().__init__(train_data_path, dev_data_path, test_data_path)
-    
+        super().__init__(train_data_path, dev_data_path, test_data_path, save_train_convs)
+
     def read_data(self, data_path):
         """Function that reads the Durecdial dataset.
         Returns:
@@ -19,8 +20,8 @@ class DuRecdial(Dataset):
         with open(data_path, 'r') as f:
             data = f.readlines()
             assert len(data) > 0
-        return data    
-    
+        return data
+
     def process_data(self, data):
         """method that process the conversations to get input instances.
         Args:
@@ -34,7 +35,7 @@ class DuRecdial(Dataset):
             instances = self.construct_instances(conv_id, line)
             all_instances.extend(instances)
         return all_instances
-                
+
     def repurpose_dataset(self, data):
         """convert the original goal-driven setting to the target-driven CRS setting.
         only consider recommendation-oriented conversations including food, movie, music, poi recommendation
@@ -43,7 +44,7 @@ class DuRecdial(Dataset):
             data (_type_): list of json strings, each element is a conversation.
 
         Returns:
-            _type_: list of dictionary each element correspondd to a repurposed conversations, 
+            _type_: list of dictionary each element corresponds to a repurposed conversation,
         """
         new_data = []
         for line in data:
@@ -60,16 +61,16 @@ class DuRecdial(Dataset):
             if i < 0:
                 continue
             ### preprocessing to get the target goal and the target topic
-            target_goal = re.sub(r'\(.*?\)', '', steps[i]).replace(')','').strip()
+            target_goal = re.sub(r'\(.*?\)', '', steps[i]).replace(')', '').strip()
             target_topic = steps[i].replace(target_goal, "")[1:-1].strip()
-            target_goal = re.sub(r'[0-9]','', target_goal).replace("[]",'').strip() 
+            target_goal = re.sub(r'[0-9]', '', target_goal).replace("[]", '').strip()
             ### if the target goal is not in our considered target list.            
-            assert target_goal in self.target_goals 
+            assert target_goal in self.target_goals
             line['target_goal'] = target_goal
             line['target_topic'] = target_topic
             new_data.append(line)
         return new_data
-                
+
     def construct_instances(self, conv_id, conv):
         """ method that constructs input examples from a conversation
         each instance consists of task background, dialogue context and its corresponding response.
@@ -97,7 +98,8 @@ class DuRecdial(Dataset):
             role = -1
         # print(conv.keys())
         # print(conv['goal_topic_list'])
-        for (utt, goal, topic, knowledge) in list(zip(conv['conversation'], conv['goal_type_list'], conv['goal_topic_list'], conv['knowledge'])):
+        for (utt, goal, topic, knowledge) in list(
+                zip(conv['conversation'], conv['goal_type_list'], conv['goal_topic_list'], conv['knowledge'])):
             #### user responses.
             self.goals.append(goal)
             self.topics.append(topic)
@@ -127,11 +129,11 @@ class DuRecdial(Dataset):
                 goals.append(goal)
                 topics.append(topic)
             role = role + 1
-        return instances        
-            
+        return instances
+
+
 if __name__ == '__main__':
-    
-    data_path = 'data/DuRecDial/data/en_train.txt'    
-    durecdial = DuRecdial(data_path= data_path)
+    data_path = 'data/DuRecDial/data/en_train.txt'
+    durecdial = DuRecdial(data_path=data_path)
     durecdial.read_data()
     durecdial.repurpose_dataset()

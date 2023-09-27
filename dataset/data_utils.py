@@ -1,3 +1,4 @@
+import random
 from config.config import USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, CONTEXT_TOKEN
 
 
@@ -67,3 +68,19 @@ def convert_example_to_feature(tokenizer, instance, max_sequence_length=512):
     input_ids = input_ids[-(max_sequence_length - 2)]
     input_ids = tokenizer.cls_token_id + input_ids + tokenizer.sep_token_id
     return input_ids
+
+
+def randomly_sample_demonstrations(all_convs, instance, k=1):
+    """
+    function that randomly sample 1 demonstrations from the set of all training conversations.
+    here we first filter out a set of examples that have the same target goal with the given one.
+    Then we randomly choose 1 demonstration from the candidate set.
+    @param all_convs: set of all training conversations
+    @param instance: an instance which is a dictionary of dialogue context, task background.
+    @param k: the number of sampled demonstrations, default = 1
+    @return: a randomly chosen conversation.
+    """
+    candidate_instances = [x for x in all_convs if
+                           x['target_topic'] == instance['task_background']['target_topic']]
+
+    return random.choices(candidate_instances, k=k)
