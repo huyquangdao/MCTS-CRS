@@ -44,9 +44,11 @@ class BaseTorchDataset(TorchDataset):
                 input_features[k] = torch.as_tensor(v, device=self.device)
 
         labels = torch.LongTensor(labels).to(self.device)
-        batch['context'] = input_features
-        batch['labels'] = labels
-        return input_features
+        new_batch = {
+            "context": input_features,
+            "labels": labels
+        }
+        return new_batch
 
 
 class Dataset:
