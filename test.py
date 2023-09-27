@@ -1,6 +1,6 @@
 from dataset.durecdial import DuRecdial
 # from dyna_gym.envs.utils import generate_sys_resp, get_user_resp
-# from dataset.data_utils import convert_example_to_feature
+from dataset.data_utils import convert_example_to_feature
 from dataset.data_utils import randomly_sample_demonstrations
 
 if __name__ == '__main__':
@@ -17,4 +17,4 @@ if __name__ == '__main__':
     demons = randomly_sample_demonstrations(durecdial.train_convs, durecdial.test_instances[0])
     print(demons)
     print(durecdial.test_instances[0])
-    # convert_example_to_feature(None, durecdial.train_instances[0])
+    convert_example_to_feature(None, durecdial.train_instances[0])

@@ -14,7 +14,7 @@ class BaseTorchDataset(TorchDataset):
         self.instances = instances
         self.max_sequence_length = max_sequence_length
         self.padding_ids = padding_ids
-        self.tokenier = tokenizer
+        self.tokenizer = tokenizer
         self.goal2id = goal2id
         self.pad_to_multiple_of = pad_to_multiple_of
 
@@ -29,7 +29,7 @@ class BaseTorchDataset(TorchDataset):
         input_features = defaultdict(list)
         labels = []
         for instance in batch:
-            input_ids = convert_example_to_feature(self.tokenier, instance, self.max_sequence_length)
+            input_ids = convert_example_to_feature(self.tokenizer, instance, self.max_sequence_length)
             input_features['input_ids'].append(input_ids)
             labels.append(self.goal2id[instance['goal']])
 

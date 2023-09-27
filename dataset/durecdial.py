@@ -125,7 +125,7 @@ class DuRecdial(Dataset):
                     "task_background": copy.deepcopy(task_background)
                 }
                 instances.append(instance)
-                utts.append(utt)
+                utts.append({'role': 'assistant', 'content': utt})
                 goals.append(goal)
                 topics.append(topic)
             role = role + 1
