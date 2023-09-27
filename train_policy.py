@@ -113,7 +113,7 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    goal2id = {k: v for k, v in enumerate(dataset.goals)}
+    goal2id = {k: v for v, k in enumerate(dataset.goals)}
 
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
