@@ -9,14 +9,16 @@ from dataset.data_utils import convert_example_to_feature
 
 class BaseTorchDataset(TorchDataset):
 
-    def __init__(self, tokenizer, instances, goal2id, max_sequence_length=512, padding_ids=0, pad_to_multiple_of=True):
+    def __init__(self, tokenizer, instances, goal2id, max_sequence_length=512, padding='max_length',
+                 pad_to_multiple_of=True, device=None):
         super(BaseTorchDataset, self).__init__()
         self.instances = instances
         self.max_sequence_length = max_sequence_length
-        self.padding_ids = padding_ids
         self.tokenizer = tokenizer
         self.goal2id = goal2id
         self.pad_to_multiple_of = pad_to_multiple_of
+        self.padding = padding
+        self.device = device
 
     def __len__(self):
         return len(self.instances)
@@ -34,10 +36,14 @@ class BaseTorchDataset(TorchDataset):
             labels.append(self.goal2id[instance['goal']])
 
         input_features = self.tokenizer.pad(
-            input_features, padding=self.padding_ids, pad_to_multiple_of=self.pad_to_multiple_of,
+            input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
             max_length=self.max_sequence_length
         )
-        labels = torch.Tensor(labels)
+        for k, v in input_features.items():
+            if not isinstance(v, torch.Tensor):
+                input_features[k] = torch.as_tensor(v, device=self.device)
+
+        labels = torch.LongTensor(labels).to(self.device)
         batch['context'] = input_features
         batch['labels'] = labels
         return input_features

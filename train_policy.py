@@ -150,22 +150,21 @@ if __name__ == '__main__':
         instances=dataset.train_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-        padding_ids=tokenizer.pad_token_id
-
+        device = device,
     )
     dev_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-        padding_ids=tokenizer.pad_token_id
+        device=device
     )
     test_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-        padding_ids=tokenizer.pad_token_id
+        device=device
     )
 
     train_dataloader = DataLoader(
