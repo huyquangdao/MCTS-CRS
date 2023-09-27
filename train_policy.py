@@ -26,11 +26,16 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, help="Where to store the final model.")
     parser.add_argument("--debug", action='store_true', help="Debug mode.")
     # data
-    parser.add_argument("--dataset", type=str, required=True, help="A file containing all data.")
+    parser.add_argument("--train_data_path", type=str, required=True, help="A file containing all data.")
+    parser.add_argument("--dev_data_path", type=str, required=True, help="A file containing all data.")
+    parser.add_argument("--test_data_path", type=str, required=True, help="A file containing all data.")
     parser.add_argument('--num_workers', type=int, default=0)
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     # model
     parser.add_argument("--plm_model", type=str)
+    parser.add_argument("--tokenizer", type=str)
+    parser.add_argument("--hidden_size", type=int)
+    parser.add_argument("--lm_size", type=int)
     # optim
     parser.add_argument("--num_train_epochs", type=int, default=10, help="Total number of training epochs to perform.")
     parser.add_argument("--max_train_steps", type=int, default=None,
@@ -102,7 +107,7 @@ if __name__ == '__main__':
         os.makedirs(args.output_dir, exist_ok=True)
 
     plm = AutoModel.from_pretrained(args.plm_model)
-    tokenizer = AutoTokenizer.from_pretrained(args.plm_model)
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     model = PolicyModel(
         plm=plm,
