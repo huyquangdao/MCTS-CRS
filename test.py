@@ -1,5 +1,7 @@
 from dataset.durecdial import DuRecdial
-# from dyna_gym.envs.utils import generate_sys_resp, get_user_resp
+from dyna_gym.envs.utils import generate_sys_resp, get_user_resp, update_state
+from dataset.data_utils import randomly_sample_demonstrations
+
 # from dataset.data_utils import convert_example_to_feature
 # from dataset.data_utils import randomly_sample_demonstrations
 
@@ -13,8 +15,18 @@ if __name__ == '__main__':
                           test_data_path=test_data_path,
                           save_train_convs=True)
 
-    print(durecdial.goals)
-    # demons = randomly_sample_demonstrations(durecdial.train_convs, durecdial.test_instances[0])
-    # print(demons)
-    # print(durecdial.test_instances[0])
-    # convert_example_to_feature(None, durecdial.train_instances[0])
+    # simulate a conversation:
+    demonstrations = randomly_sample_demonstrations(
+        all_convs=durecdial.train_convs,
+        instance=durecdial.test_instances[0]
+    )
+    durecdial.test_instances[0]['demonstration'] = demonstrations[0]
+    state = durecdial.test_instances[0]
+    while True:
+        resp = generate_sys_resp(state, action='Movie recommendation')
+        user_resp = get_user_resp(state, resp)
+        print('[System]: ', resp)
+        print('[USER]: ', user_resp)
+        #update the state
+        state = update_state(state, None, resp, user_resp)
+
