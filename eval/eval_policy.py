@@ -14,7 +14,7 @@ class PolicyEvaluator:
         self.metric['count'] += logits.shape[0]
 
     def compute_acc(self, logits, labels):
-        return int(torch.eq(logits.argmax(), labels).sum())
+        return int(torch.eq(logits.argmax(-1), labels).sum())
 
     def reset_metric(self):
         self.metric['acc'] = 0
