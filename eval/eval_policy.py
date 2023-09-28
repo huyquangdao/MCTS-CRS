@@ -23,5 +23,5 @@ class PolicyEvaluator:
     def report(self):
         report = {}
         for k, v in self.metric.items():
-            report[k] = torch.tensor(v, device=self.device)[None]
+            report[k] = torch.tensor(v / self.metric['count'], device=self.device)[None]
         return report
