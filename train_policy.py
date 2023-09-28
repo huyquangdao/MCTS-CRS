@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, AutoModel
 
-from dyna_gym.models.policy import PolicyModel
+from dyna_gym.models.policy import PolicyModel, save_model
 from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
@@ -152,7 +152,7 @@ if __name__ == '__main__':
         instances=dataset.train_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-        device = device,
+        device=device,
     )
     dev_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
@@ -230,7 +230,7 @@ if __name__ == '__main__':
         model.train()
         for step, batch in enumerate(train_dataloader):
             logits = model(batch['context'])
-            loss = criterion(logits,batch['labels']) / args.gradient_accumulation_steps
+            loss = criterion(logits, batch['labels']) / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
             # optim step
@@ -281,6 +281,7 @@ if __name__ == '__main__':
         if valid_report[f'valid/{metric}'] * mode > best_metric * mode:
             best_metric = valid_report[f'valid/{metric}']
             logger.info(f'new best model with {metric}')
+            save_model(model, output_dir=os.path.join(args.output_dir, 'policy.pth'))
 
         evaluator.reset_metric()
         # test

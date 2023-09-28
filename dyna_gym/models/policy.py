@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 
 
+def save_model(model, output_dir):
+    torch.save(model.state_dict(), output_dir)
+
+
 class PolicyModel(nn.Module):
 
     def __init__(self, plm, n_goals, hidden_size, lm_size, dropout=0.5):
