@@ -69,7 +69,7 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
-    label = goal2id[instance['label']]
+    label = goal2id[instance['goal']]
 
     return input_ids, label
 
