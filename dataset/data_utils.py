@@ -112,13 +112,17 @@ def convert_example_to_feature_for_response_generation(tokenizer, instance, max_
             dialogue_str += SYSTEM_TOKEN
         dialogue_str += utt['content']
 
+    # construct the input sequence for response generation task
     input_str = f"{KNOW_TOKEN}: {knowledge_str} {GOAL_TOKEN}: {goal} {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
-    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(instance['resp']))
+    # construct the label for response generation task
+    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
     label = label[:max_target_length]
+    label = label + [tokenizer.eos_token_id]
+
     return input_ids, label
 
 
