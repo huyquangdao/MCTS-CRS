@@ -1,5 +1,6 @@
 import random
-from config.config import USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, CONTEXT_TOKEN
+from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
+    CONTEXT_TOKEN
 
 
 def convert_list_to_str(knowledge):
@@ -74,6 +75,51 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
     return input_ids, label
 
 
+def convert_example_to_feature_for_response_generation(tokenizer, instance, max_sequence_length=512,
+                                                       max_target_length=50,
+                                                       is_test=False):
+    """
+    function that convert an instance to input and labels for a response generation model.
+    @param tokenizer: a huggingface tokenizer
+    @param instance: an instance from the data.
+    @param max_sequence_length: the maximum length of the input sequence.
+    @param max_target_length: the maximum length of the target response
+    @param is_test: True if inference or False if training.
+    @return: an input sequence and its corresponding labels.
+    """
+    dialogue_context = instance['dialogue_context']
+    knowledge = instance['knowledge']
+    dialogue_str = ""
+    for utt in dialogue_context:
+        if utt['role'] == "user":
+            dialogue_str += USER_TOKEN
+        elif utt['role'] == 'assistant':
+            dialogue_str += SYSTEM_TOKEN
+        dialogue_str += utt['content']
+
+    knowledge_str = convert_list_to_str(knowledge)
+    if not is_test:
+        # ground truth goal for training the model
+        goal = instance['goal']
+    else:
+        # predicted goal for the inference step
+        goal = instance['pred_goal']
+    dialogue_str = ""
+    for utt in dialogue_context:
+        if utt['role'] == "user":
+            dialogue_str += USER_TOKEN
+        elif utt['role'] == 'assistant':
+            dialogue_str += SYSTEM_TOKEN
+        dialogue_str += utt['content']
+
+    input_str = f"{KNOW_TOKEN}: {knowledge_str} {GOAL_TOKEN}: {goal} {CONTEXT_TOKEN}: {dialogue_str}"
+    input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
+    input_ids = input_ids[-(max_sequence_length - 2):]
+    input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
+
+    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(instance['resp']))
+    label = label[:max_target_length]
+    return input_ids, label
 
 
 def randomly_sample_demonstrations(all_convs, instance, k=1):

@@ -9,7 +9,8 @@ from torch.utils.data import Dataset as TorchDataset
 class BaseTorchDataset(TorchDataset):
 
     def __init__(self, tokenizer, instances, goal2id=None, max_sequence_length=512, padding='max_length',
-                 pad_to_multiple_of=True, device=None, convert_example_to_feature=None):
+                 pad_to_multiple_of=True, device=None, convert_example_to_feature=None, max_target_length=50,
+                 is_test=False, is_gen=False):
         """
         constructor for the BaseTorchDataset Class
         @param tokenizer: an huggingface tokenizer
@@ -19,7 +20,11 @@ class BaseTorchDataset(TorchDataset):
         @param padding: type of padding
         @param pad_to_multiple_of: pad to multiple instances
         @param device: device to allocate the data, eg: cpu or gpu
-        @param convert_example_to_feature: a function that convert raw instances to corresponding inputs and labels for the model.
+        @param convert_example_to_feature: a function that convert raw instances to
+        corresponding inputs and labels for the model.
+        @param max_target_length the maximum number of the target sequence (response generation only)
+        @param is_test True if inference step False if training step
+        @param is_gen True if response generation else False
         """
         super(BaseTorchDataset, self).__init__()
         self.max_sequence_length = max_sequence_length
@@ -28,6 +33,9 @@ class BaseTorchDataset(TorchDataset):
         self.pad_to_multiple_of = pad_to_multiple_of
         self.padding = padding
         self.device = device
+        self.max_target_length = max_target_length
+        self.is_test = is_test
+        self.is_gen = is_gen
         self.instances = self.__preprocess_data(instances, convert_example_to_feature)
 
     def __len__(self):
@@ -77,8 +85,12 @@ class BaseTorchDataset(TorchDataset):
         """
         processed_instances = []
         for instance in instances:
-            input_ids, label = convert_example_to_feature(self.tokenizer, instance, self.max_sequence_length,
-                                                          self.goal2id)
+            if not self.is_gen:
+                input_ids, label = convert_example_to_feature(self.tokenizer, instance, self.max_sequence_length,
+                                                              self.goal2id)
+            else:
+                input_ids, label = convert_example_to_feature(self.tokenizer, instance, self.max_sequence_length,
+                                                              self.max_target_length, self.is_test)
             new_instance = {
                 "input_ids": input_ids,
                 "label": label
