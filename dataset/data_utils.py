@@ -74,6 +74,8 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
     return input_ids, label
 
 
+
+
 def randomly_sample_demonstrations(all_convs, instance, k=1):
     """
     function that randomly sample 1 demonstrations from the set of all training conversations.

@@ -81,7 +81,7 @@ class BaseTorchDataset(TorchDataset):
                                                           self.goal2id)
             new_instance = {
                 "input_ids": input_ids,
-                "labels": label
+                "label": label
             }
             processed_instances.append(new_instance)
         return processed_instances
