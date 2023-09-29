@@ -20,7 +20,7 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict
-
+from dataset.data_utils import convert_example_to_feature_for_goal_prediction
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -153,20 +153,23 @@ if __name__ == '__main__':
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
+        convert_example_to_feature=convert_example_to_feature_for_goal_prediction
     )
     dev_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-        device=device
+        device=device,
+        convert_example_to_feature=convert_example_to_feature_for_goal_prediction
     )
     test_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
-        device=device
+        device=device,
+        convert_example_to_feature=convert_example_to_feature_for_goal_prediction
     )
 
     train_dataloader = DataLoader(

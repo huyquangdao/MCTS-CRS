@@ -33,12 +33,13 @@ def convert_dict_to_str(profile):
     return out_str
 
 
-def convert_example_to_feature(tokenizer, instance, max_sequence_length=512):
+def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequence_length=512, goal2id=None):
     """
     function that converts an instance (example ) to a sequence of various features
     @param tokenizer: a huggingface tokenizer.
     @param instance: a dictionary which contains dialogue context, knowledge, user profile and previous planned goals.
     @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param goal2id: a dictionary that map goal to index
     @return: an input sequence which consists of knowledge , profile, path and dialogue context ids.
     """
     dialogue_context = instance['dialogue_context']
@@ -67,7 +68,10 @@ def convert_example_to_feature(tokenizer, instance, max_sequence_length=512):
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
-    return input_ids
+
+    label = goal2id[instance['label']]
+
+    return input_ids, label
 
 
 def randomly_sample_demonstrations(all_convs, instance, k=1):

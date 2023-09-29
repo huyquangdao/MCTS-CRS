@@ -1,55 +1,91 @@
 from __future__ import print_function
 from collections import defaultdict
 
-# import torch
-#
-# from torch.utils.data import Dataset as TorchDataset
-# from dataset.data_utils import convert_example_to_feature
+import torch
 
-#
-# class BaseTorchDataset(TorchDataset):
-#
-#     def __init__(self, tokenizer, instances, goal2id, max_sequence_length=512, padding='max_length',
-#                  pad_to_multiple_of=True, device=None):
-#         super(BaseTorchDataset, self).__init__()
-#         self.instances = instances
-#         self.max_sequence_length = max_sequence_length
-#         self.tokenizer = tokenizer
-#         self.goal2id = goal2id
-#         self.pad_to_multiple_of = pad_to_multiple_of
-#         self.padding = padding
-#         self.device = device
-#
-#     def __len__(self):
-#         return len(self.instances)
-#
-#     def __getitem__(self, idx):
-#         instance = self.instances[idx]
-#         return instance
-#
-#     def collate_fn(self, batch):
-#         input_features = defaultdict(list)
-#         labels = []
-#         for instance in batch:
-#             input_ids = convert_example_to_feature(self.tokenizer, instance, self.max_sequence_length)
-#             input_features['input_ids'].append(input_ids)
-#             labels.append(self.goal2id[instance['goal']])
-#
-#         input_features = self.tokenizer.pad(
-#             input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
-#             max_length=self.max_sequence_length
-#         )
-#         for k, v in input_features.items():
-#             if not isinstance(v, torch.Tensor):
-#                 input_features[k] = torch.as_tensor(v, device=self.device)
-#
-#         labels = torch.LongTensor(labels).to(self.device)
-#         new_batch = {
-#             "context": input_features,
-#             "labels": labels
-#         }
-#         return new_batch
-#
+from torch.utils.data import Dataset as TorchDataset
+
+
+class BaseTorchDataset(TorchDataset):
+
+    def __init__(self, tokenizer, instances, goal2id=None, max_sequence_length=512, padding='max_length',
+                 pad_to_multiple_of=True, device=None, convert_example_to_feature=None):
+        """
+        constructor for the BaseTorchDataset Class
+        @param tokenizer: an huggingface tokenizer
+        @param instances: a list of instances
+        @param goal2id: a dictionary which maps goal to index.
+        @param max_sequence_length: the maximum length of the input sequence.
+        @param padding: type of padding
+        @param pad_to_multiple_of: pad to multiple instances
+        @param device: device to allocate the data, eg: cpu or gpu
+        @param convert_example_to_feature: a function that convert raw instances to corresponding inputs and labels for the model.
+        """
+        super(BaseTorchDataset, self).__init__()
+        self.max_sequence_length = max_sequence_length
+        self.tokenizer = tokenizer
+        self.goal2id = goal2id
+        self.pad_to_multiple_of = pad_to_multiple_of
+        self.padding = padding
+        self.device = device
+        self.instances = self.__preprocess_data(instances, convert_example_to_feature)
+
+    def __len__(self):
+        """
+        method that returns the number of instances in the dataset.
+        @return: an integer which is the number of instances in the training dataset.
+        """
+        return len(self.instances)
+
+    def __getitem__(self, idx):
+        """
+        function that return an instance from the set of all instances.
+        @param idx: the index of the returned instances.
+        @return: an instance.
+        """
+        instance = self.instances[idx]
+        return instance
+
+    def collate_fn(self, batch):
+
+        input_features = defaultdict(list)
+        labels = []
+        for instance in batch:
+            input_features['input_ids'].append(instance['input_ids'])
+            labels.append(instance['label'])
+
+        input_features = self.tokenizer.pad(
+            input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
+            max_length=self.max_sequence_length
+        )
+        for k, v in input_features.items():
+            if not isinstance(v, torch.Tensor):
+                input_features[k] = torch.as_tensor(v, device=self.device)
+
+        labels = torch.LongTensor(labels).to(self.device)
+        new_batch = {
+            "context": input_features,
+            "labels": labels
+        }
+        return new_batch
+
+    def __preprocess_data(self, instances, convert_example_to_feature):
+        """
+        method that preprocess an data instances
+        @param instances: an instance from the data
+        @return: a processed instance which consists of input_ids and labels
+        """
+        processed_instances = []
+        for instance in instances:
+            input_ids, label = convert_example_to_feature(self.tokenizer, instance, self.max_sequence_length,
+                                                          self.goal2id)
+            new_instance = {
+                "input_ids": input_ids,
+                "labels": label
+            }
+            processed_instances.append(new_instance)
+        return processed_instances
+
 
 class Dataset:
 
