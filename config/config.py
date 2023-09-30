@@ -19,18 +19,18 @@ DURECDIAL_TARGET_GOALS = [
     "POI recommendation",
 ]
 
-DURECDIAL_GOAL2INSTRUCTIONS = {
-    'Ask about weather': "",
-    'Play music': "",
-    'Q&A': "",
-    'Music on demand': "",
-    'Movie recommendation': "",
-    'Chat about stars': "",
-    'Say goodbye': "",
-    'Music recommendation': "",
-    'Ask about date': "",
-    'Ask questions': "",
-    'Greetings': "",
-    'POI recommendation': "",
-    'Food recommendation': ""
+DURECDIALGOALS = {
+    'Ask about weather',
+    'Play music',
+    'Q&A',
+    'Music on demand',
+    'Movie recommendation',
+    'Chat about stars',
+    'Say goodbye',
+    'Music recommendation',
+    'Ask about date',
+    'Ask questions',
+    'Greetings',
+    'POI recommendation',
+    'Food recommendation',
 }

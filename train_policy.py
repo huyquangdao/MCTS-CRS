@@ -19,7 +19,7 @@ from dyna_gym.models.policy import PolicyModel, save_model
 from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
-from config.config import special_tokens_dict
+from config.config import special_tokens_dict, DURECDIALGOALS
 from dataset.data_utils import convert_example_to_feature_for_goal_prediction
 
 def parse_args():
@@ -113,7 +113,7 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    goal2id = {k: v for v, k in enumerate(dataset.goals)}
+    goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
 
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
