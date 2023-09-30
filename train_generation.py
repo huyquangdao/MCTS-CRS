@@ -19,7 +19,7 @@ from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, 
 from dyna_gym.models.policy import PolicyModel, save_model
 from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
-from eval.eval_policy import PolicyEvaluator
+from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, merge_predictions
 
@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_target_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--goal_outpath', type=int, help="max length of both encoder and decoder input.")
-
+    parser.add_argument('--max_gen_length', default=50, type=int, help="max length of both encoder and decoder input.")
     # model
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
@@ -219,6 +219,7 @@ if __name__ == '__main__':
     # lr_scheduler
     lr_scheduler = get_linear_schedule_with_warmup(optimizer, args.num_warmup_steps, args.max_train_steps)
     lr_scheduler = accelerator.prepare(lr_scheduler)
+    local_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     # training info
     logger.info("***** Running training *****")
     logger.info(f"  Num examples = {len(train_torch_dataset)}")
@@ -230,7 +231,8 @@ if __name__ == '__main__':
     # Only show the progress bar once on each machine.
     progress_bar = tqdm(range(args.max_train_steps), disable=not accelerator.is_local_main_process)
 
-    evaluator = PolicyEvaluator()
+    gen_file_path = os.path.join('log', f'gen_{local_time}.jsonl')
+    evaluator = GenerationEvaluator(tokenizer, log_file_path=gen_file_path)
 
     # save model with best metric
     metric, mode = 'loss', -1
@@ -247,7 +249,7 @@ if __name__ == '__main__':
         train_loss = []
         model.train()
         for step, batch in enumerate(train_dataloader):
-            loss = model(batch['context'], labels=batch['labels'], return_dict=True)['loss']
+            loss = model(**batch['context'], labels=batch['labels'], return_dict=True)['loss']
             loss = loss / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
@@ -278,11 +280,22 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch['context'], labels=batch['labels'], return_dict=True)
+                outputs = model(**batch['context'], labels=batch['labels'], return_dict=True)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 valid_loss.append(float(loss))
                 evaluator.evaluate(logits, batch['labels'])
+
+            gen_seqs = accelerator.unwrap_model(model).generate(
+                **batch['context'],
+                max_new_tokens=args.max_gen_length,
+                no_repeat_ngram_size=3
+            )
+            gen_resp_ids = []
+            for gen_seq in gen_seqs:
+                gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
+                gen_resp_ids.append(gen_seq)
+            evaluator.evaluate(gen_resp_ids, batch['labels'], log=accelerator.is_local_main_process)
 
         # metric
         accelerator.wait_for_everyone()
@@ -308,11 +321,22 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch['context'], labels = batch['labels'], return_dict = True)
+                outputs = model(**batch['context'], labels = batch['labels'], return_dict = True)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 test_loss.append(float(loss))
                 evaluator.evaluate(logits, batch['labels'])
+
+            gen_seqs = accelerator.unwrap_model(model).generate(
+                **batch['context'],
+                max_new_tokens=args.max_gen_length,
+                no_repeat_ngram_size=3
+            )
+            gen_resp_ids = []
+            for gen_seq in gen_seqs:
+                gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
+                gen_resp_ids.append(gen_seq)
+            evaluator.evaluate(gen_resp_ids, batch['labels'], log=accelerator.is_local_main_process)
 
         # metric
         accelerator.wait_for_everyone()

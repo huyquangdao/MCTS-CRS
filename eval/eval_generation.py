@@ -5,7 +5,7 @@ from nltk import ngrams
 from nltk.translate.bleu_score import sentence_bleu
 
 
-class ConvEvaluator:
+class GenerationEvaluator:
     def __init__(self, tokenizer, log_file_path):
         self.tokenizer = tokenizer
 
