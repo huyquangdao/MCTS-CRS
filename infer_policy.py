@@ -22,6 +22,7 @@ from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_policy_results
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=42, help="A seed for reproducible training.")
@@ -41,6 +42,14 @@ def parse_args():
 
     parser.add_argument("--per_device_eval_batch_size", type=int, default=4,
                         help="Batch size (per device) for the evaluation dataloader.")
+
+    # wandb
+    parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
+    parser.add_argument("--entity", type=str, help="wandb username")
+    parser.add_argument("--project", type=str, help="wandb exp project")
+    parser.add_argument("--name", type=str, help="wandb exp name")
+    parser.add_argument("--log_all", action="store_true", help="log in all processes, otherwise only in rank0")
+
     args = parser.parse_args()
     return args
 
@@ -153,7 +162,7 @@ if __name__ == '__main__':
         with torch.no_grad():
             logits = model(batch['context'])
             evaluator.evaluate(logits, batch['labels'])
-            pred_classes = logits.argmax(dim = -1)
+            pred_classes = logits.argmax(dim=-1)
             pred_classes = pred_classes.detach().cpu().numpy().tolist()
             valid_preds.extend(pred_classes)
 
