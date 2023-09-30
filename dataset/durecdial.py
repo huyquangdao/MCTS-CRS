@@ -49,22 +49,22 @@ class DuRecdial(Dataset):
         new_data = []
         for line in data:
             line = json.loads(line)
-            ### each line is a conversation
-            ### in each conversation we have user_profile, goal_sequencs, topics_sequences and conversations.
+            # each line is a conversation
+            # in each conversation we have user_profile, goal_sequencs, topics_sequences and conversations.
             scenario = line['goal']
             steps = scenario.split('-->')
-            ### get the target goal and target topic
+            # get the target goal and target topic
             i = len(steps) - 1
             while i >= 0 and ("Say goodbye" in steps[i] or 'recommendation' not in steps[i]):
                 i = i - 1
-            ## we can not find the target recommendation goal
+            # we can not find the target recommendation goal
             if i < 0:
                 continue
-            ### preprocessing to get the target goal and the target topic
+            # preprocessing to get the target goal and the target topic
             target_goal = re.sub(r'\(.*?\)', '', steps[i]).replace(')', '').strip()
             target_topic = steps[i].replace(target_goal, "")[1:-1].strip()
             target_goal = re.sub(r'[0-9]', '', target_goal).replace("[]", '').strip()
-            ### if the target goal is not in our considered target list.            
+            # if the target goal is not in our considered target list.
             assert target_goal in self.target_goals
             line['target_goal'] = target_goal
             line['target_topic'] = target_topic
@@ -91,28 +91,28 @@ class DuRecdial(Dataset):
         utts = []
         goals = []
         topics = []
-        ### even for user, and odd for agent.
+        # even for user, and odd for agent.
         role = 0
         if conv['goal_type_list'][0] == "Greetings":
-            ### agent starts the conversation.
+            # agent starts the conversation.
             role = -1
         # print(conv.keys())
         # print(conv['goal_topic_list'])
         for (utt, goal, topic, knowledge) in list(
                 zip(conv['conversation'], conv['goal_type_list'], conv['goal_topic_list'], conv['knowledge'])):
-            #### user responses.
+            # user responses.
             self.goals.append(goal)
             self.topics.append(topic)
             if role % 2 == 0:
                 utts.append({'role': 'user', 'content': utt})
-            ### the agent starts the conversaiton.
+            # the agent starts the conversaiton.
             elif role == -1:
                 utts.append({'role': 'assistant', 'content': utt})
                 goals.append(goal)
                 topics.append(topic)
-            ### system response
+            # system response
             else:
-                #### constructing an instance.
+                # constructing an instance.
                 instance = {
                     "conv_id": conv_id,
                     "response": utt,

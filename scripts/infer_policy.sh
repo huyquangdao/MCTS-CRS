@@ -5,6 +5,7 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 infer_policy.py \
     --dev_data_path data/DuRecDial/data/en_dev.txt \
     --test_data_path data/DuRecDial/data/en_test.txt \
     --tokenizer roberta-base \
+    --max_sequence_length 512 \
     --plm_model roberta-base \
     --hidden_size 128 \
     --lm_size 768 \
