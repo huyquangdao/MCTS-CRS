@@ -42,7 +42,6 @@ def parse_args():
 
     parser.add_argument("--per_device_eval_batch_size", type=int, default=4,
                         help="Batch size (per device) for the evaluation dataloader.")
-
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
     parser.add_argument("--entity", type=str, help="wandb username")
@@ -103,6 +102,7 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
     goal2id = {k: v for v, k in enumerate(dataset.goals)}
+
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
@@ -146,12 +146,12 @@ if __name__ == '__main__':
         num_workers=args.num_workers,
         collate_fn=test_torch_dataset.collate_fn,
     )
-
     model, valid_dataloader, test_dataloader = accelerator.prepare(model, valid_dataloader, test_dataloader)
+
     # training info
     logger.info("***** Running training *****")
     logger.info(f"  Num dev examples = {len(dev_torch_dataset)}")
-    logger.info(f"  Num test examples = {len(dev_torch_dataset)}")
+    logger.info(f"  Num test examples = {len(test_torch_dataset)}")
     # Only show the progress bar once on each machine.
     evaluator = PolicyEvaluator()
 
@@ -200,6 +200,6 @@ if __name__ == '__main__':
     evaluator.reset_metric()
 
     # save results
-    save_policy_results(valid_preds, os.path.join(args.output_dir, "dev_policy.txt"))
-    save_policy_results(test_preds, os.path.join(args.output_dir, "test_policy.txt"))
+    save_policy_results(valid_preds, os.path.join(args.output_dir, "dev_policy.txt"), goal2id)
+    save_policy_results(test_preds, os.path.join(args.output_dir, "test_policy.txt"), goal2id)
     logger.info('Save predictions successfully')
