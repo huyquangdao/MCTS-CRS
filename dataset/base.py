@@ -4,6 +4,10 @@ from collections import defaultdict
 import torch
 
 from torch.utils.data import Dataset as TorchDataset
+from torch.nn.utils.rnn import pad_sequence
+
+IGNORE_INDEX = -100
+
 
 
 class BaseTorchDataset(TorchDataset):
@@ -62,15 +66,26 @@ class BaseTorchDataset(TorchDataset):
             input_features['input_ids'].append(instance['input_ids'])
             labels.append(instance['label'])
 
+        # padding the input features
         input_features = self.tokenizer.pad(
             input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
             max_length=self.max_sequence_length
         )
+        # convert features to torch tensors
         for k, v in input_features.items():
             if not isinstance(v, torch.Tensor):
                 input_features[k] = torch.as_tensor(v, device=self.device)
 
-        labels = torch.LongTensor(labels).to(self.device)
+        # labels for response generation task
+        if self.is_gen:
+            labels = pad_sequence(
+                [torch.tensor(label, dtype=torch.long) for label in labels],
+                batch_first=self.batch_first, padding_value=IGNORE_INDEX)
+            labels = labels.to(self.device)
+        # labels for goal prediction task
+        else:
+            labels = torch.LongTensor(labels).to(self.device)
+
         new_batch = {
             "context": input_features,
             "labels": labels
