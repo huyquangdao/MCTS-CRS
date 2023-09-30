@@ -169,4 +169,10 @@ class Dataset:
         return data
 
     def construct_instances(self, conv_id, conv):
+        """
+        method that converts a conversation to a list of inputs and their corresponding outputs.
+        @param conv_id: the index of the conversation
+        @param conv: the conversation
+        @return: a list of instances
+        """
         raise NotImplementedError()

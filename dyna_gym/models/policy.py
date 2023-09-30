@@ -5,6 +5,10 @@ import torch.nn as nn
 def save_model(model, output_dir):
     torch.save(model.state_dict(), output_dir)
 
+def load_model(model, checkpoint_path):
+    model.load_state_dict(torch.load(checkpoint_path))
+    return model
+
 
 class PolicyModel(nn.Module):
 

@@ -140,3 +140,47 @@ def randomly_sample_demonstrations(all_convs, instance, k=1):
                            x['target_topic'] == instance['task_background']['target_topic']]
 
     return random.choices(candidate_instances, k=k)
+
+
+def save_policy_results(policy_preds, output_path, goal2id=None):
+    """
+    function that save the results of goal prediction task
+    @param policy_preds: a list of predicted goals (in form of goal ids)
+    @param output_path: the path to the saved file
+    @param goal2id: the dictionary that convert goal to index
+    @return: None
+    """
+    id2goal = {v: k for k, v in goal2id.items()}
+    with open(output_path, 'w') as f:
+        for pred in policy_preds:
+            pred_text = id2goal[pred]
+            f.write(pred_text + '\n')
+
+
+def load_policy_results(output_path):
+    """
+    function that loads predicted goals from a file
+    @param output_path: the file which contains the goal predictions
+    @return: a list of predicted goals
+    """
+    pred_goals = []
+    with open(output_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            pred_goals.append(line)
+    return pred_goals
+
+
+def merge_predictions(instances, policy_preds):
+    """
+    function that merge policy predictions with data instances.
+    @param instances: a list of instances
+    @param policy_preds: a list of predicted goals
+    @return: a list of new instances.
+    """
+    new_instances = []
+    for instance, pred_goal in list(zip(instances, policy_preds)):
+        instance['pred_goal'] = pred_goal
+        new_instances.append(instances)
+    return new_instances

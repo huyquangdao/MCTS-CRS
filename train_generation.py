@@ -21,7 +21,7 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict
-from dataset.data_utils import convert_example_to_feature_for_response_generation
+from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, merge_predictions
 
 
 def parse_args():
@@ -36,6 +36,8 @@ def parse_args():
     parser.add_argument('--num_workers', type=int, default=0)
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_target_length', type=int, help="max length of both encoder and decoder input.")
+    parser.add_argument('--goal_outpath', type=int, help="max length of both encoder and decoder input.")
+
     # model
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
@@ -73,7 +75,7 @@ if __name__ == '__main__':
     config = vars(args)
 
     # Initialize the accelerator. We will let the accelerator handle device placement for us.
-    accelerator = Accelerator(device_placement=False, fp16=args.fp16)
+    accelerator = Accelerator(device_placement=False)
     device = accelerator.device
 
     # Make one log on every process with the configuration for debugging.
@@ -117,6 +119,14 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
     goal2id = {k: v for v, k in enumerate(dataset.goals)}
+
+    # load goal predictions
+    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_policy.txt"))
+    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_policy.txt"))
+
+    # merge predictions
+    dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
+    dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
 
     # t5 as the response generation model
     model = T5ForConditionalGeneration.from_pretrained(args.plm_model)
