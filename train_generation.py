@@ -21,7 +21,8 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
-from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, merge_predictions
+from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, \
+    merge_predictions
 
 
 def parse_args():
@@ -284,7 +285,6 @@ if __name__ == '__main__':
                 loss = outputs['loss']
                 logits = outputs['logits']
                 valid_loss.append(float(loss))
-                evaluator.evaluate(logits, batch['labels'])
 
             gen_seqs = accelerator.unwrap_model(model).generate(
                 **batch['context'],
@@ -321,11 +321,10 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(**batch['context'], labels = batch['labels'], return_dict = True)
+                outputs = model(**batch['context'], labels=batch['labels'], return_dict=True)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 test_loss.append(float(loss))
-                evaluator.evaluate(logits, batch['labels'])
 
             gen_seqs = accelerator.unwrap_model(model).generate(
                 **batch['context'],
