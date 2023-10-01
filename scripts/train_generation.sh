@@ -12,9 +12,9 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 train_generation.py \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 32 \
     --gradient_accumulation_steps 1 \
-    --num_warmup_steps 530   \
+    --num_warmup_steps 6345   \
     --max_sequence_length 512 \
-    --max_target_length 50 \
+    --max_target_length 80 \
     --learning_rate 5e-5 \
     --goal_outpath ./policy_model/ \
     --output_dir ./generation_model/ \
