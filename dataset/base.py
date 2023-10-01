@@ -80,7 +80,7 @@ class BaseTorchDataset(TorchDataset):
         if self.is_gen:
             labels = pad_sequence(
                 [torch.tensor(label, dtype=torch.long) for label in labels],
-                batch_first=self.batch_first, padding_value=IGNORE_INDEX)
+                batch_first=True, padding_value=IGNORE_INDEX)
             labels = labels.to(self.device)
         # labels for goal prediction task
         else:
