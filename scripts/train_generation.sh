@@ -16,5 +16,6 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 train_generation.py \
     --max_sequence_length 512 \
     --max_target_length 50 \
     --learning_rate 5e-5 \
+    --goal_outpath ./policy_model/ \
     --output_dir ./generation_model/ \
     --seed 22

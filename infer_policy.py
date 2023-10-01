@@ -102,7 +102,6 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
     goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
-
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
