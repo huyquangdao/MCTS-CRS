@@ -295,7 +295,12 @@ if __name__ == '__main__':
             for gen_seq in gen_seqs:
                 gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
                 gen_resp_ids.append(gen_seq)
-            evaluator.evaluate(gen_resp_ids, batch['labels'], log=accelerator.is_local_main_process)
+
+            label_resp_ids = []
+            for label_seq in batch['labels']:
+                label_seq = [token_id for token_id in label_seq if token_id != -100]
+                label_resp_ids.append(label_seq)
+            evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
         # metric
         accelerator.wait_for_everyone()
@@ -335,7 +340,12 @@ if __name__ == '__main__':
             for gen_seq in gen_seqs:
                 gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
                 gen_resp_ids.append(gen_seq)
-            evaluator.evaluate(gen_resp_ids, batch['labels'], log=accelerator.is_local_main_process)
+
+            label_resp_ids = []
+            for label_seq in batch['labels']:
+                label_seq = [token_id for token_id in label_seq if token_id != -100]
+                label_resp_ids.append(label_seq)
+            evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
         # metric
         accelerator.wait_for_everyone()
