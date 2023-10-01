@@ -179,8 +179,6 @@ def merge_predictions(instances, policy_preds):
     @param policy_preds: a list of predicted goals
     @return: a list of new instances.
     """
-    new_instances = []
     for instance, pred_goal in list(zip(instances, policy_preds)):
         instance['pred_goal'] = pred_goal
-        new_instances.append(instances)
-    return new_instances
+    return instances
