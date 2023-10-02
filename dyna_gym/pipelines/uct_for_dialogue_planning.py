@@ -40,7 +40,7 @@ def uct_for_dialogue_planning_pipeline(
     reward_func_ = reward_func
     env = gym.make(
         'DialogueEnv-v0',
-        terminal_token=terminal_act,
+        terminal_act=terminal_act,
         horizon=horizon,
         reward_func=reward_func_,
     )

@@ -69,3 +69,8 @@ register(
     id='LanguageEnv-v0',
     entry_point='dyna_gym.envs:LanguageEnv',
 )
+
+register(
+    id='DialogueEnv-v0',
+    entry_point='dyna_gym.envs:DialogueEnv',
+)
