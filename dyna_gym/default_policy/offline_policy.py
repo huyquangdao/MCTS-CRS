@@ -49,7 +49,7 @@ class OfflinePolicy(DefaultPolicy):
         # convert features to torch tensors
         for k, v in input_features.items():
             if not isinstance(v, torch.Tensor):
-                input_features[k] = torch.as_tensor(v)
+                input_features[k] = torch.as_tensor(v).unsqueeze(0)
 
         # compute policy with offline policy model.
         logits = self.policy_model(input_features)
