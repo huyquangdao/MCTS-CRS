@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 import gym
 import torch
@@ -33,12 +34,16 @@ class OfflinePolicy(DefaultPolicy):
 
     def get_top_k_tokens(self, state, k=1):
 
+        input_features = defaultdict(list)
         # convert state to input features
         input_ids, _ = convert_example_to_feature_for_goal_prediction(self.tokenizer, state, self.max_sequence_length,
                                                                       self.goal2id)
+
+        input_features['input_ids'] = input_ids
+
         # padding the input features
         input_features = self.tokenizer.pad(
-            [input_ids], padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
+            input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
             max_length=self.max_sequence_length
         )
         # convert features to torch tensors
