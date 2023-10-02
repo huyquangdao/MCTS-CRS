@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--rollouts', type=int, default=20, help="number of rollout in MCT")
     parser.add_argument('--width', type=int, default=3, help="abc")
     parser.add_argument('--gamma', type=float, default=1., help="abc")
-    parser.add_argument('--alg', type=str, default='p-uct', help="criterion for the selection step")
+    parser.add_argument('--alg', type=str, default='p_uct', help="criterion for the selection step")
     parser.add_argument('--model_path', type=str, help="criterion for the selection step")
     # model
     parser.add_argument("--plm_model", type=str)

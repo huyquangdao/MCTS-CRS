@@ -7,7 +7,7 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 examples/uct_dialogue_plann
     --tokenizer roberta-base \
     --plm_model roberta-base \
     --rollouts 20 \
-    --alg p-uct \
+    --alg p_uct \
     --hidden_size 128 \
     --lm_size 768 \
     --horizon 5 \
