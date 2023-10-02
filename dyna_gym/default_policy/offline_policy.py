@@ -32,7 +32,7 @@ class OfflinePolicy(DefaultPolicy):
         self.generate_args = generation_args
         self.goal2id = goal2id
 
-    def get_top_k_tokens(self, state, k=1):
+    def get_top_k_tokens(self, state, top_k=3):
 
         input_features = defaultdict(list)
         # convert state to input features
@@ -55,7 +55,7 @@ class OfflinePolicy(DefaultPolicy):
         logits = self.policy_model(input_features)
 
         # compute top-k predictions
-        topk_probs, topk_indices = torch.topk(logits, k, sorted=True)
+        topk_probs, topk_indices = torch.topk(logits, top_k, sorted=True)
         topk_probs = topk_probs.tolist()
         topk_indices = topk_indices.tolist()
 
