@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     plm_model = args.plm_model
     model_path = args.model_path
-    model_name = 'policy_model.pth'
+    model_name = 'policy.pth'
     lm_size = args.lm_size
     hidden_size = args.hidden_size
 
