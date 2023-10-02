@@ -128,7 +128,7 @@ if __name__ == '__main__':
     dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
 
     # t5 as the response generation model
-    model = T5ForConditionalGeneration.from_pretrained(args.plm_model)
+    model = BartForConditionalGeneration.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))

@@ -4,8 +4,8 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 train_generation.py \
     --train_data_path data/DuRecDial/data/en_train.txt \
     --dev_data_path data/DuRecDial/data/en_dev.txt \
     --test_data_path data/DuRecDial/data/en_test.txt \
-    --tokenizer t5-small \
-    --plm_model t5-small \
+    --tokenizer facebook/bart-base \
+    --plm_model facebook/bart-base \
     --num_train_epochs 5 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 32 \
