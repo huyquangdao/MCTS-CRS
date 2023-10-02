@@ -44,6 +44,7 @@ def uct_for_dialogue_planning_pipeline(
         terminal_act=terminal_act,
         horizon=horizon,
         reward_func=reward_func_,
+        goal2id=goal2id
     )
 
     default_policy = OfflinePolicy(

@@ -15,7 +15,7 @@ class DialogueEnv(gym.Env):
     Terminal state: the program reaches the maximum length or the terminal token is generated.
     """
 
-    def __init__(self, terminal_act, horizon, reward_func):
+    def __init__(self, terminal_act, horizon, reward_func, goal2id):
         """
         Args:
             terminal_token: The token for the terminal action
@@ -24,6 +24,8 @@ class DialogueEnv(gym.Env):
         self.terminal_act = terminal_act
         self.horizon = horizon
         self.get_reward = reward_func
+        self.goal2id = goal2id
+        self.id2goal = {v: k for k, v in self.goal2id.items()}
 
     def reset(self, state):
         self.state = state
@@ -41,6 +43,7 @@ class DialogueEnv(gym.Env):
         """
         # generate a response (which can be either user or system response)
         # given the current state and the chosen action.
+        action = self.id2goal[action]
         resp = generate_sys_resp(state, action)
 
         if action == self.terminal_act or len(state['dialogue_context']) > self.horizon:
