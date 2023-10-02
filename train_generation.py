@@ -42,8 +42,6 @@ def parse_args():
     # model
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
-    parser.add_argument("--hidden_size", type=int)
-    parser.add_argument("--lm_size", type=int)
     # optim
     parser.add_argument("--num_train_epochs", type=int, default=10, help="Total number of training epochs to perform.")
     parser.add_argument("--max_train_steps", type=int, default=None,
