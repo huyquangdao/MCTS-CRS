@@ -99,6 +99,7 @@ if __name__ == '__main__':
         horizon=args.horizon,
         reward_func=reward_func,
         uct_args=uct_args,
+        goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         model_generation_args=model_generation_args,
         should_plot_tree=True,  # plot the tree after generation

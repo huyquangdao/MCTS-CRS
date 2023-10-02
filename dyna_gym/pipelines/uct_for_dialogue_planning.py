@@ -19,6 +19,7 @@ def uct_for_dialogue_planning_pipeline(
         reward_func: Callable = None,
         uct_args: dict = {},
         model_generation_args: dict = {},
+        goal2id:dict = {},
         should_plot_tree: bool = False,
         reward_func_input_is_state: bool = False,
 ) -> Callable:
@@ -52,6 +53,7 @@ def uct_for_dialogue_planning_pipeline(
         tokenizer=tokenizer,
         max_sequence_length=max_sequence_length,
         generation_args=model_generation_args,
+        goal2id=goal2id
     )
 
     agent = uct.UCT(

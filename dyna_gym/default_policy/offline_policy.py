@@ -19,6 +19,7 @@ class OfflinePolicy(DefaultPolicy):
             max_sequence_length = 512,
             padding='max_length',
             pad_to_multiple_of=True,
+            goal2id=None,
             generation_args: dict = {},
     ):
         super().__init__(env, horizon)
@@ -28,12 +29,13 @@ class OfflinePolicy(DefaultPolicy):
         self.pad_to_multiple_of = pad_to_multiple_of
         self.max_sequence_length = max_sequence_length
         self.generate_args = generation_args
+        self.goal2id = goal2id
 
     def get_top_k_tokens(self, state, k=1):
 
         # convert state to input features
         input_ids, _ = convert_example_to_feature_for_goal_prediction(self.tokenizer, state, self.max_sequence_length,
-                                                                      None)
+                                                                      self.goal2id)
         # padding the input features
         input_features = self.tokenizer.pad(
             [input_ids], padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
