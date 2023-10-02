@@ -106,7 +106,8 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
         current_state = state
 
         # do not have any default policy
-        if ag.default_policy is None:
+        # if ag.default_policy is None:
+        if True:
             t = 0
             estimate = 0
             while (not terminal) and (t < ag.horizon):
