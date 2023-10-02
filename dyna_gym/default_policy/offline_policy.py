@@ -54,8 +54,11 @@ class OfflinePolicy(DefaultPolicy):
         # compute policy with offline policy model.
         logits = self.policy_model(input_features)
 
+        # convert logits to probabilities
+        all_probs = torch.softmax(logits, dim=-1)
+
         # compute top-k predictions
-        topk_probs, topk_indices = torch.topk(logits, top_k, sorted=True)
+        topk_probs, topk_indices = torch.topk(all_probs, top_k, sorted=True)
         topk_probs = topk_probs.tolist()
         topk_indices = topk_indices.tolist()
 
