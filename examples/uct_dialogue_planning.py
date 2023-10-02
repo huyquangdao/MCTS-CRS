@@ -3,7 +3,7 @@ import argparse
 
 import transformers
 from transformers import pipeline
-from Transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer
 
 from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
