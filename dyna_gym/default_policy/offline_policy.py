@@ -33,7 +33,13 @@ class OfflinePolicy(DefaultPolicy):
         self.goal2id = goal2id
 
     def get_top_k_tokens(self, state, top_k=3):
-
+        """
+        method that get top-k predictions based on some certain policy
+        currently implememented based on the offline planning policy
+        @param state: the current state of the env
+        @param top_k: number of predictions.
+        @return: top_k indices and top_k probabilities
+        """
         input_features = defaultdict(list)
         # convert state to input features
         input_ids, _ = convert_example_to_feature_for_goal_prediction(self.tokenizer, state, self.max_sequence_length,
@@ -62,7 +68,7 @@ class OfflinePolicy(DefaultPolicy):
         topk_probs = topk_probs.tolist()
         topk_indices = topk_indices.tolist()
 
-        return topk_indices, topk_probs
+        return topk_indices[0], topk_probs[0]
 
     def get_predicted_sequence(self, state, horizon: int = None):
         pass
