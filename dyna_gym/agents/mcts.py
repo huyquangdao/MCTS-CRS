@@ -55,25 +55,26 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
         assert root.state == env.state
     else:
         # create an empty tree
-        root = DecisionNode(None, env.state, ag.action_space.copy(), done, default_policy=ag.default_policy, id=decision_node_num)
+        root = DecisionNode(None, env.state, ag.action_space.copy(), done, default_policy=ag.default_policy,
+                            id=decision_node_num)
         decision_node_num += 1
 
     for _ in tqdm(range(ag.rollouts), desc="Rolling out", leave=False):
         if term_cond is not None and term_cond():
             break
-        rewards = [] # Rewards collected along the tree for the current rollout
-        node = root # Current node
+        rewards = []  # Rewards collected along the tree for the current rollout
+        node = root  # Current node
         terminal = done
 
         # Selection
         select = True
         while select:
-            if type(node) == DecisionNode: # DecisionNode
+            if type(node) == DecisionNode:  # DecisionNode
                 if node.is_terminal:
-                    select = False # Selected a terminal DecisionNode
+                    select = False  # Selected a terminal DecisionNode
                 else:
-                    node = tree_policy(node.children) # Move down the tree, node is now a ChanceNode
-            else: # ChanceNode
+                    node = tree_policy(node.children)  # Move down the tree, node is now a ChanceNode
+            else:  # ChanceNode
                 # Given s, a, sample s' ~ p(s'|s,a), also get the reward r(s,a,s') and whether s' is terminal
                 state_p, reward, terminal = env.transition(node.parent.state, node.action, ag.is_model_dynamic)
                 rewards.append(reward)
@@ -91,25 +92,27 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
                 if new_state:
                     # Selected a node for expansion
                     select = False
-
                     # Expansion to create a new DecisionNode
-                    new_node = DecisionNode(node, state_p, ag.action_space.copy(), terminal, default_policy=ag.default_policy, id=decision_node_num)
+                    new_node = DecisionNode(node, state_p, ag.action_space.copy(), terminal,
+                                            default_policy=ag.default_policy, id=decision_node_num)
                     node.children.append(new_node)
                     decision_node_num += 1
                     node = node.children[-1]
 
         # Evaluation
         # now `rewards` collected all rewards in the ChanceNodes above this node
-        assert(type(node) == DecisionNode)
+        assert (type(node) == DecisionNode)
         state = node.state
         current_state = state
+
+        # do not have any default policy
         if ag.default_policy is None:
             t = 0
             estimate = 0
             while (not terminal) and (t < ag.horizon):
                 action = env.action_space.sample()
                 state, reward, terminal = env.transition(state, action, ag.is_model_dynamic)
-                estimate += reward * (ag.gamma**t)
+                estimate += reward * (ag.gamma ** t)
                 t += 1
         else:
             if not node.is_terminal:
@@ -135,7 +138,7 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
         # Backpropagation
         node.visits += 1
         node = node.parent
-        assert(type(node) == ChanceNode)
+        assert (type(node) == ChanceNode)
         while node:
             if len(rewards) != 0:
                 estimate = rewards.pop() + ag.gamma * estimate
@@ -143,7 +146,7 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
             node.parent.visits += 1
             node = node.parent.parent
 
-        # should finish backpropagating all the rewards
+        # should finish backpro-pagating all the rewards
         assert len(rewards) == 0
 
     return max(root.children, key=lambda n: chance_node_value(n, mode=ts_mode)).action, root
@@ -156,14 +159,15 @@ class DecisionNode:
     Args:
         default_policy: default policy, used to prioritize and filter possible actions
     """
+
     def __init__(self, parent, state, possible_actions=[], is_terminal=False, default_policy=None, id=None):
         self.id = id
         self.parent = parent
         self.state = state
         self.is_terminal = is_terminal
-        if self.parent is None: # Root node
+        if self.parent is None:  # Root node
             self.depth = 0
-        else: # Non root node
+        else:  # Non root node
             self.depth = parent.depth + 1
         if default_policy is None:
             self.possible_actions = possible_actions
@@ -198,12 +202,13 @@ class ChanceNode:
     Chance node class, labelled by a state-action pair
     The state is accessed via the parent attribute
     """
+
     def __init__(self, parent, action_and_score):
         self.parent = parent
         self.action = action_and_score[0]
         self.depth = parent.depth
         self.children = []
-        self.prob = action_and_score[1] # the probability that this action should be token, provided by default policy
+        self.prob = action_and_score[1]  # the probability that this action should be token, provided by default policy
         self.sampled_returns = []
 
     def expanded(self):
@@ -214,6 +219,7 @@ class MCTS(object):
     """
     MCTS agent
     """
+
     def __init__(self, action_space, rollouts=100, horizon=100, gamma=0.9, is_model_dynamic=True, default_policy=None):
         if type(action_space) == spaces.discrete.Discrete:
             self.action_space = list(combinations(action_space))

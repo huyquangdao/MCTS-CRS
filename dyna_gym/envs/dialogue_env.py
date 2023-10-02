@@ -1,7 +1,8 @@
 from collections import OrderedDict
 import gym
 import torch
-from dyna_gym.envs.utils import generate_resp, update_state
+from dyna_gym.envs.utils import generate_sys_resp, get_user_resp, update_state
+
 
 class DialogueEnv(gym.Env):
     """
@@ -13,6 +14,7 @@ class DialogueEnv(gym.Env):
     Reward: an external function that evaluates a state (pass rate for programs, alignment score for natural language, etc.)
     Terminal state: the program reaches the maximum length or the terminal token is generated.
     """
+
     def __init__(self, terminal_act, horizon, reward_func):
         """
         Args:
@@ -37,21 +39,26 @@ class DialogueEnv(gym.Env):
         Returns:
             _type_: next state, action, reward and flag which indicates whether we terminate the process.
         """
-        ### generate a response (which can be either user or system response) given the current state and the chosen action.
-        resp = generate_resp(state, action)
-        if action == self.terminal_act:
+        # generate a response (which can be either user or system response)
+        # given the current state and the chosen action.
+        resp = generate_sys_resp(state, action)
+
+        if action == self.terminal_act or len(state['dialogue_context']) > self.horizon:
             # either the text finishes, or the state reaches the maximum length
             done = True
         else:
             done = False
 
         if done:
-            reward = self.get_reward(resp)
+            reward = self.get_reward(resp, self.state['task_background']['target_topic'])
         else:
             reward = 0  # no intermediate reward
-        
-        ### generate an user response and update the current state.
-        new_state = update_state(state, action, resp)
+
+        # generate the corresponding user response using a simulator
+        user_resp = get_user_resp(state, resp)
+
+        # update the current state.
+        new_state = update_state(state, action, resp, user_resp)
         return new_state, reward, done
 
     def step(self, action):
@@ -59,5 +66,5 @@ class DialogueEnv(gym.Env):
         return self.state, reward, done, {}
 
     def equality_operator(self, s1, s2):
-        # s1 and s2 are two tensors
-        return all(torch.equal(x1, x2) for x1, x2 in zip(s1, s2))
+        # s1 and s2 are dictionaries
+        return s1 == s2

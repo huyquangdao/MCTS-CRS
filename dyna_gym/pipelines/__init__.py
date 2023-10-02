@@ -1,1 +1,2 @@
 from dyna_gym.pipelines.uct_for_hf_transformer import uct_for_hf_transformer_pipeline
+from dyna_gym.pipelines.uct_for_dialogue_planning import uct_for_dialogue_planning_pipeline

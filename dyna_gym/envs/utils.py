@@ -146,3 +146,17 @@ def update_state(state, action, sys_response, user_response):
     )
     new_state['pre_goals'].append(action)
     return new_state
+
+
+def simulate_conversation(state, horizon=5):
+    """
+    Simulate a conversation starting from the given state
+    @param state: the current state of the conversation
+    @param horizon the maximum of turns in the simulated conversation
+    @return: an ended conversation which starts from the input state.
+    """
+    is_terminal = False
+    i = 0
+    while not is_terminal or i < horizon:
+        system_resp = get_user_resp(state)
+
