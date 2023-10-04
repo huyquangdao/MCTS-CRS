@@ -16,5 +16,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 examples/uct_dialogue_plann
     --max_sequence_length 512 \
     --max_gen_length 50 \
     --policy_model_path ./policy_model/ \
-    --generation_model_path ./generation_model/
+    --generation_model_path ./generation_model/ \
     --seed 22
