@@ -86,7 +86,7 @@ if __name__ == '__main__':
         save_train_convs=True  # for demonstration retrieval
     )
     # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
-    goal2id = load_binary_file(os.path.join(policy_model_path,"goal2id.pkl"))
+    goal2id = load_binary_file(os.path.join(policy_model_path, "goal2id.pkl"))
 
     # create and load the weights for policy model
     policy_plm = AutoModel.from_pretrained(plm_policy_model)
