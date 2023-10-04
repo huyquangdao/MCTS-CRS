@@ -66,6 +66,8 @@ class UCT(object):
         self.ts_mode = ts_mode
         self.reuse_tree = reuse_tree
 
+        self.opt_act = None
+
         act_selection_criteria = {
             'uct': self.ucb,
             'p_uct': self.p_ucb,
@@ -128,4 +130,5 @@ class UCT(object):
     def act(self, env, done, term_cond=None):
         root = self.root if self.reuse_tree else None
         opt_act, self.root = mcts.mcts_procedure(self, self.tree_policy, env, done, root=root, term_cond=term_cond)
+        self.opt_act = opt_act
         return opt_act

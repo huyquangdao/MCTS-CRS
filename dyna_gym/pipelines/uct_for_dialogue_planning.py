@@ -73,6 +73,8 @@ def uct_for_dialogue_planning_pipeline(
         **uct_args
     )
 
+    id2goal = {v:k for k,v in goal2id.items()}
+
     # Run
     def generate(initial_state):
         env.reset(initial_state)
