@@ -3,6 +3,7 @@ import copy
 
 import openai
 import torch
+from torch.nn.utils.rnn import pad_sequence
 
 from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert_example_to_feature_for_goal_prediction, \
     convert_example_to_feature_for_response_generation
@@ -10,6 +11,7 @@ from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert
 API_KEY = ""
 MODEL = "gpt-3.5-turbo"
 openai.api_key = API_KEY
+IGNORE_INDEX = -100
 
 
 def reformat_demonstration(demonstration, is_agent_start=False):
@@ -161,6 +163,49 @@ def check_terminated_condition(system_resp, target):
     return target.lower() in system_resp
 
 
+def generate_sys_response_with_plm(generation_model, tokenizer, action, state, max_sequence_length, max_gen_length=50,
+                                   pad_to_multiple_of=True, padding='max_length'):
+    # convert state to input feature
+    input_features = defaultdict(list)
+
+    # assign the predicted action to the input state
+    state['prev_goal'] = action
+
+    # convert state to input features
+    input_ids, _ = convert_example_to_feature_for_response_generation(tokenizer=tokenizer, instance=state,
+                                                                      max_sequence_length=max_sequence_length,
+                                                                      is_test=True)
+    input_features['input_ids'] = input_ids
+    # padding the input features
+    input_features = tokenizer.pad(
+        input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+        max_length=max_sequence_length
+    )
+    # convert features to torch tensors
+    for k, v in input_features.items():
+        if not isinstance(v, torch.Tensor):
+            input_features[k] = torch.as_tensor(v).unsqueeze(0)
+
+    # forward the input features through the model
+    gen_seqs = generation_model.generate(
+        **input_features,
+        max_new_tokens=max_gen_length,
+        no_repeat_ngram_size=3
+    )
+    # remove special tokens
+    gen_resp_ids = []
+    for gen_seq in gen_seqs:
+        gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
+        gen_resp_ids.append(gen_seq)
+
+    decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
+    decoded_preds = [decoded_pred.replace('<pad>', '').replace('<|endoftext|>', '') for decoded_pred in
+                     decoded_preds]
+    decoded_preds = [pred.strip() for pred in decoded_preds]
+
+    return decoded_preds[0]
+
+
 def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=None, pad_to_multiple_of=True,
                    padding='max_length'):
     """
@@ -202,15 +247,19 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     return action
 
 
-def simulate_conversation(policy_model, tokenizer, state, horizon=5, max_sequence_length=512, padding='max_length',
+def simulate_conversation(generation_model, generation_tokenizer, policy_model, policy_tokenizer, state, horizon=5,
+                          max_sequence_length=512, max_gen_length=50, padding='max_length',
                           pad_to_multiple_of=True, goal2id=None):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
+    @param generation_model: a response generation used to produce a system response
+    @param generation_tokenizer: a huggingface tokenizer used for response generation
     @param policy_model: a prediction model used to produce a system action
-    @param tokenizer: a huggingface tokenizer
+    @param policy_tokenizer: a huggingface tokenizer
     @param state: the current state of the env
     @param horizon: the maximum number of turn in the simulated conversation
     @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param max_gen_length: the maximum number of tokens in the generated response.
     @param padding: type of padding
     @param pad_to_multiple_of: if pad to multiple instances.
     @param goal2id: a dictionary that convert goals to indices.
@@ -222,12 +271,21 @@ def simulate_conversation(policy_model, tokenizer, state, horizon=5, max_sequenc
     while (not is_terminal) and i < horizon:
 
         # predict system action using the offline policy model
-        action = predict_action(policy_model, tokenizer, start_state, max_sequence_length, goal2id, pad_to_multiple_of,
+        action = predict_action(policy_model, policy_tokenizer, start_state, max_sequence_length, goal2id,
+                                pad_to_multiple_of,
                                 padding)
 
         # generate the system response using chatgpt
         # later it will be replaced by the generated response by BART.
-        system_resp = get_user_resp(start_state, action)
+        # system_resp = get_user_resp(start_state, action)
+        system_resp = generate_sys_response_with_plm(generation_model=generation_model,
+                                                     tokenizer=generation_tokenizer,
+                                                     action=action,
+                                                     state=state,
+                                                     max_sequence_length=max_sequence_length,
+                                                     max_gen_length=max_gen_length,
+                                                     pad_to_multiple_of=pad_to_multiple_of,
+                                                     padding=padding)
         # check the terminated condition
         if check_terminated_condition(system_resp, state['task_background']['target_topic']):
             is_terminal = True

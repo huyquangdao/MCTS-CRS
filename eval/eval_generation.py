@@ -19,6 +19,7 @@ class GenerationEvaluator:
         decoded_preds = [decoded_pred.replace('<pad>', '').replace('<|endoftext|>', '') for decoded_pred in
                          decoded_preds]
         decoded_preds = [pred.strip() for pred in decoded_preds]
+
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=False)
         decoded_labels = [decoded_label.replace('<pad>', '').replace('<|endoftext|>', '') for decoded_label in
                           decoded_labels]

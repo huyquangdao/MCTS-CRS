@@ -11,17 +11,19 @@ from dyna_gym.utils.tree_search_utils import print_tree
 
 
 def uct_for_dialogue_planning_pipeline(
+        generation_model,
+        generation_tokenizer,
         policy_model,
-        tokenizer: transformers.PreTrainedTokenizer,
+        policy_tokenizer: transformers.PreTrainedTokenizer,
         horizon: int = 5,
         terminal_act: str = 'Say goodbye',
-        max_sequence_length = 512,
+        max_sequence_length=512,
+        max_gen_length=50,
         reward_func: Callable = None,
         uct_args: dict = {},
         model_generation_args: dict = {},
-        goal2id:dict = {},
-        should_plot_tree: bool = False,
-        reward_func_input_is_state: bool = False,
+        goal2id: dict = {},
+        should_plot_tree: bool = False
 ) -> Callable:
     """
     A wrapped UCT agent for HuggingFace transformer.
@@ -50,9 +52,12 @@ def uct_for_dialogue_planning_pipeline(
     default_policy = OfflinePolicy(
         env=env,
         horizon=horizon,
+        generation_model=generation_model,
+        generation_tokenizer=generation_tokenizer,
         policy_model=policy_model,
-        tokenizer=tokenizer,
+        policy_tokenizer=policy_tokenizer,
         max_sequence_length=max_sequence_length,
+        max_gen_length=max_gen_length,
         generation_args=model_generation_args,
         goal2id=goal2id
     )
@@ -64,18 +69,17 @@ def uct_for_dialogue_planning_pipeline(
 
     # Run
     def generate(initial_state):
-
         env.reset(initial_state)
         # do all rollouts in one step
         env.step(agent.act(env, done=False))
         # print tree
-        print_tree(agent.root, tokenizer)
+        print_tree(agent.root, policy_tokenizer)
         # optionally, plot the tree and save to a pdf file
         if should_plot_tree:
             # plot (and print) the tree
             from dyna_gym.utils.tree_search_utils import plot_tree
             filename = f"tree-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-            plot_tree(agent.root, tokenizer, filename)
+            plot_tree(agent.root, policy_tokenizer, filename)
             print(f"Tree plotted and saved to {filename}.pdf")
 
         results = {

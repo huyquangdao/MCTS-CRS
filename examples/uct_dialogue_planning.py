@@ -3,7 +3,7 @@ import argparse
 
 import transformers
 from transformers import pipeline
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer, BartForConditionalGeneration
 
 from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
@@ -30,15 +30,19 @@ def parse_args():
     parser.add_argument("--dev_data_path", type=str, required=True, help="A file containing all data.")
     parser.add_argument("--test_data_path", type=str, required=True, help="A file containing all data.")
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
+    parser.add_argument('--max_gen_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--horizon', type=int, default=5, help="max length of both encoder and decoder input.")
     parser.add_argument('--rollouts', type=int, default=20, help="number of rollout in MCT")
     parser.add_argument('--width', type=int, default=3, help="abc")
     parser.add_argument('--gamma', type=float, default=1., help="abc")
     parser.add_argument('--alg', type=str, default='p_uct', help="criterion for the selection step")
-    parser.add_argument('--model_path', type=str, help="criterion for the selection step")
+    parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
+    parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
     # model
-    parser.add_argument("--plm_model", type=str)
-    parser.add_argument("--tokenizer", type=str)
+    parser.add_argument("--plm_policy_model", type=str)
+    parser.add_argument("--policy_tokenizer", type=str)
+    parser.add_argument("--plm_generation_model", type=str)
+    parser.add_argument("--generation_tokenizer", type=str)
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--lm_size", type=int)
     # wandb
@@ -67,9 +71,9 @@ if __name__ == '__main__':
     # will be passed to huggingface model.generate()
     model_generation_args = dict()
 
-    plm_model = args.plm_model
-    model_path = args.model_path
-    model_name = 'policy.pth'
+    plm_policy_model = args.plm_policy_model
+    policy_model_path = args.policy_model_path
+    policy_model_name = 'policy.pth'
     lm_size = args.lm_size
     hidden_size = args.hidden_size
 
@@ -80,27 +84,44 @@ if __name__ == '__main__':
         save_train_convs=True  # for demonstration retrieval
     )
     goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
-    plm = AutoModel.from_pretrained(args.plm_model)
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
-    tokenizer.add_special_tokens(special_tokens_dict)
-    plm.resize_token_embeddings(len(tokenizer))
 
-    model = PolicyModel(
-        plm=plm,
+    # create and load the weights for policy model
+    policy_plm = AutoModel.from_pretrained(plm_policy_model)
+    policy_tokenizer = AutoTokenizer.from_pretrained(args.policy_tokenizer)
+    policy_tokenizer.add_special_tokens(special_tokens_dict)
+    policy_plm.resize_token_embeddings(len(policy_tokenizer))
+
+    policy_model = PolicyModel(
+        plm=policy_plm,
         n_goals=len(dataset.goals),
         hidden_size=args.hidden_size,
         lm_size=args.lm_size
     )
 
-    model = load_model(model, os.path.join(model_path, model_name))
+    policy_model = load_model(policy_model, os.path.join(policy_model_path, policy_model_name))
+
+    # create and load the weights for generation model
+    plm_generation_model = args.plm_generation_model
+    generation_model_path = args.generation_model_path
+    generation_model_name = 'generation.pth'
+    generation_model = BartForConditionalGeneration.from_pretrained(plm_generation_model)
+
+    generation_tokenizer = AutoTokenizer.from_pretrained(args.generation_tokenizer)
+    generation_tokenizer.add_special_tokens(special_tokens_dict)
+    generation_model.resize_token_embeddings(len(generation_tokenizer))
+    generation_model = load_model(generation_model, os.path.join(generation_model_path, generation_model_name))
+
     pipeline = uct_for_dialogue_planning_pipeline(
-        policy_model=model,
-        tokenizer=tokenizer,
+        generation_model=generation_model,
+        generation_tokenizer=generation_tokenizer,
+        policy_model=policy_model,
+        policy_tokenizer=policy_tokenizer,
         horizon=args.horizon,
         reward_func=reward_func,
         uct_args=uct_args,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
+        max_gen_length=args.max_gen_length,
         model_generation_args=model_generation_args,
         should_plot_tree=True,  # plot the tree after generation
     )
