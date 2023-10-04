@@ -17,7 +17,7 @@ class OfflinePolicy(DefaultPolicy):
             horizon: int,
             tokenizer,
             policy_model,
-            max_sequence_length = 512,
+            max_sequence_length=512,
             padding='max_length',
             pad_to_multiple_of=True,
             goal2id=None,
@@ -62,7 +62,6 @@ class OfflinePolicy(DefaultPolicy):
 
         # convert logits to probabilities
         all_probs = torch.softmax(logits, dim=-1)
-
         # compute top-k predictions
         topk_probs, topk_indices = torch.topk(all_probs, top_k, sorted=True)
         topk_probs = topk_probs.tolist()
@@ -70,5 +69,14 @@ class OfflinePolicy(DefaultPolicy):
 
         return topk_indices[0], topk_probs[0]
 
-    def get_predicted_sequence(self, state, horizon: int = None):
-        pass
+    def get_predicted_sequence(self, state, horizon: int = 5):
+        """
+        Default policy to simulate an entire conversation starting from the input state
+        @param state: the current state of the conversation
+        @param horizon: the maximum number of conversation turns
+        @return: the last system response
+        """
+        last_generated_resp = simulate_conversation(self.policy_model, self.tokenizer, state, horizon,
+                                                    self.max_sequence_length, self.padding, self.pad_to_multiple_of,
+                                                    self.goal2id)
+        return last_generated_resp
