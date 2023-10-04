@@ -17,6 +17,8 @@ class OfflinePolicy(DefaultPolicy):
             horizon: int,
             generation_model,
             generation_tokenizer,
+            know_generation_model,
+            know_tokenizer,
             policy_tokenizer,
             policy_model,
             max_sequence_length=512,
@@ -39,6 +41,8 @@ class OfflinePolicy(DefaultPolicy):
         self.generate_args = generation_args
         self.goal2id = goal2id
         self.device = device
+        self.know_generation_model = know_generation_model
+        self.know_tokenizer =know_tokenizer
 
     def get_top_k_tokens(self, state, top_k=3):
         """
@@ -87,6 +91,8 @@ class OfflinePolicy(DefaultPolicy):
         """
         last_generated_resp = simulate_conversation(generation_model=self.generation_model,
                                                     generation_tokenizer=self.generation_tokenizer,
+                                                    know_generation_model=self.know_generation_model,
+                                                    know_tokenizer=self.know_tokenizer,
                                                     policy_model=self.policy_model,
                                                     policy_tokenizer=self.policy_tokenizer,
                                                     state=state,

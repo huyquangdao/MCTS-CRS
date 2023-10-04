@@ -39,11 +39,14 @@ def parse_args():
     parser.add_argument('--alg', type=str, default='p_uct', help="criterion for the selection step")
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
+    parser.add_argument('--know_generation_model_path', type=str, help="criterion for the selection step")
     # model
     parser.add_argument("--plm_policy_model", type=str)
     parser.add_argument("--policy_tokenizer", type=str)
     parser.add_argument("--plm_generation_model", type=str)
     parser.add_argument("--generation_tokenizer", type=str)
+    parser.add_argument("--plm_know_generation_model", type=str)
+    parser.add_argument("--know_generation_tokenizer", type=str)
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--lm_size", type=int)
     # wandb
@@ -104,6 +107,19 @@ if __name__ == '__main__':
     policy_model = load_model(policy_model, os.path.join(policy_model_path, policy_model_name))
     policy_model.to(device)
 
+    # create and load the weights for knowledge generation model
+    plm_know_generation_model = args.plm_know_generation_model
+    know_generation_model_path = args.know_generation_model_path
+    know_generation_model_name = 'knowledge_generation.pth'
+    know_generation_model = BartForConditionalGeneration.from_pretrained(plm_know_generation_model)
+
+    know_generation_tokenizer = AutoTokenizer.from_pretrained(args.know_generation_tokenizer)
+    know_generation_tokenizer.add_special_tokens(special_tokens_dict)
+    know_generation_model.resize_token_embeddings(len(know_generation_tokenizer))
+    know_generation_model = load_model(know_generation_model,
+                                       os.path.join(know_generation_model_path, know_generation_model_name))
+    know_generation_model.to(device)
+
     # create and load the weights for generation model
     plm_generation_model = args.plm_generation_model
     generation_model_path = args.generation_model_path
@@ -120,6 +136,8 @@ if __name__ == '__main__':
     pipeline = uct_for_dialogue_planning_pipeline(
         generation_model=generation_model,
         generation_tokenizer=generation_tokenizer,
+        know_generation_model=know_generation_model,
+        know_tokenizer=know_generation_tokenizer,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
         horizon=args.horizon,

@@ -13,6 +13,8 @@ from dyna_gym.utils.tree_search_utils import print_tree
 def uct_for_dialogue_planning_pipeline(
         generation_model,
         generation_tokenizer,
+        know_generation_model,
+        know_tokenizer,
         policy_model,
         policy_tokenizer: transformers.PreTrainedTokenizer,
         horizon: int = 5,
@@ -55,6 +57,8 @@ def uct_for_dialogue_planning_pipeline(
         horizon=horizon,
         generation_model=generation_model,
         generation_tokenizer=generation_tokenizer,
+        know_generation_model=know_generation_model,
+        know_tokenizer=know_tokenizer,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
         max_sequence_length=max_sequence_length,

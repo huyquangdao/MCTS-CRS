@@ -6,7 +6,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert_example_to_feature_for_goal_prediction, \
-    convert_example_to_feature_for_response_generation
+    convert_example_to_feature_for_response_generation, convert_example_to_feature_for_knowledge_generation
 
 API_KEY = ""
 MODEL = "gpt-3.5-turbo"
@@ -163,13 +163,71 @@ def check_terminated_condition(system_resp, target):
     return target.lower() in system_resp
 
 
-def generate_sys_response_with_plm(generation_model, tokenizer, action, state, max_sequence_length, max_gen_length=50,
+def generate_knowledge_with_plm(generation_model, tokenizer, action, state, max_sequence_length, max_gen_length=50,
+                                pad_to_multiple_of=True, padding='max_length', device=None):
+    """
+    function that generates a knowledge utterance with a finetuned pretrained language model
+    @param generation_model: the finetuned huggingface pretrained PLM
+    @param tokenizer: a huggingface tokenizer.
+    @param action: the predicted action
+    @param state:  the current state of the env
+    @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param max_gen_length: the maximum number of tokens in the generated response.
+    @param pad_to_multiple_of: True if we pad to multiple instances.
+    @param padding: type of padding default = 'max length"
+    @param device: device to allocate tensors
+    @return: a generated knowledge utterance.
+    """
+    # convert state to input feature
+    input_features = defaultdict(list)
+
+    # assign the predicted action to the input state
+    state['pred_goal'] = action
+
+    # convert state to input features
+    input_ids, _ = convert_example_to_feature_for_knowledge_generation(tokenizer=tokenizer, instance=state,
+                                                                       max_sequence_length=max_sequence_length,
+                                                                       is_test=True)
+    input_features['input_ids'] = input_ids
+    # padding the input features
+    input_features = tokenizer.pad(
+        input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+        max_length=max_sequence_length
+    )
+    # convert features to torch tensors
+    for k, v in input_features.items():
+        if not isinstance(v, torch.Tensor):
+            input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
+
+    # forward the input features through the model
+    gen_seqs = generation_model.generate(
+        **input_features,
+        max_new_tokens=max_gen_length,
+        no_repeat_ngram_size=3
+    )
+    # remove special tokens
+    gen_resp_ids = []
+    for gen_seq in gen_seqs:
+        gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
+        gen_resp_ids.append(gen_seq)
+
+    decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
+    decoded_preds = [decoded_pred.replace('<pad>', '').replace('<s>', '').replace('</s>', '') for decoded_pred in
+                     decoded_preds]
+    decoded_preds = [pred.strip() for pred in decoded_preds]
+
+    return decoded_preds[0]
+
+
+def generate_sys_response_with_plm(generation_model, tokenizer, action, knowledge, state, max_sequence_length,
+                                   max_gen_length=50,
                                    pad_to_multiple_of=True, padding='max_length', device=None):
     """
     function that generates a system response with a finetuned pretrained language model
     @param generation_model: the finetuned huggingface pretrained PLM
     @param tokenizer: a huggingface tokenizer.
     @param action: the predicted action
+    @param knowledge: the generated knowledge
     @param state:  the current state of the env
     @param max_sequence_length: the maximum number of tokens in the input sequence.
     @param max_gen_length: the maximum number of tokens in the generated response.
@@ -183,6 +241,7 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, state, m
 
     # assign the predicted action to the input state
     state['pred_goal'] = action
+    state['pred_know'] = knowledge
 
     # convert state to input features
     input_ids, _ = convert_example_to_feature_for_response_generation(tokenizer=tokenizer, instance=state,
@@ -257,13 +316,16 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     return action
 
 
-def simulate_conversation(generation_model, generation_tokenizer, policy_model, policy_tokenizer, state, horizon=5,
+def simulate_conversation(generation_model, generation_tokenizer, know_generation_model, know_tokenizer, policy_model,
+                          policy_tokenizer, state, horizon=5,
                           max_sequence_length=512, max_gen_length=50, padding='max_length',
                           pad_to_multiple_of=True, goal2id=None, device=None):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param generation_model: a response generation used to produce a system response
     @param generation_tokenizer: a huggingface tokenizer used for response generation
+    @param know_generation_model: a knowledge generation model used to produce relevant knowledge
+    @param know_tokenizer: a huggingface tokenizer used with the knowledge generation model
     @param policy_model: a prediction model used to produce a system action
     @param policy_tokenizer: a huggingface tokenizer
     @param state: the current state of the env
@@ -291,12 +353,24 @@ def simulate_conversation(generation_model, generation_tokenizer, policy_model, 
                                 padding,
                                 device=device)
 
+        # generate relevant knowledge
+        knowledge = generate_knowledge_with_plm(generation_model=know_generation_model,
+                                                tokenizer=know_tokenizer,
+                                                action=action,
+                                                state=start_state,
+                                                max_sequence_length=max_sequence_length,
+                                                max_gen_length=max_gen_length,
+                                                pad_to_multiple_of=pad_to_multiple_of,
+                                                padding=padding,
+                                                device=device)
+
         # generate the system response using chatgpt
         # later it will be replaced by the generated response by BART.
         # system_resp = get_user_resp(start_state, action)
         system_resp = generate_sys_response_with_plm(generation_model=generation_model,
                                                      tokenizer=generation_tokenizer,
                                                      action=action,
+                                                     knowledge=knowledge,
                                                      state=start_state,
                                                      max_sequence_length=max_sequence_length,
                                                      max_gen_length=max_gen_length,

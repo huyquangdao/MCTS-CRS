@@ -8,6 +8,8 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 examples/uct_dialogue_plann
     --plm_policy_model roberta-base \
     --generation_tokenizer facebook/bart-base \
     --plm_generation_model facebook/bart-base \
+    --know_generation_tokenizer facebook/bart-base \
+    --plm_know_generation_model facebook/bart-base \
     --rollouts 20 \
     --alg p_uct \
     --hidden_size 128 \
@@ -17,4 +19,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 examples/uct_dialogue_plann
     --max_gen_length 50 \
     --policy_model_path ./policy_model/ \
     --generation_model_path ./generation_model/ \
+    --know_generation_model_path ./know_generation_model/ \
     --seed 22
