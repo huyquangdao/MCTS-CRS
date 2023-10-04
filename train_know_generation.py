@@ -317,7 +317,7 @@ if __name__ == '__main__':
         if valid_report[f'valid/{metric}'] * mode > best_metric * mode:
             best_metric = valid_report[f'valid/{metric}']
             logger.info(f'new best model with {metric}')
-            save_model(model, output_dir=os.path.join(args.output_dir, 'policy.pth'))
+            save_model(model, output_dir=os.path.join(args.output_dir, 'know_generation.pth'))
 
         evaluator.reset_metric()
         # test
