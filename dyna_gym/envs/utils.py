@@ -219,7 +219,7 @@ def simulate_conversation(policy_model, tokenizer, state, horizon=5, max_sequenc
     is_terminal = False
     i = 0
     start_state = copy.deepcopy(state)
-    while not is_terminal or i < horizon:
+    while (not is_terminal) and i < horizon:
 
         # predict system action using the offline policy model
         action = predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id, pad_to_multiple_of,
