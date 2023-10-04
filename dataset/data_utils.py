@@ -128,7 +128,10 @@ def convert_example_to_feature_for_response_generation(tokenizer, instance, max_
         goal = instance['pred_goal']
         knowledge = instance['pred_know']
 
-    knowledge_str = convert_list_to_str(knowledge)
+    if not isinstance(knowledge, str):
+        knowledge_str = convert_list_to_str(knowledge)
+    else:
+        knowledge_str = knowledge
     dialogue_str = ""
     for utt in dialogue_context:
         if utt['role'] == "user":
