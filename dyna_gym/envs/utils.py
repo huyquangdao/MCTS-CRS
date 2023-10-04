@@ -194,12 +194,12 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     # compute policy with offline policy model.
     logits = policy_model(input_features)
 
-    pred_action_id = logits.argmax(-1).detach().numpy().tolist()
+    pred_action_id = logits.argmax(-1).detach().numpy().tolist()[0]
 
     id2goal = {v: k for k, v in goal2id.items()}
 
     action = id2goal[pred_action_id]
-    return action[0]
+    return action
 
 
 def simulate_conversation(policy_model, tokenizer, state, horizon=5, max_sequence_length=512, padding='max_length',
