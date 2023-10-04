@@ -294,7 +294,7 @@ def simulate_conversation(generation_model, generation_tokenizer, policy_model, 
         user_resp = get_user_resp(start_state, system_resp)
 
         # update state
-        start_state = update_state(state, action, system_resp, user_resp)
+        start_state = update_state(start_state, action, system_resp, user_resp)
 
         i += 1
 
