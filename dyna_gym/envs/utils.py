@@ -199,7 +199,7 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     id2goal = {v: k for k, v in goal2id.items()}
 
     action = id2goal[pred_action_id]
-    return action
+    return action[0]
 
 
 def simulate_conversation(policy_model, tokenizer, state, horizon=5, max_sequence_length=512, padding='max_length',
