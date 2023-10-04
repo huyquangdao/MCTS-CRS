@@ -10,7 +10,7 @@ from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
 from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, DURECDIALGOALS
-from dataset.data_utils import randomly_sample_demonstrations
+from dataset.data_utils import randomly_sample_demonstrations, load_binary_file
 
 
 # define a reward function based on sentiment of the generated text
@@ -85,7 +85,8 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path,
         save_train_convs=True  # for demonstration retrieval
     )
-    goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+    # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+    goal2id = load_binary_file(os.path.join(policy_model_path,"goal2id.pkl"))
 
     # create and load the weights for policy model
     policy_plm = AutoModel.from_pretrained(plm_policy_model)
