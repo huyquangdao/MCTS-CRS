@@ -222,7 +222,7 @@ def simulate_conversation(policy_model, tokenizer, state, horizon=5, max_sequenc
     while (not is_terminal) and i < horizon:
 
         # predict system action using the offline policy model
-        action = predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id, pad_to_multiple_of,
+        action = predict_action(policy_model, tokenizer, start_state, max_sequence_length, goal2id, pad_to_multiple_of,
                                 padding)
 
         # generate the system response using chatgpt
