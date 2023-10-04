@@ -23,6 +23,7 @@ def uct_for_dialogue_planning_pipeline(
         uct_args: dict = {},
         model_generation_args: dict = {},
         goal2id: dict = {},
+        device=None,
         should_plot_tree: bool = False
 ) -> Callable:
     """
@@ -59,7 +60,8 @@ def uct_for_dialogue_planning_pipeline(
         max_sequence_length=max_sequence_length,
         max_gen_length=max_gen_length,
         generation_args=model_generation_args,
-        goal2id=goal2id
+        goal2id=goal2id,
+        device=device
     )
 
     agent = uct.UCT(

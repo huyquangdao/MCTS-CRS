@@ -24,6 +24,7 @@ class OfflinePolicy(DefaultPolicy):
             padding='max_length',
             pad_to_multiple_of=True,
             goal2id=None,
+            device=None,
             generation_args: dict = {},
     ):
         super().__init__(env, horizon)
@@ -37,6 +38,7 @@ class OfflinePolicy(DefaultPolicy):
         self.max_gen_length = max_gen_length
         self.generate_args = generation_args
         self.goal2id = goal2id
+        self.device = device
 
     def get_top_k_tokens(self, state, top_k=3):
         """
@@ -62,7 +64,7 @@ class OfflinePolicy(DefaultPolicy):
         # convert features to torch tensors
         for k, v in input_features.items():
             if not isinstance(v, torch.Tensor):
-                input_features[k] = torch.as_tensor(v).unsqueeze(0)
+                input_features[k] = torch.as_tensor(v, device=self.device).unsqueeze(0)
 
         # compute policy with offline policy model.
         logits = self.policy_model(input_features)
@@ -93,5 +95,6 @@ class OfflinePolicy(DefaultPolicy):
                                                     max_gen_length=self.max_gen_length,
                                                     padding=self.padding,
                                                     pad_to_multiple_of=self.pad_to_multiple_of,
-                                                    goal2id=self.goal2id)
+                                                    goal2id=self.goal2id,
+                                                    device=self.device)
         return last_generated_resp

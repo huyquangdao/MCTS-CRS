@@ -164,7 +164,7 @@ def check_terminated_condition(system_resp, target):
 
 
 def generate_sys_response_with_plm(generation_model, tokenizer, action, state, max_sequence_length, max_gen_length=50,
-                                   pad_to_multiple_of=True, padding='max_length'):
+                                   pad_to_multiple_of=True, padding='max_length', device=None):
     """
     function that generates a system response with a finetuned pretrained language model
     @param generation_model: the finetuned huggingface pretrained PLM
@@ -175,6 +175,7 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, state, m
     @param max_gen_length: the maximum number of tokens in the generated response.
     @param pad_to_multiple_of: True if we pad to multiple instances.
     @param padding: type of padding default = 'max length"
+    @param device: device to allocate tensors
     @return: a generated system response
     """
     # convert state to input feature
@@ -196,7 +197,7 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, state, m
     # convert features to torch tensors
     for k, v in input_features.items():
         if not isinstance(v, torch.Tensor):
-            input_features[k] = torch.as_tensor(v).unsqueeze(0)
+            input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
 
     # forward the input features through the model
     gen_seqs = generation_model.generate(
@@ -219,7 +220,7 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, state, m
 
 
 def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=None, pad_to_multiple_of=True,
-                   padding='max_length'):
+                   padding='max_length', device=None):
     """
     function that predicts an action given the input state
     @param policy_model: the offline policy model
@@ -229,6 +230,7 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     @param goal2id: a dictionary that map goals to indices
     @param pad_to_multiple_of: pad to multiple instances
     @param padding: type of padding
+    @param device: device to allocate tensors
     @return: a predicted action
     """
     input_features = defaultdict(list)
@@ -245,22 +247,19 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     # convert features to torch tensors
     for k, v in input_features.items():
         if not isinstance(v, torch.Tensor):
-            input_features[k] = torch.as_tensor(v).unsqueeze(0)
+            input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
 
     # compute policy with offline policy model.
     logits = policy_model(input_features)
-
-    pred_action_id = logits.argmax(-1).detach().numpy().tolist()[0]
-
+    pred_action_id = logits.argmax(-1).detach().cpu().numpy().tolist()[0]
     id2goal = {v: k for k, v in goal2id.items()}
-
     action = id2goal[pred_action_id]
     return action
 
 
 def simulate_conversation(generation_model, generation_tokenizer, policy_model, policy_tokenizer, state, horizon=5,
                           max_sequence_length=512, max_gen_length=50, padding='max_length',
-                          pad_to_multiple_of=True, goal2id=None):
+                          pad_to_multiple_of=True, goal2id=None, device=None):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param generation_model: a response generation used to produce a system response
@@ -274,6 +273,7 @@ def simulate_conversation(generation_model, generation_tokenizer, policy_model, 
     @param padding: type of padding
     @param pad_to_multiple_of: if pad to multiple instances.
     @param goal2id: a dictionary that convert goals to indices.
+    @param device the device to allocate tensors
     @return: the last generated system response.
     """
     is_terminal = False
@@ -288,7 +288,8 @@ def simulate_conversation(generation_model, generation_tokenizer, policy_model, 
                                 max_sequence_length,
                                 goal2id,
                                 pad_to_multiple_of,
-                                padding)
+                                padding,
+                                device=device)
 
         # generate the system response using chatgpt
         # later it will be replaced by the generated response by BART.
@@ -300,7 +301,8 @@ def simulate_conversation(generation_model, generation_tokenizer, policy_model, 
                                                      max_sequence_length=max_sequence_length,
                                                      max_gen_length=max_gen_length,
                                                      pad_to_multiple_of=pad_to_multiple_of,
-                                                     padding=padding)
+                                                     padding=padding,
+                                                     device=device)
         # check the terminated condition
         if check_terminated_condition(system_resp, state['task_background']['target_topic']):
             is_terminal = True

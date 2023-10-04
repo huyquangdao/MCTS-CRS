@@ -4,6 +4,17 @@ from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH
     CONTEXT_TOKEN
 
 
+def load_binary_file(file_path):
+    """
+    function thats load a binary file
+    @param file_path: the path to the saved file
+    @return: a pickle object
+    """
+    with open(file_path, 'rb') as f:
+        object = pickle.load(f)
+        return object
+
+
 def save_binary_file(object, file_path):
     """
     function that save an object to a binary file

@@ -1,6 +1,7 @@
 import os
 import argparse
 
+import torch
 import transformers
 from transformers import pipeline
 from transformers import AutoModel, AutoTokenizer, BartForConditionalGeneration
@@ -60,6 +61,7 @@ if __name__ == '__main__':
     # parse argments
     args = parse_args()
 
+    device = torch.device('cuda:0')
     # arguments for the UCT agent
     uct_args = dict(
         rollouts=args.rollouts,
@@ -99,6 +101,7 @@ if __name__ == '__main__':
     )
 
     policy_model = load_model(policy_model, os.path.join(policy_model_path, policy_model_name))
+    policy_model.to(device)
 
     # create and load the weights for generation model
     plm_generation_model = args.plm_generation_model
@@ -111,6 +114,8 @@ if __name__ == '__main__':
     generation_model.resize_token_embeddings(len(generation_tokenizer))
     generation_model = load_model(generation_model, os.path.join(generation_model_path, generation_model_name))
 
+    generation_model.to(device)
+
     pipeline = uct_for_dialogue_planning_pipeline(
         generation_model=generation_model,
         generation_tokenizer=generation_tokenizer,
@@ -120,6 +125,7 @@ if __name__ == '__main__':
         reward_func=reward_func,
         uct_args=uct_args,
         goal2id=goal2id,
+        device=device,
         max_sequence_length=args.max_sequence_length,
         max_gen_length=args.max_gen_length,
         model_generation_args=model_generation_args,

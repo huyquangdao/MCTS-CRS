@@ -20,7 +20,7 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict, DURECDIALGOALS
-from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_policy_results
+from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_policy_results, load_binary_file
 
 
 def parse_args():
@@ -101,7 +101,8 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+    # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+    goal2id = load_binary_file(os.path.join(args.output_dir, 'goal2id.pkl'))
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
