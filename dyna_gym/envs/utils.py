@@ -165,6 +165,18 @@ def check_terminated_condition(system_resp, target):
 
 def generate_sys_response_with_plm(generation_model, tokenizer, action, state, max_sequence_length, max_gen_length=50,
                                    pad_to_multiple_of=True, padding='max_length'):
+    """
+    function that generates a system response with a finetuned pretrained language model
+    @param generation_model: the finetuned huggingface pretrained PLM
+    @param tokenizer: a huggingface tokenizer.
+    @param action: the predicted action
+    @param state:  the current state of the env
+    @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param max_gen_length: the maximum number of tokens in the generated response.
+    @param pad_to_multiple_of: True if we pad to multiple instances.
+    @param padding: type of padding default = 'max length"
+    @return: a generated system response
+    """
     # convert state to input feature
     input_features = defaultdict(list)
 
@@ -225,7 +237,6 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
                                                                   goal2id)
 
     input_features['input_ids'] = input_ids
-
     # padding the input features
     input_features = tokenizer.pad(
         input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
@@ -271,7 +282,11 @@ def simulate_conversation(generation_model, generation_tokenizer, policy_model, 
     while (not is_terminal) and i < horizon:
 
         # predict system action using the offline policy model
-        action = predict_action(policy_model, policy_tokenizer, start_state, max_sequence_length, goal2id,
+        action = predict_action(policy_model,
+                                policy_tokenizer,
+                                start_state,
+                                max_sequence_length,
+                                goal2id,
                                 pad_to_multiple_of,
                                 padding)
 

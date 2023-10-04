@@ -1,6 +1,18 @@
 import random
+import pickle
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
     CONTEXT_TOKEN
+
+
+def save_binary_file(object, file_path):
+    """
+    function that save an object to a binary file
+    @param object: an python object
+    @param file_path: the path to the saved file
+    @return: None
+    """
+    with open(file_path, 'wb') as f:
+        pickle.dump(object, f)
 
 
 def convert_list_to_str(knowledge):

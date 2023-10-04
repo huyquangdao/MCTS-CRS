@@ -20,7 +20,7 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict, DURECDIALGOALS
-from dataset.data_utils import convert_example_to_feature_for_goal_prediction
+from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_binary_file
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -310,3 +310,6 @@ if __name__ == '__main__':
         if run:
             run.log(test_report)
         evaluator.reset_metric()
+
+        # save the goal2id
+        save_binary_file(goal2id, os.path.join(args.output_dir, "goal2id.pkl"))
