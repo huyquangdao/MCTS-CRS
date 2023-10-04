@@ -199,7 +199,7 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, state, m
         gen_resp_ids.append(gen_seq)
 
     decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
-    decoded_preds = [decoded_pred.replace('<pad>', '').replace('<|endoftext|>', '') for decoded_pred in
+    decoded_preds = [decoded_pred.replace('<pad>', '').replace('<s>', '').replace('</s>', '') for decoded_pred in
                      decoded_preds]
     decoded_preds = [pred.strip() for pred in decoded_preds]
 
