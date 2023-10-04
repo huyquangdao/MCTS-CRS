@@ -118,8 +118,8 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
         else:
             if not node.is_terminal:
                 # follow the default policy to get a terminal state
-                state = ag.default_policy.get_predicted_sequence(state)
-                estimate = env.get_reward(state)
+                last_sys_resp = ag.default_policy.get_predicted_sequence(state)
+                estimate = env.get_reward(last_sys_resp, state['task_background']['target_topic'])
 
                 ag.rolled_out_trajectories.append(state[0])
                 ag.rolled_out_rewards.append(estimate)
