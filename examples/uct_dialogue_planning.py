@@ -110,7 +110,7 @@ if __name__ == '__main__':
     # create and load the weights for knowledge generation model
     plm_know_generation_model = args.plm_know_generation_model
     know_generation_model_path = args.know_generation_model_path
-    know_generation_model_name = 'knowledge_generation.pth'
+    know_generation_model_name = 'know_generation.pth'
     know_generation_model = BartForConditionalGeneration.from_pretrained(plm_know_generation_model)
 
     know_generation_tokenizer = AutoTokenizer.from_pretrained(args.know_generation_tokenizer)
