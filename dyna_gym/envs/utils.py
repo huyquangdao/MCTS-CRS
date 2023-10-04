@@ -169,7 +169,7 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, state, m
     input_features = defaultdict(list)
 
     # assign the predicted action to the input state
-    state['prev_goal'] = action
+    state['pred_goal'] = action
 
     # convert state to input features
     input_ids, _ = convert_example_to_feature_for_response_generation(tokenizer=tokenizer, instance=state,
