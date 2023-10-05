@@ -281,3 +281,15 @@ def merge_predictions(instances, policy_preds):
     for instance, pred_goal in list(zip(instances, policy_preds)):
         instance['pred_goal'] = pred_goal
     return instances
+
+
+def merge_know_predictions(instances, know_preds):
+    """
+    function that merge knowledge predictions with data instances.
+    @param instances: a list of instances
+    @param know_preds: a list of predicted goals
+    @return: a list of new instances.
+    """
+    for instance, pred_know in list(zip(instances, know_preds)):
+        instance['pred_know'] = pred_know
+    return instances
