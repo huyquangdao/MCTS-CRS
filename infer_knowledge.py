@@ -256,7 +256,7 @@ if __name__ == '__main__':
             label_resp_ids.append(label_seq)
         evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
-        decoded_preds = tokenizer.tokenizer.batch_decode(tokenizer, skip_special_tokens=False)
+        decoded_preds = tokenizer.batch_decode(tokenizer, skip_special_tokens=False)
         decoded_preds = [decoded_pred.replace('</s>', '').replace('<s>', '') for decoded_pred in
                          decoded_preds]
         decoded_preds = [pred.strip() for pred in decoded_preds]
