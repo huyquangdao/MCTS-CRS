@@ -129,7 +129,7 @@ if __name__ == '__main__':
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
 
-    model= load_model(model, os.path.join(args.output_dir, "generation.pth"))
+    model= load_model(model, os.path.join(args.output_dir, "response_generation.pth"))
     model.to(device)
 
     # data
