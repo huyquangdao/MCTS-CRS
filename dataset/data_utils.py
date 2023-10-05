@@ -67,9 +67,7 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
     @return: an input sequence which consists of knowledge , profile, path and dialogue context ids.
     """
     dialogue_context = instance['dialogue_context']
-    knowledge = instance['knowledge']
     prev_paths = instance['pre_goals']
-    profile = instance['task_background']['user_profile']
 
     dialogue_str = ""
     for utt in dialogue_context:
@@ -85,10 +83,7 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
         path_str += " "
         path_str += SEP_TOKEN
 
-    knowledge_str = convert_list_to_str(knowledge)
-    profile_str = convert_dict_to_str(profile)
-
-    input_str = f"{PROFILE_TOKEN}: {profile_str} {PATH_TOKEN}: {path_str} {CONTEXT_TOKEN}: {dialogue_str}"
+    input_str = f"{PATH_TOKEN}: {path_str} {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
