@@ -252,6 +252,30 @@ def load_policy_results(output_path):
     return pred_goals
 
 
+def save_knowledge_results(list_preds, output_path):
+    """
+    function that save the predicted knowledge
+    @param list_preds: list of predicted knowledge
+    @param output_path: the path to the saved file
+    @return: None
+    """
+    with open(output_path, 'w') as f:
+        for pred in list_preds:
+            f.write(pred + "\n")
+
+
+def load_knowledge_results(output_path):
+    """
+    function that load predicted knowledge
+    @param output_path: the path to the saved file
+    @return: a list of predicted knowledge
+    """
+    with open(output_path, 'r') as f:
+        lines = f.readlines()
+        lines = [line.strip() for line in lines]
+        return lines
+
+
 def merge_predictions(instances, policy_preds):
     """
     function that merge policy predictions with data instances.
