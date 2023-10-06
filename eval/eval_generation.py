@@ -4,7 +4,7 @@ from collections import Counter
 import json
 from nltk import ngrams
 from nltk.translate.bleu_score import sentence_bleu
-from nltk.translate.meteor_score import meteor_score
+from nltk.translate.meteor_score import single_meteor_score
 
 
 class GenerationEvaluator:
@@ -111,8 +111,8 @@ class GenerationEvaluator:
         """
         for pred, label in zip(preds, labels):
             # tokenizer the predicted text and groundtruth label
-            pred, label = pred.split(), [label.split()]
-            self.metric["meteor"] += meteor_score(pred, label)
+            pred, label = pred.split(), label.split()
+            self.metric["meteor"] += single_meteor_score(pred, label)
 
     def report(self):
         """
