@@ -1,3 +1,4 @@
+import math
 import os
 import argparse
 
@@ -14,11 +15,15 @@ from dataset.data_utils import randomly_sample_demonstrations, load_binary_file
 
 
 # define a reward function based on sentiment of the generated text
-def reward_func(sentence, target):
-    if target.lower() in sentence.lower():
-        return 3.0
-    else:
-        return -3.0
+def reward_func(conversations, target, delta=1, temperature=5):
+    reward = -3.0
+    for utt in conversations:
+        if utt['role'] == 'system':
+            if target.lower() in utt['content'].lower():
+                reward = 3.0
+
+    reward += delta * math.exp(- len(conversations) / temperature)
+    return reward
 
 
 def parse_args():
