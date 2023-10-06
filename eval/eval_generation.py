@@ -4,6 +4,7 @@ from collections import Counter
 import json
 from nltk import ngrams
 from nltk.translate.bleu_score import sentence_bleu
+from nltk.translate.meteor_score import single_meteor_score
 
 
 class GenerationEvaluator:
@@ -92,6 +93,26 @@ class GenerationEvaluator:
         f1 = 2 * p * r / (p + r) if p + r > 0 else 0
         self.metric["f1"] = f1
 
+    def compute_bert_score(self, preds, labels):
+        """
+        method that compute the bert score between the generated text strings and groundtruth labels.
+        @param preds: a list of generated text strings
+        @param labels: a list of groundtruth labels
+        @return: None
+        """
+
+    def compute_meteor_score(self, preds, labels):
+        """
+        methods can compute the meteor score between generated texts and groundtruth labels.
+        @param preds: list of generated texts trings
+        @param labels: list of groundtruth labels
+        @return: None
+        """
+        for pred, label in zip(preds, labels):
+            # tokenizer the predicted text and groundtruth label
+            pred, label = pred.split(), [label.split()]
+            self.metric["meteor"] += single_meteor_score(pred, label)
+
     def report(self):
         """
         methods that compute the final values of metrics
@@ -119,6 +140,7 @@ class GenerationEvaluator:
             'bleu@3': 0,
             'bleu@4': 0,
             "f1": 0,
+            "meteor": 0,
             'dist@1': set(),
             'dist@2': set(),
             'dist@3': set(),
