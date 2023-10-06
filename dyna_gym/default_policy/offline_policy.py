@@ -27,6 +27,7 @@ class OfflinePolicy(DefaultPolicy):
             pad_to_multiple_of=True,
             goal2id=None,
             device=None,
+            terminated_act=None,
             generation_args: dict = {},
     ):
         super().__init__(env, horizon)
@@ -42,7 +43,8 @@ class OfflinePolicy(DefaultPolicy):
         self.goal2id = goal2id
         self.device = device
         self.know_generation_model = know_generation_model
-        self.know_tokenizer =know_tokenizer
+        self.know_tokenizer = know_tokenizer
+        self.terminated_act = terminated_act
 
     def get_top_k_tokens(self, state, top_k=3):
         """
@@ -89,18 +91,19 @@ class OfflinePolicy(DefaultPolicy):
         @param horizon: the maximum number of conversation turns
         @return: the last system response
         """
-        last_generated_resp = simulate_conversation(generation_model=self.generation_model,
-                                                    generation_tokenizer=self.generation_tokenizer,
-                                                    know_generation_model=self.know_generation_model,
-                                                    know_tokenizer=self.know_tokenizer,
-                                                    policy_model=self.policy_model,
-                                                    policy_tokenizer=self.policy_tokenizer,
-                                                    state=state,
-                                                    horizon=horizon,
-                                                    max_sequence_length=self.max_sequence_length,
-                                                    max_gen_length=self.max_gen_length,
-                                                    padding=self.padding,
-                                                    pad_to_multiple_of=self.pad_to_multiple_of,
-                                                    goal2id=self.goal2id,
-                                                    device=self.device)
-        return last_generated_resp
+        generated_conversation = simulate_conversation(generation_model=self.generation_model,
+                                                       generation_tokenizer=self.generation_tokenizer,
+                                                       know_generation_model=self.know_generation_model,
+                                                       know_tokenizer=self.know_tokenizer,
+                                                       policy_model=self.policy_model,
+                                                       policy_tokenizer=self.policy_tokenizer,
+                                                       state=state,
+                                                       horizon=horizon,
+                                                       max_sequence_length=self.max_sequence_length,
+                                                       max_gen_length=self.max_gen_length,
+                                                       padding=self.padding,
+                                                       pad_to_multiple_of=self.pad_to_multiple_of,
+                                                       goal2id=self.goal2id,
+                                                       terminated_action=self.terminated_act,
+                                                       device=self.device)
+        return generated_conversation

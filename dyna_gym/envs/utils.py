@@ -153,14 +153,14 @@ def update_state(state, action, sys_response, user_response):
     return new_state
 
 
-def check_terminated_condition(system_resp, target):
+def check_terminated_condition(action, terminated_action):
     """
     function check if the target item appears in the system response.
-    @param system_resp: a generate utterance from the system
-    @param target: the target item
+    @param action: the predicted action by the system
+    @param terminated_action: the predefined terminated action
     @return: True if the target appear in the generated response else False
     """
-    return target.lower() in system_resp
+    return action == terminated_action
 
 
 def generate_knowledge_with_plm(generation_model, tokenizer, action, state, max_sequence_length, max_gen_length=50,
@@ -319,7 +319,7 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
 def simulate_conversation(generation_model, generation_tokenizer, know_generation_model, know_tokenizer, policy_model,
                           policy_tokenizer, state, horizon=5,
                           max_sequence_length=512, max_gen_length=50, padding='max_length',
-                          pad_to_multiple_of=True, goal2id=None, device=None):
+                          pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param generation_model: a response generation used to produce a system response
@@ -341,6 +341,7 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
     is_terminal = False
     i = 0
     start_state = copy.deepcopy(state)
+    simulated_conversation = []
     while (not is_terminal) and i < horizon:
 
         # predict system action using the offline policy model
@@ -378,7 +379,7 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
                                                      padding=padding,
                                                      device=device)
         # check the terminated condition
-        if check_terminated_condition(system_resp, state['task_background']['target_topic']):
+        if check_terminated_condition(action, terminated_action):
             is_terminal = True
 
         # simulate user response.
@@ -389,5 +390,11 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
 
         i += 1
 
+        # update the simulated conversation
+        simulated_conversation.extend([
+            {'role': 'system', 'content': system_resp},
+            {'role': 'user', 'content': user_resp}
+        ])
+
     # return the last system resp.
-    return system_resp
+    return simulated_conversation

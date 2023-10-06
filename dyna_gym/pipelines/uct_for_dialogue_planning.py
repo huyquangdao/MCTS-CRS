@@ -29,19 +29,24 @@ def uct_for_dialogue_planning_pipeline(
         should_plot_tree: bool = False
 ) -> Callable:
     """
-    A wrapped UCT agent for HuggingFace transformer.
-
-    Args:
-        model_name: The name of a HuggingFace transformer model. If provided, will load the model and tokenizer.
-        model: A HuggingFace transformer model.
-        tokenizer: A HuggingFace tokenizer.
-        horizon: The maximum number of steps to take.
-        reward_func: A function that evaluate the reward of a sequence.
-        value_func: A function that evaluate the value of a sequence.
-        uct_args: Arguments for the UCT agent.
-        model_generation_args: Arguments for the model generation.
-        should_plot_tree: Whether to plot the tree after generation.
-        reward_func_input_is_state: Whether the input of the reward function is (token ids, attention masks) or tokenized text.
+    function that implements the pipeline for MCTS dialogue planning
+    @param generation_model: the response generation model
+    @param generation_tokenizer: the tokenizer for response generation model
+    @param know_generation_model: the knowledge generation model
+    @param know_tokenizer: the tokenizer for the knowledge generation model
+    @param policy_model: the policy model
+    @param policy_tokenizer: the tokenizer for the policy model
+    @param horizon: the maximum number of conversational turns during rollouts
+    @param terminal_act: the terminated action
+    @param max_sequence_length: the maximum number of tokens in the input sequence
+    @param max_gen_length: the maximum number of tokens in the generated output
+    @param reward_func: the reward function
+    @param uct_args: parameters for UCT criteria.
+    @param model_generation_args: params for generation model.
+    @param goal2id: a dictionary that map goals to indices.
+    @param device: the device which we run the models.
+    @param should_plot_tree:
+    @return: a function.
     """
     reward_func_ = reward_func
     env = gym.make(
@@ -65,6 +70,7 @@ def uct_for_dialogue_planning_pipeline(
         max_gen_length=max_gen_length,
         generation_args=model_generation_args,
         goal2id=goal2id,
+        terminated_act=terminal_act,
         device=device
     )
 
@@ -73,7 +79,7 @@ def uct_for_dialogue_planning_pipeline(
         **uct_args
     )
 
-    id2goal = {v:k for k,v in goal2id.items()}
+    id2goal = {v: k for k, v in goal2id.items()}
 
     # Run
     def generate(initial_state):
