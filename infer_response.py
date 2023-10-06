@@ -22,7 +22,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, \
-    merge_predictions, load_binary_file, load_knowledge_results, merge_know_predictions
+    merge_predictions, load_binary_file, load_knowledge_results, merge_know_predictions, save_knowledge_results
 
 
 def parse_args():
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
     # metric
     accelerator.wait_for_everyone()
-    report = evaluator.report()
+    report, valid_decoded_preds, valid_decoded_labels = evaluator.report()
     valid_report = {}
     for k, v in report.items():
         valid_report[f'valid/{k}'] = v
@@ -231,6 +231,7 @@ if __name__ == '__main__':
 
     # test
     test_loss = []
+    test_preds = []
     model.eval()
     for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
@@ -257,7 +258,7 @@ if __name__ == '__main__':
 
     # metric
     accelerator.wait_for_everyone()
-    report = evaluator.report()
+    report,test_decoded_preds, test_decoded_labels = evaluator.report()
     test_report = {}
     for k, v in report.items():
         test_report[f'test/{k}'] = v
@@ -267,3 +268,7 @@ if __name__ == '__main__':
     if run:
         run.log(test_report)
     evaluator.reset_metric()
+
+    # save test generated texts and labels
+    save_knowledge_results(test_decoded_preds, os.path.join(args.output_dir, "test_gen.txt"))
+    save_knowledge_results(test_decoded_labels, os.path.join(args.output_dir, "test_label.txt"))

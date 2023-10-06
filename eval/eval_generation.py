@@ -4,7 +4,7 @@ from collections import Counter
 import json
 from nltk import ngrams
 from nltk.translate.bleu_score import sentence_bleu
-from nltk.translate.meteor_score import single_meteor_score
+# from nltk.translate.meteor_score import single_meteor_score
 
 
 class GenerationEvaluator:
@@ -15,6 +15,9 @@ class GenerationEvaluator:
         if log_file_path:
             self.log_file = open(log_file_path, 'w', buffering=1)
             self.log_cnt = 0
+
+        self.all_decoded_preds = []
+        self.all_decoded_labels = []
 
     def evaluate(self, preds, labels, log=False):
         """
@@ -44,8 +47,10 @@ class GenerationEvaluator:
         self.collect_ngram(decoded_preds)
         self.compute_bleu(decoded_preds, decoded_labels)
         self.compute_word_f1(decoded_preds, decoded_labels)
-        self.compute_meteor_score(decoded_preds, decoded_labels)
+        # self.compute_meteor_score(decoded_preds, decoded_labels)
         self.sent_cnt += len([pred for pred in decoded_preds if len(pred) > 0])
+        self.all_decoded_preds.extend(decoded_preds)
+        self.all_decoded_labels.extend(decoded_labels)
 
     def collect_ngram(self, strs):
         """
@@ -128,7 +133,7 @@ class GenerationEvaluator:
                     v = len(v)
                 report[k] = v / self.sent_cnt
         report['sent_cnt'] = self.sent_cnt
-        return report
+        return report, self.all_decoded_preds, self.all_decoded_labels
 
     def reset_metric(self):
         """
@@ -148,3 +153,5 @@ class GenerationEvaluator:
             'dist@4': set(),
         }
         self.sent_cnt = 0
+        self.all_decoded_labels = []
+        self.all_decoded_preds = []
