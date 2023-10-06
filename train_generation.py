@@ -22,7 +22,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, \
-    merge_predictions
+    merge_predictions, load_knowledge_results, merge_know_predictions
 
 
 def parse_args():
@@ -123,9 +123,17 @@ if __name__ == '__main__':
     dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_policy.txt"))
     test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_policy.txt"))
 
+    # load knowledge predictions
+    dev_pred_know = load_knowledge_results(os.path.join(args.know_outpath, "dev_knowledge.txt"))
+    test_pred_know = load_knowledge_results(os.path.join(args.know_outpath, "test_knowledge.txt"))
+
     # merge predictions
     dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
     dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
+
+    # merge know predictions
+    dataset.dev_instances = merge_know_predictions(dataset.dev_instances, dev_pred_know)
+    dataset.test_instances = merge_know_predictions(dataset.test_instances, test_pred_know)
 
     # t5 as the response generation model
     model = BartForConditionalGeneration.from_pretrained(args.plm_model)
