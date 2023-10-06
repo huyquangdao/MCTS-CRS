@@ -117,14 +117,16 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
                 t += 1
         else:
             if not node.is_terminal:
-                # follow the default policy to get a terminal state
-                last_sys_resp = ag.default_policy.get_predicted_sequence(state)
-                estimate = env.get_reward(last_sys_resp, state['task_background']['target_topic'])
 
-                ag.rolled_out_trajectories.append(last_sys_resp)
+                # follow the default policy to get a terminal state
+                simulated_conversation = ag.default_policy.get_predicted_sequence(state)
+                estimate = env.get_reward(simulated_conversation, state['task_background']['target_topic'])
+
+                ag.rolled_out_trajectories.append(simulated_conversation)
                 ag.rolled_out_rewards.append(estimate)
+
                 # also save this to current nodes for possible visualization
-                node.info['complete_program'] = last_sys_resp
+                node.info['complete_program'] = simulated_conversation
             else:
                 # the rewards are defined on terminating actions, the terminal states have no rewards
                 estimate = 0

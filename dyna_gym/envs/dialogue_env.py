@@ -46,6 +46,14 @@ class DialogueEnv(gym.Env):
         action = self.id2goal[action]
         resp = generate_sys_resp(state, action)
 
+        # generate the corresponding user response using a simulator
+        user_resp = get_user_resp(state, resp)
+
+        simulated_conversation = [
+            {'role': 'system', 'content': resp},
+            {'role': 'user', 'content': user_resp}
+        ]
+
         if action == self.terminal_act or len(state['dialogue_context']) > self.horizon:
             # either the text finishes, or the state reaches the maximum length
             done = True
@@ -53,12 +61,9 @@ class DialogueEnv(gym.Env):
             done = False
 
         if done:
-            reward = self.get_reward(resp, self.state['task_background']['target_topic'])
+            reward = self.get_reward(simulated_conversation, self.state['task_background']['target_topic'])
         else:
             reward = 0  # no intermediate reward
-
-        # generate the corresponding user response using a simulator
-        user_resp = get_user_resp(state, resp)
 
         # update the current state.
         new_state = update_state(state, action, resp, user_resp)
