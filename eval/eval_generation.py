@@ -44,6 +44,7 @@ class GenerationEvaluator:
         self.collect_ngram(decoded_preds)
         self.compute_bleu(decoded_preds, decoded_labels)
         self.compute_word_f1(decoded_preds, decoded_labels)
+        self.compute_meteor_score(decoded_preds, decoded_labels)
         self.sent_cnt += len([pred for pred in decoded_preds if len(pred) > 0])
 
     def collect_ngram(self, strs):
@@ -100,6 +101,7 @@ class GenerationEvaluator:
         @param labels: a list of groundtruth labels
         @return: None
         """
+
 
     def compute_meteor_score(self, preds, labels):
         """
