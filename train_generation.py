@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_target_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--goal_outpath', type=str, help="max length of both encoder and decoder input.")
+    parser.add_argument('--know_outpath', type=str, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_gen_length', default=50, type=int, help="max length of both encoder and decoder input.")
     # model
     parser.add_argument("--plm_model", type=str)
