@@ -311,7 +311,7 @@ if __name__ == '__main__':
 
         # metric
         accelerator.wait_for_everyone()
-        report = evaluator.report()
+        report, valid_decoded_preds, valid_decoded_labels = evaluator.report()
         valid_report = {}
         for k, v in report.items():
             valid_report[f'valid/{k}'] = v
@@ -356,7 +356,7 @@ if __name__ == '__main__':
 
         # metric
         accelerator.wait_for_everyone()
-        report = evaluator.report()
+        report, test_decoded_preds, test_decoded_labels = evaluator.report()
         test_report = {}
         for k, v in report.items():
             test_report[f'test/{k}'] = v
