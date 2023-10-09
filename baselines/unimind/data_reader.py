@@ -5,6 +5,7 @@ import pickle
 
 logger = logging.getLogger(__name__)
 
+
 def write_pkl(obj, filename):
     with open(filename, 'wb') as f:
         pickle.dump(obj, f)
@@ -13,6 +14,7 @@ def write_pkl(obj, filename):
 def read_pkl(filename):
     with open(filename, 'rb') as f:
         return pickle.load(f)
+
 
 def load_and_cache_examples(args, tokenizer, evaluate=False):
     mode = 'test' if evaluate else 'train'
@@ -32,19 +34,20 @@ def load_and_cache_examples(args, tokenizer, evaluate=False):
         logger.info("Creating features from dataset file at %s", args.data_dir)
         features = convert_to_features(args, tokenizer, mode)
         print("Loaded number of instance:", len(features['resp']['source_ids']))
-    
+
         logger.info("Saving features into cached file %s", cached_features_file)
         write_pkl(features, cached_features_file)
     return features
 
+
 def convert_to_features(args, tokenizer, mode):
     path = os.path.join(args.data_dir, '{}/item2id.txt'.format(args.data_name))
     with open(path, 'r', encoding='utf-8') as infile:
-        #item_dict = {0:'PAD'}
+        # item_dict = {0:'PAD'}
         item_dict = {}
         for line in infile:
             items = line.strip().split('\t')
-            #item_dict[int(items[1])+1] = items[0]
+            # item_dict[int(items[1])+1] = items[0]
             item_dict[int(items[1])] = items[0]
         item_dict[len(item_dict)] = '<PAD>'
 
@@ -53,8 +56,11 @@ def convert_to_features(args, tokenizer, mode):
         outfile = open(path, 'w', encoding='utf-8')
     path = os.path.join(args.data_dir, '{}/{}.jsonl'.format(args.data_name, mode))
     print('tokenizing {}'.format(path))
-    #print(tokenizer.SPECIAL_TOKENS_ATTRIBUTES)
-    data_dict = {'resp':{'source_ids':[], 'target_ids':[], 'item_ids':[]}, 'item':{'source_ids':[], 'target_ids':[], 'item_ids':[]}, 'goal':{'source_ids':[], 'target_ids':[], 'item_ids':[]}, 'know':{'source_ids':[], 'target_ids':[], 'item_ids':[]}}
+    # print(tokenizer.SPECIAL_TOKENS_ATTRIBUTES)
+    data_dict = {'resp': {'source_ids': [], 'target_ids': [], 'item_ids': []},
+                 'item': {'source_ids': [], 'target_ids': [], 'item_ids': []},
+                 'goal': {'source_ids': [], 'target_ids': [], 'item_ids': []},
+                 'know': {'source_ids': [], 'target_ids': [], 'item_ids': []}}
     with open(path, 'r', encoding='utf-8') as infile:
         max_dia_len = 0
         avg_dia_len = []
@@ -74,8 +80,8 @@ def convert_to_features(args, tokenizer, mode):
             source_know_id = []
             source_goal_id = []
             target_id = []
-            hist_id = know['item_history'] if len(know['item_history'])>0 else [len(item_dict)-1]
-            #hist_id = tokenizer.encode('[history]' + '|'.join(['<'+str(x)+'>' for x in know['item_history']]))[1:]
+            hist_id = know['item_history'] if len(know['item_history']) > 0 else [len(item_dict) - 1]
+            # hist_id = tokenizer.encode('[history]' + '|'.join(['<'+str(x)+'>' for x in know['item_history']]))[1:]
             profile_id = tokenizer.encode('[profile]' + '|'.join(know['user_profile']))[1:]
 
             first_utt = conv[0]
@@ -91,7 +97,7 @@ def convert_to_features(args, tokenizer, mode):
             source_know_id += tokenizer.encode('[{}]'.format(first_utt['role']) + first_utt['utterance'])[1:]
 
             for utt in conv[1:]:
-                if utt['role'] == 'user':# and args.data_name == 'durecdial':
+                if utt['role'] == 'user':  # and args.data_name == 'durecdial':
                     source_id += tokenizer.encode('[user]' + utt['utterance'])[1:]
                     if args.data_name == 'tgredial':
                         source_know_id += tokenizer.encode('[knowledge]' + '|'.join(utt['knowledge']))[1:]
@@ -104,18 +110,23 @@ def convert_to_features(args, tokenizer, mode):
 
                 ### prepare response generation data 
                 target_id = tokenizer.encode(utt['utterance'])
-                know_len = int(args.max_seq_length/2)
+                know_len = int(args.max_seq_length / 2)
                 if args.data_name == 'tgredial':
-                    new_source_id = source_id + tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode('[knowledge]')[1:-1] + tokenizer.encode('|'.join(utt['knowledge']))[1:][-know_len:] + tokenizer.encode('[item]' + '|'.join(utt['item']))[1:] + tokenizer.encode('生成回复：')[1:]
+                    new_source_id = source_id + tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode(
+                        '[knowledge]')[1:-1] + tokenizer.encode('|'.join(utt['knowledge']))[1:][
+                                               -know_len:] + tokenizer.encode('[item]' + '|'.join(utt['item']))[
+                                                             1:] + tokenizer.encode('生成回复：')[1:]
                 else:
-                    new_source_id = source_id + tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode('[knowledge]')[1:-1] + tokenizer.encode('|'.join(utt['know_text']))[1:][-know_len:] + tokenizer.encode('[item]' + '|'.join(utt['item']))[1:] + tokenizer.encode('生成回复：')[1:]
+                    new_source_id = source_id + tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode(
+                        '[knowledge]')[1:-1] + tokenizer.encode('|'.join(utt['know_text']))[1:][
+                                               -know_len:] + tokenizer.encode('[item]' + '|'.join(utt['item']))[
+                                                             1:] + tokenizer.encode('生成回复：')[1:]
                     if mode == 'test':
                         outfile.write(str(know['knowledge']) + '\n')
 
-
-                source_ids.append([101] + new_source_id[-args.max_seq_length+1:])
-                target_ids.append([101] + target_id[-args.max_target_length+1:])
-                item_ids.append([len(item_dict)-1])
+                source_ids.append([101] + new_source_id[-args.max_seq_length + 1:])
+                target_ids.append([101] + target_id[-args.max_target_length + 1:])
+                item_ids.append([len(item_dict) - 1])
                 data_dict['resp']['source_ids'].append(source_ids[-1])
                 data_dict['resp']['target_ids'].append(target_ids[-1])
                 data_dict['resp']['item_ids'].append(item_ids[-1])
@@ -128,36 +139,41 @@ def convert_to_features(args, tokenizer, mode):
                 ### prepare goal selection data
                 target_id = tokenizer.encode(utt['goal'])
                 new_source_id = source_goal_id + tokenizer.encode('计划下一个目标：')[1:]
-                source_goal_id += (tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode('[{}]'.format(utt['role']) + utt['utterance'])[1:])
-                source_ids.append([101] + new_source_id[-args.max_seq_length+1:])
-                target_ids.append([101] + target_id[-args.max_target_length+1:])
-                item_ids.append([len(item_dict)-1])
+                source_goal_id += (tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode(
+                    '[{}]'.format(utt['role']) + utt['utterance'])[1:])
+                source_ids.append([101] + new_source_id[-args.max_seq_length + 1:])
+                target_ids.append([101] + target_id[-args.max_target_length + 1:])
+                item_ids.append([len(item_dict) - 1])
                 data_dict['goal']['source_ids'].append(source_ids[-1])
                 data_dict['goal']['target_ids'].append(target_ids[-1])
                 data_dict['goal']['item_ids'].append(item_ids[-1])
 
                 ### prepare topic prediction data
                 target_id = tokenizer.encode('|'.join(utt['knowledge']))
-                new_source_id = profile_id + source_know_id + tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode('预测下一个话题：')[1:]
-                #new_source_id = profile_id + source_know_id + tokenizer.encode('[knowledge]')[1:]
-                source_know_id += (tokenizer.encode('[knowledge]' + '|'.join(utt['knowledge']))[1:] + tokenizer.encode('[{}]'.format(utt['role']) + utt['utterance'])[1:])
-                source_ids.append([101] + new_source_id[-args.max_seq_length+1:])
-                target_ids.append([101] + target_id[-args.max_target_length+1:])
-                item_ids.append([len(item_dict)-1])
+                new_source_id = profile_id + source_know_id + tokenizer.encode('[goal]' + utt['goal'])[
+                                                              1:] + tokenizer.encode('预测下一个话题：')[1:]
+                # new_source_id = profile_id + source_know_id + tokenizer.encode('[knowledge]')[1:]
+                source_know_id += (tokenizer.encode('[knowledge]' + '|'.join(utt['knowledge']))[1:] + tokenizer.encode(
+                    '[{}]'.format(utt['role']) + utt['utterance'])[1:])
+                source_ids.append([101] + new_source_id[-args.max_seq_length + 1:])
+                target_ids.append([101] + target_id[-args.max_target_length + 1:])
+                item_ids.append([len(item_dict) - 1])
                 data_dict['know']['source_ids'].append(source_ids[-1])
                 data_dict['know']['target_ids'].append(target_ids[-1])
                 data_dict['know']['item_ids'].append(item_ids[-1])
-                
+
                 ### prepare item recommendation data
                 if len(utt['item_id']) > 0:
                     target_text = []
                     for item, item_id in zip(utt['item'], utt['item_id']):
-                        target_text.append('<'+str(item_id)+'>'+item)
+                        target_text.append('<' + str(item_id) + '>' + item)
                     target_id = tokenizer.encode('|'.join(target_text))
-                    new_source_id = profile_id + source_id + tokenizer.encode('[goal]' + utt['goal'])[1:] + tokenizer.encode('[knowledge]' + '|'.join(utt['knowledge']))[1:] + tokenizer.encode('推荐：')[1:]#  
+                    new_source_id = profile_id + source_id + tokenizer.encode('[goal]' + utt['goal'])[
+                                                             1:] + tokenizer.encode(
+                        '[knowledge]' + '|'.join(utt['knowledge']))[1:] + tokenizer.encode('推荐：')[1:]  #
                     item_id = utt['item_id']
-                    source_ids.append([101] + new_source_id[-args.max_seq_length+1:])
-                    target_ids.append([101] + target_id[-args.max_target_length+1:])
+                    source_ids.append([101] + new_source_id[-args.max_seq_length + 1:])
+                    target_ids.append([101] + target_id[-args.max_target_length + 1:])
                     item_ids.append(item_id)
                     data_dict['item']['source_ids'].append(source_ids[-1])
                     data_dict['item']['target_ids'].append(target_ids[-1])
@@ -166,14 +182,16 @@ def convert_to_features(args, tokenizer, mode):
                 i += 1
 
                 source_id += tokenizer.encode('[{}]'.format(utt['role']) + utt['utterance'])[1:]
-                
-                #hist_ids.append(hist_id)
-                #hist_id.extend(item_id)
 
-        print('{} set, max_res_len: {}, max_dia_len: {}, avg_res_len: {}, avg_dia_len: {}'.format(mode, max_res_len, max_dia_len, float(sum(avg_res_len))/len(avg_res_len), float(sum(avg_dia_len))/len(avg_dia_len)))
+                # hist_ids.append(hist_id)
+                # hist_id.extend(item_id)
+
+        print('{} set, max_res_len: {}, max_dia_len: {}, avg_res_len: {}, avg_dia_len: {}'.format(mode, max_res_len,
+                                                                                                  max_dia_len, float(
+                sum(avg_res_len)) / len(avg_res_len), float(sum(avg_dia_len)) / len(avg_dia_len)))
 
     if mode == 'train':
-        #return {'source_ids':source_ids, 'target_ids':target_ids, 'item_ids':item_ids, 'item_dict':item_dict}
+        # return {'source_ids':source_ids, 'target_ids':target_ids, 'item_ids':item_ids, 'item_dict':item_dict}
         data_dict['item_dict'] = item_dict
         return data_dict
     else:
@@ -181,18 +199,21 @@ def convert_to_features(args, tokenizer, mode):
         data_dict['rec_index'] = rec_index
         return data_dict
 
+
 def merge_dataset(ft_dataset):
     source_ids = []
     target_ids = []
     item_ids = []
     item_dict = ft_dataset['item_dict']
-    for task in ['resp','goal','know','item']:
+    for task in ['resp', 'goal', 'know', 'item']:
         task_dataset = ft_dataset[task]
-        for source_id, target_id, item_id in zip(task_dataset['source_ids'], task_dataset['target_ids'], task_dataset['item_ids']):
+        for source_id, target_id, item_id in zip(task_dataset['source_ids'], task_dataset['target_ids'],
+                                                 task_dataset['item_ids']):
             source_ids.append(source_id)
             target_ids.append(target_id)
             item_ids.append(item_id)
-    return {'source_ids':source_ids, 'target_ids':target_ids, 'item_ids':item_ids, 'item_dict':item_dict}
+    return {'source_ids': source_ids, 'target_ids': target_ids, 'item_ids': item_ids, 'item_dict': item_dict}
+
 
 def process_pipeline_data(args, tokenizer, data, all_preds, task):
     if task == 'resp':
@@ -228,16 +249,16 @@ def process_pipeline_data(args, tokenizer, data, all_preds, task):
                         continue
                     tup = kb[obj]
                     if type(tup) is str:
-                        know_text.append(obj+'：'+tup)
+                        know_text.append(obj + '：' + tup)
                     elif type(tup) is dict:
                         flag = True
                         for key in tup:
                             if key in knows:
-                                know_text.append(obj+'，'+key+'，'+'、'.join(tup[key]))
+                                know_text.append(obj + '，' + key + '，' + '、'.join(tup[key]))
                                 flag = False
                         if flag:
                             for key in tup:
-                                know_text.append(obj+'，'+key+'，'+'、'.join(tup[key]))
+                                know_text.append(obj + '，' + key + '，' + '、'.join(tup[key]))
                 if len(know_text) == 0 and knows != ['']:
                     for obj in kb:
                         tup = kb[obj]
@@ -245,7 +266,7 @@ def process_pipeline_data(args, tokenizer, data, all_preds, task):
                             continue
                         else:
                             for key in tup:
-                                know_text.append(obj+'，'+key+'，'+'、'.join(tup[key]))
+                                know_text.append(obj + '，' + key + '，' + '、'.join(tup[key]))
                 know_pred = '|'.join(know_text)
             else:
                 know_pred = ''.join(know_pred.split(' '))
@@ -257,17 +278,20 @@ def process_pipeline_data(args, tokenizer, data, all_preds, task):
                 item_pred = ''
             j += 1
 
-            know_len = int(args.max_seq_length/2)
-            source_id += (tokenizer.encode('[goal]' + goal_pred)[1:] + tokenizer.encode('[knowledge]')[1:-1] + tokenizer.encode(know_pred)[1:][-know_len:] + tokenizer.encode('[item]' + item_pred)[1:] + uid)
-            new_source_ids.append([101] + source_id[-args.max_seq_length+1:])
+            know_len = int(args.max_seq_length / 2)
+            source_id += (tokenizer.encode('[goal]' + goal_pred)[1:] + tokenizer.encode('[knowledge]')[
+                                                                       1:-1] + tokenizer.encode(know_pred)[1:][
+                                                                               -know_len:] + tokenizer.encode(
+                '[item]' + item_pred)[1:] + uid)
+            new_source_ids.append([101] + source_id[-args.max_seq_length + 1:])
             if old_source_id == new_source_ids[-1]:
                 count += 1
             else:
-                #pass
+                # pass
                 print(know_pred)
                 print(tokenizer.decode(old_source_id, skip_special_tokens=True, clean_up_tokenization_spaces=True))
-                #print(tokenizer.decode(new_source_ids[-1], skip_special_tokens=True, clean_up_tokenization_spaces=True))
-        print(float(count)/len(new_source_ids))
+                # print(tokenizer.decode(new_source_ids[-1], skip_special_tokens=True, clean_up_tokenization_spaces=True))
+        print(float(count) / len(new_source_ids))
         data['resp']['source_ids'] = new_source_ids
         return data['resp']
     elif task == 'know':
@@ -278,16 +302,15 @@ def process_pipeline_data(args, tokenizer, data, all_preds, task):
             assert source_id.count(sid) == 1
             old_source_id = source_id.copy()
             source_id = source_id[1:source_id.index(sid)]
-            source_id += tokenizer.encode('[goal]' + ''.join(pred.split(' ')))[1:] + tokenizer.encode('预测下一个话题：')[1:]
-            #print(old_source_id, source_id[source_id.index(sid):])
-            new_source_ids.append([101] + source_id[-args.max_seq_length+1:])
+            source_id += tokenizer.encode('[goal]' + ''.join(pred.split(' ')))[1:] + tokenizer.encode(
+                '预测下一个话题：')[1:]
+            # print(old_source_id, source_id[source_id.index(sid):])
+            new_source_ids.append([101] + source_id[-args.max_seq_length + 1:])
             if old_source_id == new_source_ids[-1]:
                 count += 1
             else:
                 pass
-                #print(tokenizer.decode(old_source_id, skip_special_tokens=True, clean_up_tokenization_spaces=True))
-                #print(tokenizer.decode(new_source_ids[-1], skip_special_tokens=True, clean_up_tokenization_spaces=True))
-        print(float(count)/len(new_source_ids))
+        print(float(count) / len(new_source_ids))
         data['know']['source_ids'] = new_source_ids
         return data['know']
     elif task == 'item':
@@ -309,14 +332,13 @@ def process_pipeline_data(args, tokenizer, data, all_preds, task):
             assert source_id.count(sid) == 1
             old_source_id = source_id.copy()
             source_id = source_id[1:source_id.index(sid)]
-            source_id += tokenizer.encode('[goal]' + ''.join(pred.split(' ')))[1:] + tokenizer.encode('[knowledge]' + ''.join(pred_know.split(' ')))[1:] + tokenizer.encode('推荐：')[1:]
-            new_source_ids.append([101] + source_id[-args.max_seq_length+1:])
+            source_id += tokenizer.encode('[goal]' + ''.join(pred.split(' ')))[1:] + tokenizer.encode(
+                '[knowledge]' + ''.join(pred_know.split(' ')))[1:] + tokenizer.encode('推荐：')[1:]
+            new_source_ids.append([101] + source_id[-args.max_seq_length + 1:])
             if old_source_id == new_source_ids[-1]:
                 count += 1
             else:
                 pass
-                #print(tokenizer.decode(old_source_id, skip_special_tokens=True, clean_up_tokenization_spaces=True))
-                #print(tokenizer.decode(new_source_ids[-1], skip_special_tokens=True, clean_up_tokenization_spaces=True))
-        print(float(count)/len(new_source_ids))
+        print(float(count) / len(new_source_ids))
         data['item']['source_ids'] = new_source_ids
         return data['item']

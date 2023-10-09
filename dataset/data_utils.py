@@ -1,3 +1,4 @@
+import copy
 import random
 import pickle
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
@@ -293,3 +294,35 @@ def merge_know_predictions(instances, know_preds):
     for instance, pred_know in list(zip(instances, know_preds)):
         instance['pred_know'] = pred_know
     return instances
+
+
+def create_target_set(train_convs, test_instances, num_items=10):
+    """
+    function that creates a target item set from the test set
+    @param train_convs: a list of conversations from training set.
+    @param test_instances: a list of test instances.
+    @param num_items: the number of target item
+    @return: a list of dictionary which contain information about the target item (name, goal and demonstration)
+    """
+
+    # copy instances before selecting target items
+    copied_test_instances = copy.deepcopy(test_instances)
+    random.shuffle(copied_test_instances)
+    # get the set of items from the test set.
+    i = 0
+    selected_set = []
+    while i < num_items:
+        instance = copied_test_instances[i]
+        # sample a demonstration for user simulator:
+        demonstrations = randomly_sample_demonstrations(
+            all_convs=train_convs,
+            instance=instance
+        )
+        # create the target
+        target = {
+            "topic": instance['task_background']['target_topic'],
+            "goal": instance['task_background']['target_goal'],
+            "demonstration": demonstrations[0]
+        }
+        selected_set.append(target)
+    return selected_set

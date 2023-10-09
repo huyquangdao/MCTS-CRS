@@ -1,5 +1,6 @@
 from collections import defaultdict
 import copy
+import math
 
 import openai
 import torch
@@ -398,3 +399,23 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
 
     # return the last system resp.
     return simulated_conversation
+
+
+# define a reward function based the generated conversation
+def reward_func(conversations, target, delta=1, temperature=5):
+    """
+    function that computes the reward given an input generated conversation
+    @param conversations: the input conversation
+    @param target: the target item
+    @param delta: parameter that controls the weight of the length part
+    @param temperature: temperature
+    @return: a float value which is the reward.
+    """
+    reward = -3.0
+    for utt in conversations:
+        if utt['role'] == 'system':
+            if target.lower() in utt['content'].lower():
+                reward = 3.0
+
+    reward += delta * math.exp(- len(conversations) / temperature)
+    return reward

@@ -96,12 +96,10 @@ def uct_for_dialogue_planning_pipeline(
             plot_tree(agent.root, policy_tokenizer, filename)
             print(f"Tree plotted and saved to {filename}.pdf")
 
-        results = {
-            'output_ids': agent.rolled_out_trajectories,
-            'rewards': agent.rolled_out_rewards,
-        }
+        optimal_action = id2goal[agent.opt_act]
         # clear for the next generation call
         agent.reset()
-        return results
+
+        return optimal_action
 
     return generate
