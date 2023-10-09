@@ -11,7 +11,7 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 online_evaluation.py \
     --know_generation_tokenizer facebook/bart-base \
     --plm_know_generation_model facebook/bart-base \
     --rollouts 20 \
-    --num_items 10 \
+    --num_items 1 \
     --alg p_uct \
     --hidden_size 128 \
     --lm_size 768 \
