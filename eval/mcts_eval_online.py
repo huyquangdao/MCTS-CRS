@@ -99,7 +99,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             },
             "demonstration": target_item["demonstration"],
             "dialogue_context": ["Hello"],
-            "prev_goals": []
+            "pre_goals": []
         }
         return state
 
