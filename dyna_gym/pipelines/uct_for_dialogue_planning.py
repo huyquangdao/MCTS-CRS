@@ -51,10 +51,17 @@ def uct_for_dialogue_planning_pipeline(
     reward_func_ = reward_func
     env = gym.make(
         'DialogueEnv-v0',
+        generation_model=generation_model,
+        generation_tokenizer=generation_tokenizer,
+        know_generation_model=know_generation_model,
+        know_tokenizer=know_tokenizer,
         terminal_act=terminal_act,
         horizon=horizon,
         reward_func=reward_func_,
-        goal2id=goal2id
+        goal2id=goal2id,
+        device=device,
+        max_sequence_length=max_sequence_length,
+        max_gen_length=max_gen_length,
     )
 
     default_policy = OfflinePolicy(
