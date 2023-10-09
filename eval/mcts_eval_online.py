@@ -98,7 +98,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
                 "target_goal": target_item['goal']
             },
             "demonstration": target_item["demonstration"],
-            "dialogue_context": ["Hello"],
+            "dialogue_context": [{"role": "user", "content": "Hello !"}],
             "pre_goals": []
         }
         return state
