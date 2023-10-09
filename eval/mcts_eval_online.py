@@ -100,7 +100,8 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             "demonstration": target_item["demonstration"],
             "dialogue_context": [{"role": "user", "content": "Hello !"}],
             "goal": "Greetings",  # will not affect anything, only including it for code convenience
-            "knowledge": "",
+            "knowledge": "", # will not affect anything, only including it for code convenience
+            "response": "", # will not affect anything, only including it for code convenience
             "pre_goals": []
         }
         return state
