@@ -311,8 +311,12 @@ def create_target_set(train_convs, test_instances, num_items=10):
     # get the set of items from the test set.
     i = 0
     selected_set = []
+    selected_set_names = []
     while i < num_items:
         instance = copied_test_instances[i]
+        if instance['task_background']['target_topic'] in selected_set_names:
+            continue
+
         # sample a demonstration for user simulator:
         demonstrations = randomly_sample_demonstrations(
             all_convs=train_convs,
@@ -325,4 +329,7 @@ def create_target_set(train_convs, test_instances, num_items=10):
             "demonstration": demonstrations[0]
         }
         selected_set.append(target)
+        selected_set_names.append(target['topic'])
+        i += 1
+
     return selected_set
