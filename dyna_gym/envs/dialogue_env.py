@@ -16,7 +16,7 @@ class DialogueEnv(gym.Env):
     Terminal state: the program reaches the maximum length or the terminal token is generated.
     """
 
-    def __init__(self, generation_model, generation_tokenizer, know_generation_model, know_generation_tokenizer,
+    def __init__(self, generation_model, generation_tokenizer, know_generation_model, know_tokenizer,
                  terminal_act, horizon=5, max_sequence_length=512, max_gen_length=50, pad_to_multiple_of=True,
                  padding='max_length', device=None,
                  reward_func=None, goal2id=None):
@@ -44,7 +44,7 @@ class DialogueEnv(gym.Env):
         self.generation_model = generation_model
         self.generation_tokenizer = generation_tokenizer
         self.know_generation_model = know_generation_model
-        self.know_generation_tokenizer = know_generation_tokenizer
+        self.know_tokenizer = know_tokenizer
         self.max_sequence_length = max_sequence_length
         self.max_gen_length = max_gen_length
         self.pad_to_multiple_of = pad_to_multiple_of
