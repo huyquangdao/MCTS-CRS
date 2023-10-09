@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # create and load the weights for generation model
     plm_generation_model = args.plm_generation_model
     generation_model_path = args.generation_model_path
-    generation_model_name = 'generation.pth'
+    generation_model_name = 'response_generation.pth'
     generation_model = BartForConditionalGeneration.from_pretrained(plm_generation_model)
 
     generation_tokenizer = AutoTokenizer.from_pretrained(args.generation_tokenizer)
