@@ -11,7 +11,7 @@ from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
 from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, DURECDIALGOALS
-from dataset.data_utils import create_target_set, load_binary_file
+from dataset.data_utils import create_target_set, load_binary_file, save_binary_file
 
 from dyna_gym.envs.utils import reward_func
 from eval.mcts_eval_online import MCTSCRSOnlineEval
@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--know_generation_model_path', type=str, help="criterion for the selection step")
+    parser.add_argument('--target_set_path', type=str, help="criterion for the selection step")
     # model
     parser.add_argument("--plm_policy_model", type=str)
     parser.add_argument("--policy_tokenizer", type=str)
@@ -131,8 +132,16 @@ if __name__ == '__main__':
 
     generation_model.to(device)
 
-    # create the target item set.
-    target_set = create_target_set(dataset.train_convs, dataset.test_instances, num_items=args.num_items)
+    if not os.path.exists(args.target_set_path):
+        os.mkdir(args.target_set_path)
+
+    if os.path.exists(os.path.join(args.target_set_path, "target.pkl")):
+        target_set = load_binary_file(os.path.join(args.target_set_path, "target.pkl"))
+    else:
+        # create the target item set.
+        target_set = create_target_set(dataset.train_convs, dataset.test_instances, num_items=args.num_items)
+        save_binary_file(os.path.join(args.target_set_path, "target.pkl"))
+
     terminal_act = "Say goodbye"
 
     mcts_online_eval = MCTSCRSOnlineEval(

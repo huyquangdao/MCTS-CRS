@@ -15,6 +15,7 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 online_evaluation.py \
     --alg p_uct \
     --hidden_size 128 \
     --lm_size 768 \
+    --target_set_path ./target_set/ \
     --horizon 5 \
     --max_sequence_length 512 \
     --max_gen_length 50 \

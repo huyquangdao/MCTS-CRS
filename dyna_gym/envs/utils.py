@@ -419,3 +419,18 @@ def reward_func(conversations, target, delta=1, temperature=5):
 
     reward += delta * math.exp(- len(conversations) / temperature)
     return reward
+
+
+def random_seed(seed):
+    """
+    function that init important libraries with a predefined random seed.
+    @param seed: a int number
+    @return: None
+    """
+    import random
+    import torch
+    import numpy as np
+    random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
