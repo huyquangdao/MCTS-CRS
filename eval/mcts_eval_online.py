@@ -100,8 +100,8 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             "demonstration": target_item["demonstration"],
             "dialogue_context": [{"role": "user", "content": "Hello !"}],
             "goal": "Greetings",  # will not affect anything, only including it for code convenience
-            "knowledge": "", # will not affect anything, only including it for code convenience
-            "response": "", # will not affect anything, only including it for code convenience
+            "knowledge": "",  # will not affect anything, only including it for code convenience
+            "response": "",  # will not affect anything, only including it for code convenience
             "pre_goals": []
         }
         return state
@@ -217,10 +217,12 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
         method that perform online evaluation on a predefined set of items
         @return: computed metrics
         """
-        scores = []
+        avg_sr = []
+        avg_turn = []
         for target_item in self.target_set:
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
-            score = self.compute_metrics(generated_conversation)
-            scores.append(score)
-        return scores
+            sr, turn = self.compute_metrics(generated_conversation, target_item['topic'])
+            avg_sr.append(sr)
+            avg_turn.append(turn)
+        return sum(avg_sr) / len(self.target_set), sum(avg_turn) / len(self.target_set)
