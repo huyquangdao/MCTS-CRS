@@ -94,7 +94,7 @@ def uct_for_dialogue_planning_pipeline(
         # do all rollouts in one step
         env.step(agent.act(env, done=False))
         # print tree
-        print_tree(agent.root, policy_tokenizer)
+        # print_tree(agent.root, policy_tokenizer)
         # optionally, plot the tree and save to a pdf file
         if should_plot_tree:
             # plot (and print) the tree
