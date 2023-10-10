@@ -13,7 +13,7 @@ from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, DURECDIALGOALS
 from dataset.data_utils import create_target_set, load_binary_file, save_binary_file
 
-from dyna_gym.envs.utils import reward_func
+from dyna_gym.envs.utils import reward_func, random_seed
 from eval.mcts_eval_online import MCTSCRSOnlineEval
 
 
@@ -62,6 +62,8 @@ def parse_args():
 if __name__ == '__main__':
     # parse argments
     args = parse_args()
+
+    random_seed(args.seed)
 
     device = torch.device('cuda:0')
     # arguments for the UCT agent
