@@ -142,7 +142,7 @@ if __name__ == '__main__':
     else:
         # create the target item set.
         target_set = create_target_set(dataset.train_convs, dataset.test_instances, num_items=args.num_items)
-        save_binary_file(os.path.join(args.target_set_path, "target.pkl"))
+        save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
     terminal_act = "Say goodbye"
 
