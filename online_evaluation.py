@@ -157,4 +157,7 @@ if __name__ == '__main__':
     )
 
     # compute online evaluation metrics
-    mcts_online_eval.eval()
+    sr, avg_turn = mcts_online_eval.eval()
+
+    print("Success rate:", sr)
+    print("Avg turn: ", avg_turn)
