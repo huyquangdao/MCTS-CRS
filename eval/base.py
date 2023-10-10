@@ -38,7 +38,7 @@ class BaseOnlineEval(object):
         @return: dialogue-level SR and averaged number of conversational turn
         """
         sr = self.is_successful(generated_conversation, target_item)
-        turn = self.compute_turn(generated_conversation, target_item)
+        turn = self.compute_turn(generated_conversation)
         return int(sr), turn
 
     def is_successful(self, generated_conversation, target_item):
