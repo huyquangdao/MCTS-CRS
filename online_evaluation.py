@@ -145,7 +145,6 @@ if __name__ == '__main__':
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
     terminal_act = "Say goodbye"
-
     mcts_online_eval = MCTSCRSOnlineEval(
         target_set=target_set,
         terminal_act=terminal_act,

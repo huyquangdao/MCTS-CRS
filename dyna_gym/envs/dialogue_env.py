@@ -96,7 +96,7 @@ class DialogueEnv(gym.Env):
         user_resp = get_user_resp(state, resp)
 
         simulated_conversation = [
-            {'role': 'system', 'content': resp},
+            {'role': 'system', 'content': resp, 'goal': action},
             {'role': 'user', 'content': user_resp}
         ]
 
@@ -107,7 +107,8 @@ class DialogueEnv(gym.Env):
             done = False
 
         if done:
-            reward = self.get_reward(simulated_conversation, self.state['task_background']['target_topic'])
+            reward = self.get_reward(simulated_conversation, self.state['task_background']['target_topic'],
+                                     self.state['task_background']['target_goal'])
         else:
             reward = 0  # no intermediate reward
 

@@ -393,7 +393,7 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
 
         # update the simulated conversation
         simulated_conversation.extend([
-            {'role': 'system', 'content': system_resp},
+            {'role': 'system', 'content': system_resp, 'goal': action},
             {'role': 'user', 'content': user_resp}
         ])
 
@@ -402,11 +402,12 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
 
 
 # define a reward function based the generated conversation
-def reward_func(conversations, target, delta=1, temperature=5):
+def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1):
     """
     function that computes the reward given an input generated conversation
     @param conversations: the input conversation
-    @param target: the target item
+    @param target_topic: the target topic
+    @param target_goal: the target goal
     @param delta: parameter that controls the weight of the length part
     @param temperature: temperature
     @return: a float value which is the reward.
@@ -414,7 +415,7 @@ def reward_func(conversations, target, delta=1, temperature=5):
     reward = -3.0
     for utt in conversations:
         if utt['role'] == 'system':
-            if target.lower() in utt['content'].lower():
+            if target_topic.lower() in utt['content'].lower() and target_goal == utt['goal']:
                 reward = 3.0
 
     reward += delta * math.exp(- len(conversations) / temperature)

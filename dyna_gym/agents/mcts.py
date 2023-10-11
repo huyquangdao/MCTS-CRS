@@ -120,7 +120,8 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
 
                 # follow the default policy to get a terminal state
                 simulated_conversation = ag.default_policy.get_predicted_sequence(state)
-                estimate = env.get_reward(simulated_conversation, state['task_background']['target_topic'])
+                estimate = env.get_reward(simulated_conversation, state['task_background']['target_topic'],
+                                          state['task_background']['target_goal'])
 
                 ag.rolled_out_trajectories.append(simulated_conversation)
                 ag.rolled_out_rewards.append(estimate)
