@@ -213,7 +213,7 @@ def randomly_sample_demonstrations(all_convs, instance, k=1):
     @return: a randomly chosen conversation.
     """
     candidate_instances = [x for x in all_convs if
-                           x['target_topic'] == instance['task_background']['target_topic']]
+                           x['target_goal'] == instance['task_background']['target_goal']]
 
     return random.choices(candidate_instances, k=k)
 
