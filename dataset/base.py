@@ -9,7 +9,6 @@ from torch.nn.utils.rnn import pad_sequence
 IGNORE_INDEX = -100
 
 
-
 class BaseTorchDataset(TorchDataset):
 
     def __init__(self, tokenizer, instances, goal2id=None, max_sequence_length=512, padding='max_length',
