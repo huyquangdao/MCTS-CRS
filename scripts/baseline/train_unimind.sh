@@ -16,5 +16,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/unimind/train_uni
     --learning_rate 5e-5 \
     --goal_outpath ./policy_model/ \
     --know_outpath ./know_generation_model/ \
-    --output_dir ./generation_model/ \
+    --output_dir ./unimind/ \
     --seed 21

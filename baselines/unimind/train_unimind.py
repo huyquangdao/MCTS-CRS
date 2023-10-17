@@ -359,3 +359,5 @@ if __name__ == '__main__':
         # if run:
         #     run.log(test_report)
         # evaluator.reset_metric()
+
+    save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
