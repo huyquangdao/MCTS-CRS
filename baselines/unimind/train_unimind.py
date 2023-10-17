@@ -23,7 +23,6 @@ from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_unimind_goal_prediction, \
     convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
 
-from baselines.unimind.model import UniMind
 from dataset.datasets import UnimindTorchDataset
 
 
