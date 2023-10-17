@@ -20,6 +20,7 @@ from dyna_gym.models.policy import load_model
 from dataset.datasets import UnimindTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
+from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import load_binary_file, convert_example_to_feature_for_unimind_goal_prediction, \
     convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
@@ -176,7 +177,6 @@ if __name__ == '__main__':
 
     # dev
     valid_loss = []
-    valid_preds = []
     model.eval()
     for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
@@ -201,24 +201,16 @@ if __name__ == '__main__':
             label_resp_ids.append(label_seq)
         evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
-        # generate
-        decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
-        decoded_preds = [decoded_pred.replace('</s>', '').replace('<s>', '') for decoded_pred in
-                         decoded_preds]
-        decoded_preds = [pred.strip() for pred in decoded_preds]
-        valid_preds.extend(decoded_preds)
-
     # metric
     accelerator.wait_for_everyone()
-    report = evaluator.report()
-    valid_report = {}
-    for k, v in report.items():
-        valid_report[f'valid/{k}'] = v
-    valid_loss = np.mean(valid_loss)
-    valid_report['valid/loss'] = valid_loss
-    logger.info(valid_report)
+    _, valid_preds, valid_labels = evaluator.report()
+
+    # post processing labels
+    valid_labels = [x.split(":")[-1].strip() for x in valid_labels]
+    goal_acc = PolicyEvaluator.compute_categorical_acc(valid_preds, valid_labels)
+    logger.info({"goal_accuracy": goal_acc})
     if run:
-        run.log(valid_report)
+        run.log({"goal_accuracy": goal_acc})
     evaluator.reset_metric()
 
     # test
@@ -248,23 +240,14 @@ if __name__ == '__main__':
             label_resp_ids.append(label_seq)
         evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
-        decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
-        decoded_preds = [decoded_pred.replace('</s>', '').replace('<s>', '') for decoded_pred in
-                         decoded_preds]
-        decoded_preds = [pred.strip() for pred in decoded_preds]
-        test_preds.extend(decoded_preds)
-
     # metric
     accelerator.wait_for_everyone()
-    report = evaluator.report()
-    test_report = {}
-    for k, v in report.items():
-        test_report[f'test/{k}'] = v
-    test_loss = np.mean(test_loss)
-    test_report['test/loss'] = test_loss
-    logger.info(test_report)
+    _, test_preds, test_labels = evaluator.report()
+    test_labels = [x.split(":")[-1].strip() for x in test_labels]
+    goal_acc = PolicyEvaluator.compute_categorical_acc(test_preds, test_labels)
+    logger.info({"goal_accuracy": goal_acc})
     if run:
-        run.log(test_report)
+        run.log({"goal_accuracy": goal_acc})
     evaluator.reset_metric()
 
     # save the predictions
