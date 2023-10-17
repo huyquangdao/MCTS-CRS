@@ -17,12 +17,12 @@ from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, 
     T5ForConditionalGeneration
 
 from dyna_gym.models.policy import load_model
-from dataset.base import BaseTorchDataset
+from dataset.datasets import UnimindTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
-from dataset.data_utils import convert_example_to_feature_for_knowledge_generation, load_policy_results, \
-    merge_predictions, load_binary_file, save_knowledge_results
+from dataset.data_utils import load_binary_file, convert_example_to_feature_for_unimind_goal_prediction, \
+    convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
 
 
 def parse_args():
@@ -37,7 +37,6 @@ def parse_args():
     parser.add_argument('--num_workers', type=int, default=0)
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_target_length', type=int, help="max length of both encoder and decoder input.")
-    parser.add_argument('--goal_outpath', type=str, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_gen_length', default=50, type=int, help="max length of both encoder and decoder input.")
     # model
     parser.add_argument("--plm_model", type=str)
@@ -104,45 +103,38 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
     # goal2id = {k: v for v, k in enumerate(dataset.goals)}
-    goal2id = load_binary_file(os.path.join(args.goal_outpath, "goal2id.pkl"))
-
-    # load goal predictions
-    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_policy.txt"))
-    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_policy.txt"))
-
-    # merge predictions
-    dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
-    dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
-
-    # t5 as the response generation model
+    # UNIMIND utilizes BART as the response generation model
     model = BartForConditionalGeneration.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
 
-    model= load_model(model, os.path.join(args.output_dir, "know_generation.pth"))
-
+    model = load_model(model, os.path.join(args.output_dir, "unimind.pth"))
     model.to(device)
 
-    # data
-    dev_torch_dataset = BaseTorchDataset(
+    input_transformation_dict = {
+        "goal": convert_example_to_feature_for_unimind_goal_prediction,
+        "topic": convert_example_to_feature_for_unimind_topic_prediction,
+        "response": convert_example_to_feature_for_unimind_response_generation,
+    }
+
+    # data for goal prediction
+    dev_torch_dataset = UnimindTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
-        goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_knowledge_generation,
+        convert_example_to_feature=input_transformation_dict['goal'],
         is_test=True,
         is_gen=True,
         max_target_length=args.max_target_length
     )
-    test_torch_dataset = BaseTorchDataset(
+    test_torch_dataset = UnimindTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
-        goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_knowledge_generation,
+        convert_example_to_feature=input_transformation_dict['goal'],
         is_test=True,
         is_gen=True,
         max_target_length=args.max_target_length
@@ -276,5 +268,5 @@ if __name__ == '__main__':
     evaluator.reset_metric()
 
     # save the predictions
-    save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_knowledge.txt"))
-    save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_knowledge.txt"))
+    # save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_knowledge.txt"))
+    # save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_knowledge.txt"))
