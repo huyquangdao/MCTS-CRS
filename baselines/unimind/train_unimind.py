@@ -286,7 +286,7 @@ if __name__ == '__main__':
                 best_metric = train_loss
             del train_loss, batch
 
-    elif args.do_finetune:
+    if args.do_finetune:
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
