@@ -23,17 +23,19 @@ class UnimindTorchDataset(BaseTorchDataset):
         @param is_test True if inference step False if training step
         @param is_gen True if response generation else False
         """
-        super(BaseTorchDataset, self).__init__()
-        self.max_sequence_length = max_sequence_length
-        self.tokenizer = tokenizer
-        self.goal2id = goal2id
-        self.pad_to_multiple_of = pad_to_multiple_of
-        self.padding = padding
-        self.device = device
-        self.max_target_length = max_target_length
-        self.is_test = is_test
-        self.is_gen = is_gen
-        self.instances = self.__preprocess_data(instances, convert_example_to_feature)
+        super(UnimindTorchDataset, self).__init__(
+            tokenizer,
+            instances,
+            goal2id,
+            max_sequence_length,
+            padding,
+            pad_to_multiple_of,
+            device,
+            convert_example_to_feature,
+            max_target_length,
+            is_test,
+            is_gen
+        )
 
     def __preprocess_data(self, instances, convert_example_to_feature):
 
