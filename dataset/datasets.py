@@ -28,4 +28,4 @@ class UnimindTorchDataset(BaseTorchDataset):
 
             return processed_instances
         else:
-            super().preprocess_data(instances, convert_example_to_feature)
+            return super().preprocess_data(instances, convert_example_to_feature)
