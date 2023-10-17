@@ -16,7 +16,7 @@ from tqdm.auto import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, BartForConditionalGeneration, \
     T5ForConditionalGeneration
 
-from dyna_gym.models.policy import save_model
+from dyna_gym.models.policy import save_model, load_model
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
@@ -46,6 +46,9 @@ def parse_args():
     parser.add_argument("--tokenizer", type=str)
     # optim
     parser.add_argument("--num_train_epochs", type=int, default=10, help="Total number of training epochs to perform.")
+    parser.add_argument("--num_finetune_epochs", type=int, default=5, help="Total number of training epochs to perform.")
+
+    #
     parser.add_argument("--max_train_steps", type=int, default=None,
                         help="Total number of training steps to perform. If provided, overrides num_train_epochs.")
     parser.add_argument("--per_device_train_batch_size", type=int, default=4,
@@ -60,6 +63,10 @@ def parse_args():
     parser.add_argument('--max_grad_norm', type=float)
     parser.add_argument('--num_warmup_steps', type=int, default=10000)
     parser.add_argument('--fp16', action='store_true', help='use automatic mixed precision to speed up.')
+
+    parser.add_argument("--do_train", action="store_true", help="whether to use wandb")
+    parser.add_argument("--do_finetune", action="store_true", help="whether to use wandb")
+
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
     parser.add_argument("--entity", type=str, help="wandb username")
@@ -245,119 +252,96 @@ if __name__ == '__main__':
     os.makedirs(best_metric_dir, exist_ok=True)
 
     # train loop
-    for epoch in range(args.num_train_epochs):
-        train_loss = []
-        model.train()
-        for step, batch in enumerate(train_dataloader):
-            loss = model(**batch['context'], labels=batch['labels'], return_dict=True)['loss']
-            loss = loss / args.gradient_accumulation_steps
-            accelerator.backward(loss)
-            train_loss.append(float(loss))
-            # optim step
-            if step % args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                if args.max_grad_norm is not None:
-                    accelerator.clip_grad_norm_(model.parameters(), args.max_grad_norm)
-                optimizer.step()
-                lr_scheduler.step()
-                optimizer.zero_grad()
+    if args.do_train:
+        for epoch in range(args.num_train_epochs):
+            train_loss = []
+            model.train()
+            for step, batch in enumerate(train_dataloader):
+                loss = model(**batch['context'], labels=batch['labels'], return_dict=True)['loss']
+                loss = loss / args.gradient_accumulation_steps
+                accelerator.backward(loss)
+                train_loss.append(float(loss))
+                # optim step
+                if step % args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+                    if args.max_grad_norm is not None:
+                        accelerator.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+                    optimizer.step()
+                    lr_scheduler.step()
+                    optimizer.zero_grad()
+                    progress_bar.update(1)
+                    completed_steps += 1
+                    if run:
+                        run.log({'loss': np.mean(train_loss) * args.gradient_accumulation_steps})
 
-                progress_bar.update(1)
-                completed_steps += 1
-                if run:
-                    run.log({'loss': np.mean(train_loss) * args.gradient_accumulation_steps})
+                if completed_steps >= args.max_train_steps:
+                    break
 
-            if completed_steps >= args.max_train_steps:
-                break
+            # metric
+            train_loss = np.mean(train_loss) * args.gradient_accumulation_steps
+            logger.info(f'epoch {epoch} train loss {train_loss}')
 
-        # metric
-        train_loss = np.mean(train_loss) * args.gradient_accumulation_steps
-        logger.info(f'epoch {epoch} train loss {train_loss}')
+            # save the model with the best train loss
+            if train_loss < best_metric:
+                save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
+                best_metric = train_loss
+            del train_loss, batch
 
-        del train_loss, batch
-        #
-        # # dev
-        # valid_loss = []
-        # model.eval()
-        # for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
-        #     with torch.no_grad():
-        #         outputs = model(**batch['context'], labels=batch['labels'], return_dict=True)
-        #         loss = outputs['loss']
-        #         logits = outputs['logits']
-        #         valid_loss.append(float(loss))
-        #
-        #     gen_seqs = accelerator.unwrap_model(model).generate(
-        #         **batch['context'],
-        #         max_new_tokens=args.max_gen_length,
-        #         no_repeat_ngram_size=3
-        #     )
-        #     gen_resp_ids = []
-        #     for gen_seq in gen_seqs:
-        #         gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-        #         gen_resp_ids.append(gen_seq)
-        #
-        #     label_resp_ids = []
-        #     for label_seq in batch['labels']:
-        #         label_seq = [token_id for token_id in label_seq if token_id != -100]
-        #         label_resp_ids.append(label_seq)
-        #     evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
-        #
-        # # metric
-        # accelerator.wait_for_everyone()
-        # report, valid_decoded_preds, valid_decoded_labels = evaluator.report()
-        # valid_report = {}
-        # for k, v in report.items():
-        #     valid_report[f'valid/{k}'] = v
-        # valid_loss = np.mean(valid_loss)
-        # valid_report['valid/loss'] = valid_loss
-        # valid_report['epoch'] = epoch
-        # logger.info(valid_report)
-        # if run:
-        #     run.log(valid_report)
-        #
-        # if valid_report[f'valid/{metric}'] * mode > best_metric * mode:
-        #     best_metric = valid_report[f'valid/{metric}']
-        #     logger.info(f'new best model with {metric}')
-        #     save_model(model, output_dir=os.path.join(args.output_dir, 'response_generation.pth'))
-        #
-        # evaluator.reset_metric()
-        # # test
-        # test_loss = []
-        # model.eval()
-        # for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
-        #     with torch.no_grad():
-        #         outputs = model(**batch['context'], labels=batch['labels'], return_dict=True)
-        #         loss = outputs['loss']
-        #         logits = outputs['logits']
-        #         test_loss.append(float(loss))
-        #
-        #     gen_seqs = accelerator.unwrap_model(model).generate(
-        #         **batch['context'],
-        #         max_new_tokens=args.max_gen_length,
-        #         no_repeat_ngram_size=3
-        #     )
-        #     gen_resp_ids = []
-        #     for gen_seq in gen_seqs:
-        #         gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-        #         gen_resp_ids.append(gen_seq)
-        #
-        #     label_resp_ids = []
-        #     for label_seq in batch['labels']:
-        #         label_seq = [token_id for token_id in label_seq if token_id != -100]
-        #         label_resp_ids.append(label_seq)
-        #     evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
-        #
-        # # metric
-        # accelerator.wait_for_everyone()
-        # report, test_decoded_preds, test_decoded_labels = evaluator.report()
-        # test_report = {}
-        # for k, v in report.items():
-        #     test_report[f'test/{k}'] = v
-        # test_loss = np.mean(test_loss)
-        # test_report['test/loss'] = test_loss
-        # test_report['epoch'] = epoch
-        # logger.info(test_report)
-        # if run:
-        #     run.log(test_report)
-        # evaluator.reset_metric()
+    elif args.do_finetune:
+        tasks = ["goal", "topic", "response"]
+        # loop overall tasks
+        for task in tasks:
+            # load model from checkpoint
+            model = load_model(model, os.path.join(args.output_dir, 'unimind.pth'))
+            # create the torch dataset for each task
+            train_torch_dataset = UnimindTorchDataset(
+                tokenizer=tokenizer,
+                instances=dataset.train_instances,
+                goal2id=goal2id,
+                max_sequence_length=args.max_sequence_length,
+                device=device,
+                convert_example_to_feature=input_transformation_dict[task],
+                is_test=False,
+                is_gen=True,
+                max_target_length=args.max_target_length
+            )
+            # create the data loader
+            train_dataloader = DataLoader(
+                train_torch_dataset,
+                batch_size=args.per_device_train_batch_size,
+                shuffle=True,
+                num_workers=args.num_workers,
+                collate_fn=train_torch_dataset.collate_fn,
+            )
+            # finetune main loop
+            for epoch in range(args.num_finetune_epochs):
+                train_loss = []
+                model.train()
+                for step, batch in enumerate(train_dataloader):
+                    loss = model(**batch['context'], labels=batch['labels'], return_dict=True)['loss']
+                    loss = loss / args.gradient_accumulation_steps
+                    accelerator.backward(loss)
+                    train_loss.append(float(loss))
+                    # optim step
+                    if step % args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+                        if args.max_grad_norm is not None:
+                            accelerator.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+                        optimizer.step()
+                        lr_scheduler.step()
+                        optimizer.zero_grad()
+                        progress_bar.update(1)
+                        completed_steps += 1
+                        if run:
+                            run.log({'loss': np.mean(train_loss) * args.gradient_accumulation_steps})
 
-    save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
+                    if completed_steps >= args.max_train_steps:
+                        break
+
+                # metric
+                train_loss = np.mean(train_loss) * args.gradient_accumulation_steps
+                logger.info(f'epoch {epoch} train loss {train_loss}')
+
+                # save the model with the best train loss
+                if train_loss < best_metric:
+                    save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
+                    best_metric = train_loss
+                del train_loss, batch
