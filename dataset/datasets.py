@@ -12,7 +12,7 @@ class UnimindTorchDataset(BaseTorchDataset):
         # loop overall instances.
         for instance in instances:
             # loop overall functions.
-            for func in convert_example_to_feature:
+            for key, func in convert_example_to_feature.items():
                 input_ids, label = func(self.tokenizer, instance, self.max_sequence_length, self.max_target_length,
                                         is_test=self.is_test, is_gen=self.is_gen)
 
