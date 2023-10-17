@@ -39,7 +39,7 @@ class BaseTorchDataset(TorchDataset):
         self.max_target_length = max_target_length
         self.is_test = is_test
         self.is_gen = is_gen
-        self.instances = self.__preprocess_data(instances, convert_example_to_feature)
+        self.instances = self.preprocess_data(instances, convert_example_to_feature)
 
     def __len__(self):
         """
@@ -91,7 +91,7 @@ class BaseTorchDataset(TorchDataset):
         }
         return new_batch
 
-    def __preprocess_data(self, instances, convert_example_to_feature):
+    def preprocess_data(self, instances, convert_example_to_feature):
         """
         method that preprocess an data instances
         @param instances: an instance from the data
