@@ -370,14 +370,11 @@ def convert_example_to_feature_for_unimind_goal_prediction(tokenizer, instance, 
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
     # if not inference time.
-    if not is_gen:
-        label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{GOAL_TOKEN}: " + instance['goal']))
-        label = label[:max_target_length]
-        label = label + [tokenizer.eos_token_id]
+    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{GOAL_TOKEN}: " + instance['goal']))
+    label = label[:max_target_length]
+    label = label + [tokenizer.eos_token_id]
 
-        return input_ids, label
-
-    return input_ids
+    return input_ids, label
 
 
 def convert_example_to_feature_for_unimind_topic_prediction(tokenizer, instance, max_sequence_length=512,
@@ -417,14 +414,11 @@ def convert_example_to_feature_for_unimind_topic_prediction(tokenizer, instance,
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
     # if not inference time.
-    if not is_gen:
-        label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{TOPIC_TOKEN}: " + instance['topic']))
-        label = label[:max_target_length]
-        label = label + [tokenizer.eos_token_id]
+    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{TOPIC_TOKEN}: " + instance['topic']))
+    label = label[:max_target_length]
+    label = label + [tokenizer.eos_token_id]
 
-        return input_ids, label
-
-    return input_ids
+    return input_ids, label
 
 
 def convert_example_to_feature_for_unimind_response_generation(tokenizer, instance, max_sequence_length=512,
@@ -463,11 +457,8 @@ def convert_example_to_feature_for_unimind_response_generation(tokenizer, instan
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
     # if not inference time.
-    if not is_gen:
-        label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
-        label = label[:max_target_length]
-        label = label + [tokenizer.eos_token_id]
+    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
+    label = label[:max_target_length]
+    label = label + [tokenizer.eos_token_id]
 
-        return input_ids, label
-
-    return input_ids
+    return input_ids, label

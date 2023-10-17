@@ -161,7 +161,7 @@ if __name__ == '__main__':
         device=device,
         convert_example_to_feature=input_transformation_dict,
         is_test=False,
-        is_gen=False,
+        is_gen=True,
         max_target_length=args.max_target_length
     )
     # dev_torch_dataset = UnimindTorchDataset(
