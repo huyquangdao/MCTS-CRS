@@ -23,7 +23,8 @@ from eval.eval_generation import GenerationEvaluator
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import load_binary_file, convert_example_to_feature_for_unimind_goal_prediction, \
-    convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
+    convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation, \
+    save_knowledge_results
 
 
 def parse_args():
@@ -253,5 +254,5 @@ if __name__ == '__main__':
     evaluator.reset_metric()
 
     # save the predictions
-    # save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_knowledge.txt"))
-    # save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_knowledge.txt"))
+    save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_goal.txt"))
+    save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_goal.txt"))
