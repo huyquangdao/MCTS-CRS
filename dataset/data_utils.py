@@ -296,6 +296,18 @@ def merge_know_predictions(instances, know_preds):
     return instances
 
 
+def merge_topic_predictions(instances, topic_preds):
+    """
+    function that merge knowledge predictions with data instances.
+    @param instances: a list of instances
+    @param topic_preds: a list of predicted goals
+    @return: a list of new instances.
+    """
+    for instance, pred_topic in list(zip(instances, topic_preds)):
+        instance['pred_topic'] = pred_topic
+    return instances
+
+
 def create_target_set(train_convs, test_instances, num_items=10):
     """
     function that creates a target item set from the test set
