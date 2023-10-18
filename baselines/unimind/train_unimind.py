@@ -53,7 +53,7 @@ def parse_args():
     parser.add_argument("--max_train_steps", type=int, default=None,
                         help="Total number of training steps to perform. If provided, overrides num_train_epochs.")
     parser.add_argument("--max_finetune_steps", type=int, default=None,
-                        help="Total number of training steps to perform. If provided, overrides num_train_epochs."
+                        help="Total number of training steps to perform. If provided, overrides num_train_epochs.")
     parser.add_argument("--per_device_train_batch_size", type=int, default=4,
                         help="Batch size (per device) for the training dataloader.")
     parser.add_argument("--per_device_eval_batch_size", type=int, default=4,
