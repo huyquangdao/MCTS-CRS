@@ -46,7 +46,8 @@ def parse_args():
     parser.add_argument("--tokenizer", type=str)
     # optim
     parser.add_argument("--num_train_epochs", type=int, default=10, help="Total number of training epochs to perform.")
-    parser.add_argument("--num_finetune_epochs", type=int, default=5, help="Total number of training epochs to perform.")
+    parser.add_argument("--num_finetune_epochs", type=int, default=5,
+                        help="Total number of training epochs to perform.")
 
     #
     parser.add_argument("--max_train_steps", type=int, default=None,
@@ -313,6 +314,7 @@ if __name__ == '__main__':
                 collate_fn=train_torch_dataset.collate_fn,
             )
             logger.info("***** Running Tuning Stage *****")
+            logger.info(f"  Task = {task} generation")
             logger.info(f"  Num examples = {len(train_torch_dataset)}")
             logger.info(f"  Num Epochs = {args.num_train_epochs}")
             logger.info(f"  Instantaneous batch size per device = {args.per_device_train_batch_size}")
