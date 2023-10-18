@@ -293,6 +293,11 @@ if __name__ == '__main__':
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
+
+            # creating a model checkpoint for each task
+            if not os.path.exists(os.path.join(args.output_dir, task)):
+                os.mkdir(os.path.join(args.output_dir, task))
+
             # load model from checkpoint
             model = load_model(model, os.path.join(args.output_dir, 'unimind.pth'))
 
@@ -390,6 +395,6 @@ if __name__ == '__main__':
 
                 # save the model with the best train loss
                 if train_loss < best_metric:
-                    save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
+                    save_model(model, output_dir=os.path.join(args.output_dir, task, 'unimind.pth'))
                     best_metric = train_loss
                 del train_loss, batch
