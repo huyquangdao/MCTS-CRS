@@ -367,6 +367,9 @@ if __name__ == '__main__':
             logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
             logger.info(f"  Gradient Accumulation steps = {args.gradient_accumulation_steps}")
 
+            # reset best metric
+            best_metric = float('inf')
+
             # finetune main loop
             for epoch in range(args.num_finetune_epochs):
                 train_loss = []
@@ -400,3 +403,4 @@ if __name__ == '__main__':
                     save_model(model, output_dir=os.path.join(args.output_dir, task, 'unimind.pth'))
                     best_metric = train_loss
                 del train_loss, batch
+
