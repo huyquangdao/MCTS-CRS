@@ -288,6 +288,9 @@ if __name__ == '__main__':
             del train_loss, batch
 
     if args.do_finetune:
+
+        del train_torch_dataset, train_dataloader
+
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
