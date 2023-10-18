@@ -113,7 +113,7 @@ if __name__ == '__main__':
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
 
-    model = load_model(model, os.path.join(args.output_dir, task, "unimind.pth"))
+    model = load_model(model, os.path.join(args.output_dir, "unimind.pth"))
     model.to(device)
 
     input_transformation_dict = {
@@ -256,5 +256,5 @@ if __name__ == '__main__':
     evaluator.reset_metric()
 
     # save the predictions
-    save_knowledge_results(valid_preds, os.path.join(args.output_dir, task, "dev_goal.txt"))
-    save_knowledge_results(test_preds, os.path.join(args.output_dir, task, "test_goal.txt"))
+    save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_goal.txt"))
+    save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_goal.txt"))
