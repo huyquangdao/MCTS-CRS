@@ -42,7 +42,8 @@ class BaseOnlineEval(object):
             "goal": "Greetings",  # will not affect anything, only including it for code convenience
             "knowledge": "",  # will not affect anything, only including it for code convenience
             "response": "",  # will not affect anything, only including it for code convenience
-            "pre_goals": []
+            "pre_goals": [],
+            "pre_topics": []
         }
         return state
 
