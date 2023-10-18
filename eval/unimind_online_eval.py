@@ -11,7 +11,7 @@ class UnimindOnlineEval(BaseOnlineEval):
                  max_gen_length=50, model_generation_args=None, should_plot_tree=True
 
                  ):
-        super().__init__(target_set, terminal_act)
+        super().__init__(target_set, terminal_act, horizon)
         self.model = model
         self.tokenizer = tokenizer
         self.horizon = horizon
