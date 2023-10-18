@@ -343,7 +343,7 @@ if __name__ == '__main__':
             model, optimizer, train_dataloader = accelerator.prepare(model, optimizer, train_dataloader)
             # step, epoch, batch size
             num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
-            if args.max_train_steps is None:
+            if args.max_finetune_steps is None:
                 args.max_finetune_steps = args.num_finetune_epochs * num_update_steps_per_epoch
             else:
                 args.num_finetune_epochs = math.ceil(args.max_finetune_steps / num_update_steps_per_epoch)
