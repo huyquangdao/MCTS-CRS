@@ -22,9 +22,9 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict
-from dataset.data_utils import load_binary_file, convert_example_to_feature_for_unimind_goal_prediction, \
-    convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation, \
-    save_knowledge_results
+from dataset.data_utils import save_knowledge_results, load_binary_file
+from baselines.unimind.utils import convert_example_to_feature_for_unimind_goal_prediction, \
+    convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
 
 
 def parse_args():

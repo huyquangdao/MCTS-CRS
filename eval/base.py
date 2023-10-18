@@ -5,9 +5,10 @@ from dyna_gym.envs.utils import simulate_conversation, update_state, get_user_re
 
 class BaseOnlineEval(object):
 
-    def __init__(self, target_set, terminal_act):
+    def __init__(self, target_set, terminal_act, horizon):
         self.terminal_act = terminal_act
         self.target_set = target_set
+        self.horizon = horizon
 
     def pipeline(self, state):
         raise NotImplementedError()
@@ -62,10 +63,54 @@ class BaseOnlineEval(object):
         return new_state
 
     def run(self, init_state):
-        raise NotImplementedError()
+        """
+        method that employs one online evaluation
+        @param init_state:
+        @return: a generated conversation between user and system
+        """
+        is_terminated = False
+        count = 0
+        generated_conversation = []
+        state = init_state
+        while not is_terminated and count < self.horizon:
+
+            # generate system response and action
+            system_resp, system_act = self.pipeline(state)
+
+            # generate user response
+            user_resp = self.get_user_resp(state, system_resp)
+
+            # check the terminated condition
+            if self.check_terminated_condition(system_act):
+                is_terminated = True
+
+            # update the state of the conversation
+            state = self.update(state, system_resp, system_act, user_resp)
+
+            # update count
+            count += 1
+
+            # update the simulated conversation
+            generated_conversation.extend([
+                {'role': 'system', 'content': system_resp},
+                {'role': 'user', 'content': user_resp}
+            ])
+        return generated_conversation
 
     def eval(self):
-        raise NotImplementedError()
+        """
+        method that perform online evaluation on a predefined set of items
+        @return: computed metrics
+        """
+        avg_sr = []
+        avg_turn = []
+        for target_item in self.target_set:
+            initial_state = self.init_state(target_item)
+            generated_conversation = self.run(initial_state)
+            sr, turn = self.compute_metrics(generated_conversation, target_item['topic'])
+            avg_sr.append(sr)
+            avg_turn.append(turn)
+        return sum(avg_sr) / len(self.target_set), sum(avg_turn) / len(self.target_set)
 
     def check_terminated_condition(self, system_action):
         return system_action == self.terminal_act

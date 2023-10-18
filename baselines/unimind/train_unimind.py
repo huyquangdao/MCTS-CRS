@@ -20,7 +20,7 @@ from dyna_gym.models.policy import save_model, load_model
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
-from dataset.data_utils import convert_example_to_feature_for_unimind_goal_prediction, \
+from baselines.unimind.utils import convert_example_to_feature_for_unimind_goal_prediction, \
     convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
 
 from dataset.datasets import UnimindTorchDataset
@@ -289,9 +289,7 @@ if __name__ == '__main__':
 
     # finetuning stage.
     if args.do_finetune:
-
-        del train_torch_dataset, train_dataloader, batch
-
+        del train_torch_dataset, train_dataloader
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
