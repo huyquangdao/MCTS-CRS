@@ -287,15 +287,18 @@ if __name__ == '__main__':
                 best_metric = train_loss
             del train_loss, batch
 
+    # finetuning stage.
     if args.do_finetune:
 
-        del train_torch_dataset, train_dataloader
+        del train_torch_dataset, train_dataloader, batch
 
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
+
             # load model from checkpoint
             model = load_model(model, os.path.join(args.output_dir, 'unimind.pth'))
+
             # create the torch dataset for each task
             train_torch_dataset = UnimindTorchDataset(
                 tokenizer=tokenizer,
@@ -308,6 +311,7 @@ if __name__ == '__main__':
                 is_gen=True,
                 max_target_length=args.max_target_length
             )
+
             # create the data loader
             train_dataloader = DataLoader(
                 train_torch_dataset,
@@ -316,10 +320,45 @@ if __name__ == '__main__':
                 num_workers=args.num_workers,
                 collate_fn=train_torch_dataset.collate_fn,
             )
+
+            # optim & amp
+            modules = [model]
+            no_decay = ["bias", "LayerNorm.weight"]
+            optimizer_grouped_parameters = [
+                {
+                    "params": [p for model in modules for n, p in model.named_parameters()
+                               if not any(nd in n for nd in no_decay) and p.requires_grad],
+                    "weight_decay": args.weight_decay,
+                },
+                {
+                    "params": [p for model in modules for n, p in model.named_parameters()
+                               if any(nd in n for nd in no_decay) and p.requires_grad],
+                    "weight_decay": 0.0,
+                },
+            ]
+            optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
+
+            model, optimizer, train_dataloader = accelerator.prepare(model, optimizer, train_dataloader)
+            # step, epoch, batch size
+            num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
+            if args.max_train_steps is None:
+                args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
+            else:
+                args.num_train_epochs = math.ceil(args.max_train_steps / num_update_steps_per_epoch)
+
+            total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
+            completed_steps = 0
+            # lr_scheduler
+            lr_scheduler = get_linear_schedule_with_warmup(optimizer, args.num_warmup_steps, args.max_train_steps)
+            lr_scheduler = accelerator.prepare(lr_scheduler)
+            local_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+
+            progress_bar = tqdm(range(args.max_train_steps), disable=not accelerator.is_local_main_process)
+
             logger.info("***** Running Tuning Stage *****")
             logger.info(f"  Task = {task} generation")
             logger.info(f"  Num examples = {len(train_torch_dataset)}")
-            logger.info(f"  Num Epochs = {args.num_train_epochs}")
+            logger.info(f"  Num Epochs = {args.num_finetune_epochs}")
             logger.info(f"  Instantaneous batch size per device = {args.per_device_train_batch_size}")
             logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
             logger.info(f"  Gradient Accumulation steps = {args.gradient_accumulation_steps}")

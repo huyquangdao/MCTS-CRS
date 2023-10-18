@@ -1,6 +1,6 @@
 import os
 
-from dyna_gym.envs.utils import simulate_conversation
+from dyna_gym.envs.utils import simulate_conversation, update_state, get_user_resp
 
 
 class BaseOnlineEval(object):
@@ -12,14 +12,54 @@ class BaseOnlineEval(object):
     def pipeline(self, state):
         raise NotImplementedError()
 
-    def get_user_resp(self, state, system_resp):
+    def init_agent(self):
         raise NotImplementedError()
 
-    def init_state(self, state):
-        raise NotImplementedError()
+    def get_user_resp(self, state, system_resp):
+        """
+        method that simulates the user response
+        @param state: the current state of the conversation
+        @param system_resp: the generated system response
+        @return: the generated user response
+        """
+        return get_user_resp(state, system_resp)
+
+    def init_state(self, target_item):
+        """
+        method that create the initial state of a conversation
+        we assume the user start a conversation.
+        @param target_item:
+        @return:
+        """
+        state = {
+            "task_background": {
+                "target_topic": target_item['topic'],
+                "target_goal": target_item['goal']
+            },
+            "demonstration": target_item["demonstration"],
+            "dialogue_context": [{"role": "user", "content": "Hello !"}],
+            "goal": "Greetings",  # will not affect anything, only including it for code convenience
+            "knowledge": "",  # will not affect anything, only including it for code convenience
+            "response": "",  # will not affect anything, only including it for code convenience
+            "pre_goals": []
+        }
+        return state
 
     def update(self, state, system_response, system_action, user_response):
-        raise NotImplementedError()
+        """
+        method that update the state of the conversation
+        @param state: the current state of the conversation
+        @param system_response: the generated system response
+        @param system_action: the predicted system action
+        @param user_response: the generated user response
+        @return:
+        """
+        new_state = update_state(state,
+                                 action=system_action,
+                                 sys_response=system_response,
+                                 user_response=user_response
+                                 )
+        return new_state
 
     def run(self, init_state):
         raise NotImplementedError()
