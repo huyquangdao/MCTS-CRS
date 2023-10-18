@@ -312,6 +312,13 @@ if __name__ == '__main__':
                 num_workers=args.num_workers,
                 collate_fn=train_torch_dataset.collate_fn,
             )
+            logger.info("***** Running Tuning Stage *****")
+            logger.info(f"  Num examples = {len(train_torch_dataset)}")
+            logger.info(f"  Num Epochs = {args.num_train_epochs}")
+            logger.info(f"  Instantaneous batch size per device = {args.per_device_train_batch_size}")
+            logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+            logger.info(f"  Gradient Accumulation steps = {args.gradient_accumulation_steps}")
+
             # finetune main loop
             for epoch in range(args.num_finetune_epochs):
                 train_loss = []
