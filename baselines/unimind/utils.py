@@ -1,5 +1,5 @@
 import time
-import accelerator
+from accelerate import Accelerator
 import os
 import tqdm
 import math

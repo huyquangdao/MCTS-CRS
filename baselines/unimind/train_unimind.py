@@ -24,7 +24,6 @@ from config.config import special_tokens_dict
 from baselines.unimind.utils import convert_example_to_feature_for_unimind_goal_prediction, \
     convert_example_to_feature_for_unimind_topic_prediction, convert_example_to_feature_for_unimind_response_generation
 
-from dataset.datasets import UnimindTorchDataset
 from baselines.unimind.utils import train_unimind, evaluate_unimind, construct_task_torchdatasets
 
 
@@ -268,7 +267,7 @@ if __name__ == '__main__':
                 save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
                 best_metric = valid_loss
 
-    # finetuning stage.
+    # fine tuning stage.
     if args.do_finetune:
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
@@ -365,7 +364,7 @@ if __name__ == '__main__':
                     evaluator=evaluator
                 )
 
-                # save the model with the best train loss
+                # save the model with the best valid loss
                 if valid_loss < best_metric:
                     save_model(model, output_dir=os.path.join(args.output_dir, task, 'unimind.pth'))
                     best_metric = train_loss
