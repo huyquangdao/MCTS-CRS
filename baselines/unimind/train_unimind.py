@@ -266,6 +266,9 @@ if __name__ == '__main__':
 
     # fine tuning stage.
     if args.do_finetune:
+
+        args.max_train_steps = None
+
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
@@ -313,10 +316,10 @@ if __name__ == '__main__':
             model, optimizer, train_dataloader = accelerator.prepare(model, optimizer, train_dataloader)
             # step, epoch, batch size
             num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
-            if args.max_finetune_steps is None:
-                args.max_finetune_steps = args.num_finetune_epochs * num_update_steps_per_epoch
+            if args.max_train_steps is None:
+                args.max_train_steps = args.num_finetune_epochs * num_update_steps_per_epoch
             else:
-                args.num_finetune_epochs = math.ceil(args.max_finetune_steps / num_update_steps_per_epoch)
+                args.num_finetune_epochs = math.ceil(args.max_train_steps / num_update_steps_per_epoch)
 
             total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
             completed_steps = 0
@@ -325,7 +328,7 @@ if __name__ == '__main__':
             lr_scheduler = accelerator.prepare(lr_scheduler)
             local_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 
-            progress_bar = tqdm(range(args.max_finetune_steps), disable=not accelerator.is_local_main_process)
+            progress_bar = tqdm(range(args.max_train_steps), disable=not accelerator.is_local_main_process)
 
             logger.info("***** Running Tuning Stage *****")
             logger.info(f"  Task = {task} generation")
@@ -340,9 +343,7 @@ if __name__ == '__main__':
 
             # finetune main loop
             for epoch in range(args.num_finetune_epochs):
-                train_loss = []
                 model.train()
-
                 train_loss = train_unimind(
                     args=args,
                     accelerator=accelerator,
