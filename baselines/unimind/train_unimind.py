@@ -365,7 +365,9 @@ if __name__ == '__main__':
                     evaluator=evaluator
                 )
 
+                evaluator.reset_metric()
+
                 # save the model with the best valid loss
                 if valid_loss < best_metric:
                     save_model(model, output_dir=os.path.join(args.output_dir, task, 'unimind.pth'))
-                    best_metric = train_loss
+                    best_metric = valid_loss
