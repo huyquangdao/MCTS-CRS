@@ -1,7 +1,16 @@
+import time
+import accelerator
+import os
+import tqdm
+import math
 from collections import defaultdict
 import torch
+from torch.utils.dataset import DataLoader
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
     CONTEXT_TOKEN, TARGET, TOPIC_TOKEN
+
+import numpy as np
+from dataset.datasets import UnimindTorchDataset
 
 
 def convert_example_to_feature_for_unimind_goal_prediction(tokenizer, instance, max_sequence_length=512,
@@ -299,3 +308,104 @@ def generate_response_unimind(generation_model, tokenizer, action, topic, state,
     decoded_preds = [pred.strip() for pred in decoded_preds]
 
     return decoded_preds[0]
+
+
+def evaluate_unimind(args, model, tokenizer, valid_dataloader, evaluator=None):
+    valid_loss = []
+    model.eval()
+    for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
+        with torch.no_grad():
+            outputs = model(**batch['context'], labels=batch['labels'], return_dict=True)
+            loss = outputs['loss']
+            valid_loss.append(float(loss))
+
+        gen_seqs = accelerator.unwrap_model(model).generate(
+            **batch['context'],
+            max_new_tokens=args.max_gen_length,
+            no_repeat_ngram_size=3
+        )
+        gen_resp_ids = []
+        for gen_seq in gen_seqs:
+            gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
+            gen_resp_ids.append(gen_seq)
+
+        label_resp_ids = []
+        for label_seq in batch['labels']:
+            label_seq = [token_id for token_id in label_seq if token_id != -100]
+            label_resp_ids.append(label_seq)
+        if evaluator is not None:
+            evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
+
+    # metric
+    accelerator.wait_for_everyone()
+    valid_loss, valid_preds, valid_labels = evaluator.report()
+
+    return valid_loss, valid_preds, valid_labels
+
+
+def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_dict, goal2id=None, device=None,
+                                 task=None):
+    func = input_transformation_dict if task is None else input_transformation_dict[task]
+    train_torch_dataset = UnimindTorchDataset(
+        tokenizer=tokenizer,
+        instances=dataset.train_instances,
+        goal2id=goal2id,
+        max_sequence_length=args.max_sequence_length,
+        device=device,
+        convert_example_to_feature=func,
+        is_test=False,
+        is_gen=True,
+        max_target_length=args.max_target_length
+    )
+    dev_torch_dataset = UnimindTorchDataset(
+        tokenizer=tokenizer,
+        instances=dataset.dev_instances,
+        goal2id=goal2id,
+        max_sequence_length=args.max_sequence_length,
+        device=device,
+        convert_example_to_feature=func,
+        is_test=True,
+        is_gen=True,
+        max_target_length=args.max_target_length
+    )
+    test_torch_dataset = UnimindTorchDataset(
+        tokenizer=tokenizer,
+        instances=dataset.test_instances,
+        goal2id=goal2id,
+        max_sequence_length=args.max_sequence_length,
+        device=device,
+        convert_example_to_feature=func,
+        is_test=True,
+        is_gen=True,
+        max_target_length=args.max_target_length
+    )
+    return train_torch_dataset, dev_torch_dataset, test_torch_dataset
+
+
+def train_unimind(args, model, optimizer, train_dataloader, lr_scheduler,
+                  run=None, progress_bar=None, completed_steps=0):
+    train_loss = []
+    model.train()
+    for step, batch in enumerate(train_dataloader):
+        loss = model(**batch['context'], labels=batch['labels'], return_dict=True)['loss']
+        loss = loss / args.gradient_accumulation_steps
+        accelerator.backward(loss)
+        train_loss.append(float(loss))
+        # optim step
+        if step % args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+            if args.max_grad_norm is not None:
+                accelerator.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+            optimizer.step()
+            lr_scheduler.step()
+            optimizer.zero_grad()
+            progress_bar.update(1)
+            completed_steps += 1
+            if run:
+                run.log({'loss': np.mean(train_loss) * args.gradient_accumulation_steps})
+
+        if completed_steps >= args.max_train_steps:
+            break
+
+    # metric
+    train_loss = np.mean(train_loss) * args.gradient_accumulation_steps
+    return train_loss
