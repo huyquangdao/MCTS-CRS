@@ -335,10 +335,11 @@ def evaluate_unimind(args, accelerator, model, tokenizer, valid_dataloader, eval
             evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
     # metric
+    valid_loss = np.mean(valid_loss)
     accelerator.wait_for_everyone()
-    valid_loss, valid_preds, valid_labels = evaluator.report()
+    report, valid_preds, valid_labels = evaluator.report()
 
-    return valid_loss, valid_preds, valid_labels
+    return valid_loss, report, valid_preds, valid_labels
 
 
 def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_dict, goal2id=None, device=None,

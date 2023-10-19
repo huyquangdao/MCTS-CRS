@@ -253,7 +253,7 @@ if __name__ == '__main__':
             )
             logger.info(f'epoch {epoch} train loss {train_loss}')
 
-            valid_loss, _, _ = evaluate_unimind(
+            valid_loss, _, _, _ = evaluate_unimind(
                 args=args, accelerator=accelerator, model=model, tokenizer=tokenizer, valid_dataloader=valid_dataloader,
                 evaluator=evaluator
             )
@@ -356,7 +356,7 @@ if __name__ == '__main__':
 
                 )
                 logger.info(f'epoch {epoch} train loss {train_loss}')
-                valid_loss, valid_preds, valid_labels = evaluate_unimind(
+                valid_loss, _, _, _ = evaluate_unimind(
                     args=args,
                     model=model,
                     accelerator=accelerator,
