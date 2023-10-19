@@ -380,7 +380,7 @@ def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_
     return train_torch_dataset, dev_torch_dataset, test_torch_dataset
 
 
-def train_unimind(args, model, optimizer, train_dataloader, lr_scheduler,
+def train_unimind(args, accelerator, model, optimizer, train_dataloader, lr_scheduler,
                   run=None, progress_bar=None, completed_steps=0):
     train_loss = []
     model.train()

@@ -242,6 +242,7 @@ if __name__ == '__main__':
             train_loss = train_unimind(
                 args=args,
                 model=model,
+                accelerator=accelerator,
                 optimizer=optimizer,
                 train_dataloader=train_dataloader,
                 lr_scheduler=lr_scheduler,
@@ -350,6 +351,7 @@ if __name__ == '__main__':
 
                 train_loss = train_unimind(
                     args=args,
+                    accelerator=accelerator,
                     model=model,
                     optimizer=optimizer,
                     train_dataloader=train_dataloader,
