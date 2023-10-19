@@ -3,11 +3,8 @@ import os
 import argparse
 
 import torch
-import transformers
-from transformers import pipeline
 from transformers import AutoModel, AutoTokenizer, BartForConditionalGeneration
 
-from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
 from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, DURECDIALGOALS
@@ -71,8 +68,18 @@ if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
-    model = load_model(model, os.path.join(model_path, model_name))
-    model.to(device)
+
+    # goal model
+    goal_model = load_model(model, os.path.join(model_path, "goal", model_name))
+    goal_model.to(device)
+
+    # topic model
+    topic_model = load_model(model, os.path.join(model_path, "topic", model_name))
+    topic_model.to(device)
+
+    # respone model
+    response_model = load_model(model, os.path.join(model_path, "response", model_name))
+    response_model.to(device)
 
     if not os.path.exists(args.target_set_path):
         os.mkdir(args.target_set_path)
@@ -85,10 +92,12 @@ if __name__ == '__main__':
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
     terminal_act = "Say goodbye"
-    mcts_online_eval = UnimindOnlineEval(
+    unimind_online_eval = UnimindOnlineEval(
         target_set=target_set,
         terminal_act=terminal_act,
-        model=model,
+        goal_model=goal_model,
+        topic_model=topic_model,
+        response_model=response_model,
         tokenizer=tokenizer,
         horizon=args.horizon,
         reward_func=reward_func,
@@ -100,7 +109,7 @@ if __name__ == '__main__':
     )
 
     # compute online evaluation metrics
-    sr, avg_turn = mcts_online_eval.eval()
+    sr, avg_turn = unimind_online_eval.eval()
 
     print("Success rate:", sr)
     print("Avg turn: ", avg_turn)

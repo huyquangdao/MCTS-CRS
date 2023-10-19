@@ -7,13 +7,34 @@ from baselines.unimind.utils import predict_action_unimind, predict_topic_unimin
 
 class UnimindOnlineEval(BaseOnlineEval):
 
-    def __init__(self, target_set, terminal_act, model, tokenizer, horizon, reward_func,
+    def __init__(self, target_set, terminal_act, goal_model, topic_model, response_model, tokenizer, horizon,
+                 reward_func,
                  device=None, max_sequence_length=512, pad_to_multiple_of=True, padding='max_length',
                  max_gen_length=50, model_generation_args=None, should_plot_tree=True
 
                  ):
+        """
+        constructor for class unimind online eval
+        @param target_set:  the target item set
+        @param terminal_act: the terminated action, default is say goodbye
+        @param goal_model: the goal generation model
+        @param topic_model: the topic generation model
+        @param response_model: the response generation model
+        @param tokenizer: huggingface tokenizer
+        @param horizon: the maximum number of conversational turns
+        @param reward_func: a predefined reward function
+        @param device:  the device
+        @param max_sequence_length: maximum number of token in the input sequence
+        @param pad_to_multiple_of:  type of padding
+        @param padding: type of padding
+        @param max_gen_length: maximum number of token in the generated response
+        @param model_generation_args:
+        @param should_plot_tree:
+        """
         super().__init__(target_set, terminal_act, horizon)
-        self.model = model
+        self.goal_model = goal_model
+        self.topic_model = topic_model
+        self.response_model = response_model
         self.tokenizer = tokenizer
         self.horizon = horizon
         self.reward_func = reward_func
@@ -78,7 +99,7 @@ class UnimindOnlineEval(BaseOnlineEval):
 
     def pipeline(self, state):
         # greedily predict the system action using the offline policy model
-        action = predict_action_unimind(generation_model=self.model,
+        action = predict_action_unimind(generation_model=self.goal_model,
                                         tokenizer=self.tokenizer,
                                         state=state,
                                         max_sequence_length=self.max_sequence_length,
@@ -87,7 +108,7 @@ class UnimindOnlineEval(BaseOnlineEval):
                                         device=self.device)
 
         # generate topic
-        topic = predict_topic_unimind(generation_model=self.model,
+        topic = predict_topic_unimind(generation_model=self.topic_model,
                                       tokenizer=self.tokenizer,
                                       action=action,
                                       state=state,
@@ -100,7 +121,7 @@ class UnimindOnlineEval(BaseOnlineEval):
         # generate the system response using chatgpt
         # later it will be replaced by the generated response by BART.
         # system_resp = get_user_resp(start_state, action)
-        system_resp = generate_response_unimind(generation_model=self.model,
+        system_resp = generate_response_unimind(generation_model=self.response_model,
                                                 tokenizer=self.tokenizer,
                                                 action=action,
                                                 topic=topic,
