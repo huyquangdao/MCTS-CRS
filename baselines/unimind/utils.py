@@ -308,7 +308,7 @@ def generate_response_unimind(generation_model, tokenizer, action, topic, state,
     return decoded_preds[0]
 
 
-def evaluate_unimind(args, model, tokenizer, valid_dataloader, evaluator=None):
+def evaluate_unimind(args, accelerator, model, tokenizer, valid_dataloader, evaluator=None):
     valid_loss = []
     model.eval()
     for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
