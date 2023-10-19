@@ -1,6 +1,6 @@
 import time
 import os
-import tqdm
+from tqdm import tqdm
 import math
 from collections import defaultdict
 import torch
