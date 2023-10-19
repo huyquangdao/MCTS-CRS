@@ -170,7 +170,6 @@ if __name__ == '__main__':
 
     # train loop
     if args.do_train:
-
         # construct datasets by using full goal, topic and response instances.
         train_torch_dataset, dev_torch_dataset, test_torch_dataset = construct_task_torchdatasets(
             args=args,
