@@ -75,6 +75,7 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
                 else:
                     node = tree_policy(node.children)  # Move down the tree, node is now a ChanceNode
             else:  # ChanceNode
+                # Expansion
                 # Given s, a, sample s' ~ p(s'|s,a), also get the reward r(s,a,s') and whether s' is terminal
                 state_p, reward, terminal = env.transition(node.parent.state, node.action, ag.is_model_dynamic)
                 rewards.append(reward)
@@ -89,6 +90,7 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
                         new_state = False
                         break
 
+                # the child node that has not been explored yet
                 if new_state:
                     # Selected a node for expansion
                     select = False
@@ -99,7 +101,7 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
                     decision_node_num += 1
                     node = node.children[-1]
 
-        # Evaluation
+        # Simulation from the chosen child node
         # now `rewards` collected all rewards in the ChanceNodes above this node
         assert (type(node) == DecisionNode)
         state = node.state

@@ -62,6 +62,7 @@ def convert_example_to_feature_for_unimind_topic_prediction(tokenizer, instance,
     dialogue_context = instance['dialogue_context']
     prev_topics = instance['pre_topics']
     input_str = ""
+    target_item = instance['task_background']['target_topic']
     for utt, topic in list(zip(dialogue_context, prev_topics)):
         if utt['role'] == "user":
             input_str += USER_TOKEN + " "
@@ -77,13 +78,13 @@ def convert_example_to_feature_for_unimind_topic_prediction(tokenizer, instance,
     else:
         goal = instance['pred_goal']
 
-    input_str = f"{input_str} {GOAL_TOKEN} {goal} {TOPIC_TOKEN}"
+    input_str = f"{input_str} {GOAL_TOKEN} {goal} {TARGET} {target_item} {TOPIC_TOKEN}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
     # if not inference time.
-    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{TOPIC_TOKEN}: " + instance['topic']))
+    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(instance['topic']))
     label = label[:max_target_length]
     label = label + [tokenizer.eos_token_id]
 
