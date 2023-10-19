@@ -177,7 +177,9 @@ if __name__ == '__main__':
             input_transformation_dict=input_transformation_dict,
             goal2id=goal2id,
             device=device,
-            task=None
+            task=None,
+            is_test=False,
+            is_gen=True
         )
 
         # dataloader
@@ -280,7 +282,9 @@ if __name__ == '__main__':
                 input_transformation_dict=input_transformation_dict[task],
                 goal2id=goal2id,
                 device=device,
-                task=task
+                task=task,
+                is_gen=True,
+                is_test=False
             )
 
             # dataloader

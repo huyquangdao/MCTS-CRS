@@ -342,7 +342,7 @@ def evaluate_unimind(args, model, tokenizer, valid_dataloader, evaluator=None):
 
 
 def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_dict, goal2id=None, device=None,
-                                 task=None):
+                                 task=None, is_test=False, is_gen=False):
     func = input_transformation_dict if task is None else input_transformation_dict[task]
     train_torch_dataset = UnimindTorchDataset(
         tokenizer=tokenizer,
@@ -351,8 +351,8 @@ def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=func,
-        is_test=False,
-        is_gen=True,
+        is_test=is_test,
+        is_gen=is_gen,
         max_target_length=args.max_target_length
     )
     dev_torch_dataset = UnimindTorchDataset(
@@ -362,8 +362,8 @@ def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=func,
-        is_test=True,
-        is_gen=True,
+        is_test=is_test,
+        is_gen=is_gen,
         max_target_length=args.max_target_length
     )
     test_torch_dataset = UnimindTorchDataset(
@@ -373,8 +373,8 @@ def construct_task_torchdatasets(args, tokenizer, dataset, input_transformation_
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=func,
-        is_test=True,
-        is_gen=True,
+        is_test=is_test,
+        is_gen=is_gen,
         max_target_length=args.max_target_length
     )
     return train_torch_dataset, dev_torch_dataset, test_torch_dataset
