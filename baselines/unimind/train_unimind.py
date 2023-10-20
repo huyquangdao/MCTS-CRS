@@ -239,6 +239,7 @@ if __name__ == '__main__':
         os.makedirs(best_metric_dir, exist_ok=True)
 
         for epoch in range(args.num_train_epochs):
+
             train_loss = train_unimind(
                 args=args,
                 model=model,
@@ -261,13 +262,13 @@ if __name__ == '__main__':
 
             # save the model with the best valid loss
             if valid_loss < best_metric:
+                logger.info(f'epoch {epoch}, validation performance improves {valid_loss}')
                 save_model(model, output_dir=os.path.join(args.output_dir, 'unimind.pth'))
                 best_metric = valid_loss
 
     # fine tuning stage.
     if args.do_finetune:
         args.max_train_steps = None
-
         tasks = ["goal", "topic", "response"]
         # loop overall tasks
         for task in tasks:
@@ -369,5 +370,6 @@ if __name__ == '__main__':
 
                 # save the model with the best valid loss
                 if valid_loss < best_metric:
+                    logger.info(f'epoch {epoch}, validation performance improves {valid_loss}')
                     save_model(model, output_dir=os.path.join(args.output_dir, task, 'unimind.pth'))
                     best_metric = valid_loss
