@@ -109,7 +109,7 @@ if __name__ == '__main__':
     plm.resize_token_embeddings(len(tokenizer))
     model = PolicyModel(
         plm=plm,
-        n_goals=len(dataset.goals),
+        n_goals=len(goal2id),
         hidden_size=args.hidden_size,
         lm_size=args.lm_size
     )

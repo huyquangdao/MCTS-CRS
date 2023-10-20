@@ -14,6 +14,7 @@ from loguru import logger
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, AutoModel
+import itertools
 
 from dyna_gym.models.policy import PolicyModel, save_model
 from dataset.base import BaseTorchDataset
@@ -113,7 +114,11 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+    # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+
+    # switch from predicting a goal to predicting a pair of a goal and a topic
+    goal2id = itertools.product(dataset.goals, dataset.topics)
+    goal2id = {k: v for v, k in enumerate(goal2id)}
 
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
@@ -122,13 +127,12 @@ if __name__ == '__main__':
 
     model = PolicyModel(
         plm=plm,
-        n_goals=len(dataset.goals),
+        n_goals=len(goal2id),
         hidden_size=args.hidden_size,
         lm_size=args.lm_size
     )
 
     model.to(device)
-
     # optim & amp
     modules = [model]
     no_decay = ["bias", "LayerNorm.weight"]

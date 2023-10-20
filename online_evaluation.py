@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     policy_model = PolicyModel(
         plm=policy_plm,
-        n_goals=len(dataset.goals),
+        n_goals=len(goal2id),
         hidden_size=args.hidden_size,
         lm_size=args.lm_size
     )
