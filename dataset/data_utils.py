@@ -188,7 +188,7 @@ def convert_example_to_feature_for_knowledge_generation(tokenizer, instance, max
         dialogue_str += utt['content']
 
     # construct the input sequence for knowledge generation task
-    input_str = f"{GOAL_TOKEN}: {goal} {TARGET}: {target} {CONTEXT_TOKEN}: {dialogue_str}"
+    input_str = f"{GOAL_TOKEN}: {goal} {TOPIC_TOKEN} {TARGET}: {target} {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]

@@ -268,5 +268,8 @@ if __name__ == '__main__':
     evaluator.reset_metric()
 
     # save the predictions
-    save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_topic.txt"))
-    save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_topic.txt"))
+    save_knowledge_results(valid_preds, os.path.join(args.output_dir, "dev_topic_preds.txt"))
+    save_knowledge_results(test_preds, os.path.join(args.output_dir, "test_topic_preds.txt"))
+
+    save_knowledge_results(valid_labels, os.path.join(args.output_dir, "dev_topic_labels.txt"))
+    save_knowledge_results(test_labels, os.path.join(args.output_dir, "test_topic_labels.txt"))
