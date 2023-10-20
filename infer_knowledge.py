@@ -22,7 +22,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_knowledge_generation, load_policy_results, \
-    merge_predictions, load_binary_file, save_knowledge_results
+    merge_predictions, load_binary_file, save_knowledge_results, merge_topic_predictions
 
 
 def parse_args():
@@ -106,13 +106,19 @@ if __name__ == '__main__':
     # goal2id = {k: v for v, k in enumerate(dataset.goals)}
     goal2id = load_binary_file(os.path.join(args.goal_outpath, "goal2id.pkl"))
 
-    # load goal predictions
-    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_policy.txt"))
-    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_policy.txt"))
+    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_goal.txt"))
+    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_goal.txt"))
+
+    dev_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "dev_topic.txt"))
+    test_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "test_topic.txt"))
 
     # merge predictions
     dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
     dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
+
+    # merge predictions
+    dataset.dev_instances = merge_topic_predictions(dataset.dev_instances, dev_pred_topics)
+    dataset.test_instances = merge_topic_predictions(dataset.test_instances, test_pred_topics)
 
     # t5 as the response generation model
     model = BartForConditionalGeneration.from_pretrained(args.plm_model)
@@ -121,7 +127,6 @@ if __name__ == '__main__':
     model.resize_token_embeddings(len(tokenizer))
 
     model= load_model(model, os.path.join(args.output_dir, "know_generation.pth"))
-
     model.to(device)
 
     # data
