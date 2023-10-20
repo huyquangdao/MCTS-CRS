@@ -276,7 +276,7 @@ if __name__ == '__main__':
                 args=args,
                 tokenizer=tokenizer,
                 dataset=dataset,
-                input_transformation_dict=input_transformation_dict[task],
+                input_transformation_dict=input_transformation_dict,
                 goal2id=goal2id,
                 device=device,
                 task=task,
