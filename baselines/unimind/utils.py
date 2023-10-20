@@ -91,7 +91,7 @@ def convert_example_to_feature_for_unimind_topic_prediction(tokenizer, instance,
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
     # if not inference time.
-    label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(instance['topic']))
+    label = tokenizer.convert_tokens_to_ids(f"{TOPIC_TOKEN}: " + tokenizer.tokenize(instance['topic']))
     label = label[:max_target_length]
     label = label + [tokenizer.eos_token_id]
 
