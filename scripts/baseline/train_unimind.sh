@@ -17,7 +17,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/unimind/train_uni
     --max_sequence_length 512 \
     --max_target_length 100 \
     --learning_rate 5e-5 \
-    --goal_outpath ./policy_model/ \
-    --know_outpath ./know_generation_model/ \
     --output_dir ./unimind/ \
     --seed 21
