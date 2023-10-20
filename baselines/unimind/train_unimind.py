@@ -212,7 +212,7 @@ if __name__ == '__main__':
         total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
         completed_steps = 0
         # lr_scheduler
-        lr_scheduler = get_linear_schedule_with_warmup(optimizer, args.num_warmup_steps, args.max_train_steps)
+        lr_scheduler = get_linear_schedule_with_warmup(optimizer, args.num_warmup_steps * 3, args.max_train_steps)
         lr_scheduler = accelerator.prepare(lr_scheduler)
         local_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
         # training info
