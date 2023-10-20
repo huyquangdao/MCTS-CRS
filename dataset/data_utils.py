@@ -349,3 +349,18 @@ def create_target_set(train_convs, test_instances, num_items=10):
         i += 1
 
     return selected_set
+
+
+def split_goal_topic(preds):
+    """
+    function that splits policy predictions
+    @param preds: a list of predictions
+    @return: list of goals, list of topics
+    """
+    goals = []
+    topics = []
+    for pred in preds:
+        goal, topic = pred
+        goals.append(goal)
+        topics.append(topic)
+    return goals, topics

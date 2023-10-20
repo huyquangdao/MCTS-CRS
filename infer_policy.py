@@ -20,7 +20,8 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict, DURECDIALGOALS
-from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_policy_results, load_binary_file
+from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_policy_results, load_binary_file, \
+    split_goal_topic
 
 
 def parse_args():
@@ -199,7 +200,14 @@ if __name__ == '__main__':
         run.log(test_report)
     evaluator.reset_metric()
 
+    # split goals and topics
+    valid_goal_preds, valid_topic_preds = split_goal_topic(valid_preds)
+    test_goal_preds, test_topic_preds = split_goal_topic(test_preds)
+
     # save results
-    save_policy_results(valid_preds, os.path.join(args.output_dir, "dev_policy.txt"), goal2id)
-    save_policy_results(test_preds, os.path.join(args.output_dir, "test_policy.txt"), goal2id)
+    save_policy_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"), goal2id)
+    save_policy_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"), goal2id)
+
+    save_policy_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"), goal2id)
+    save_policy_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"), goal2id)
     logger.info('Save predictions successfully')
