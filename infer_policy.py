@@ -201,8 +201,8 @@ if __name__ == '__main__':
     evaluator.reset_metric()
 
     # split goals and topics
-    valid_goal_preds, valid_topic_preds = split_goal_topic(valid_preds)
-    test_goal_preds, test_topic_preds = split_goal_topic(test_preds)
+    valid_goal_preds, valid_topic_preds = split_goal_topic(valid_preds, goal2id)
+    test_goal_preds, test_topic_preds = split_goal_topic(test_preds, goal2id)
 
     # save results
     save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))

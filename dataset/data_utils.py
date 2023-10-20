@@ -351,16 +351,18 @@ def create_target_set(train_convs, test_instances, num_items=10):
     return selected_set
 
 
-def split_goal_topic(preds):
+def split_goal_topic(preds, goal2id):
     """
     function that splits policy predictions
     @param preds: a list of predictions
+    @param goal2id: a dictionary that map goal to id
     @return: list of goals, list of topics
     """
+    id2goal = {v: k for k, v in goal2id.items()}
     goals = []
     topics = []
     for pred in preds:
-        goal, topic = pred
+        goal, topic = id2goal[pred]
         goals.append(goal)
         topics.append(topic)
     return goals, topics
