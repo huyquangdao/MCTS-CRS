@@ -21,7 +21,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict, DURECDIALGOALS
 from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_policy_results, load_binary_file, \
-    split_goal_topic
+    split_goal_topic, save_knowledge_results
 
 
 def parse_args():
@@ -205,9 +205,9 @@ if __name__ == '__main__':
     test_goal_preds, test_topic_preds = split_goal_topic(test_preds)
 
     # save results
-    save_policy_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"), goal2id)
-    save_policy_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"), goal2id)
+    save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))
+    save_knowledge_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"))
 
-    save_policy_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"), goal2id)
-    save_policy_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"), goal2id)
+    save_knowledge_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"))
+    save_knowledge_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"))
     logger.info('Save predictions successfully')
