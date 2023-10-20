@@ -119,10 +119,12 @@ def convert_example_to_feature_for_response_generation(tokenizer, instance, max_
     if not is_test:
         # ground truth goal for training the model
         goal = instance['goal']
+        topic = instance['topic']
         knowledge = instance['knowledge']
     else:
         # predicted goal for the inference step
         goal = instance['pred_goal']
+        topic = instance['pred_topic']
         knowledge = instance['pred_know']
 
     if not isinstance(knowledge, str):
@@ -138,7 +140,7 @@ def convert_example_to_feature_for_response_generation(tokenizer, instance, max_
         dialogue_str += utt['content']
 
     # construct the input sequence for response generation task
-    input_str = f"{KNOW_TOKEN}: {knowledge_str} {GOAL_TOKEN}: {goal} {CONTEXT_TOKEN}: {dialogue_str}"
+    input_str = f"{GOAL_TOKEN}: {goal} {TOPIC_TOKEN}: {topic} {KNOW_TOKEN}: {knowledge_str}  {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
@@ -174,11 +176,13 @@ def convert_example_to_feature_for_knowledge_generation(tokenizer, instance, max
         dialogue_str += utt['content']
 
     if not is_test:
-        # ground truth goal for training the model
+        # ground truth goal and topic for training the model
         goal = instance['goal']
+        topic = instance['topic']
     else:
-        # predicted goal for the inference step
+        # predicted goal and topic for the inference step
         goal = instance['pred_goal']
+        topic = instance['pred_topic']
     dialogue_str = ""
     for utt in dialogue_context:
         if utt['role'] == "user":
@@ -188,7 +192,7 @@ def convert_example_to_feature_for_knowledge_generation(tokenizer, instance, max
         dialogue_str += utt['content']
 
     # construct the input sequence for knowledge generation task
-    input_str = f"{GOAL_TOKEN}: {goal} {TOPIC_TOKEN} {TARGET}: {target} {CONTEXT_TOKEN}: {dialogue_str}"
+    input_str = f"{GOAL_TOKEN}: {goal} {TOPIC_TOKEN}: {topic} {TARGET}: {target} {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
