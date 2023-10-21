@@ -137,8 +137,8 @@ if __name__ == '__main__':
     dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
 
     # merge predictions
-    dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_topics)
-    dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_topics)
+    dataset.dev_instances = merge_topic_predictions(dataset.dev_instances, dev_pred_topics)
+    dataset.test_instances = merge_topic_predictions(dataset.test_instances, test_pred_topics)
 
     # merge know predictions
     dataset.dev_instances = merge_know_predictions(dataset.dev_instances, dev_pred_know)
