@@ -22,7 +22,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
 from dataset.data_utils import convert_example_to_feature_for_response_generation, load_policy_results, \
-    merge_predictions, load_binary_file, load_knowledge_results, merge_know_predictions, save_knowledge_results
+    merge_predictions, load_binary_file, load_knowledge_results, merge_topic_predictions, merge_know_predictions, save_knowledge_results
 
 
 def parse_args():
@@ -108,8 +108,12 @@ if __name__ == '__main__':
     goal2id = load_binary_file(os.path.join(args.goal_outpath, "goal2id.pkl"))
 
     # load goal predictions
-    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_policy.txt"))
-    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_policy.txt"))
+    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_goal.txt"))
+    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_goal.txt"))
+
+    # load topic predictions
+    dev_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "dev_topic.txt"))
+    test_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "test_topic.txt"))
 
     # load knowledge predictions
     dev_pred_know = load_knowledge_results(os.path.join(args.know_outpath, "dev_knowledge.txt"))
@@ -118,6 +122,10 @@ if __name__ == '__main__':
     # merge goal predictions
     dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
     dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
+
+    # merge topic predictions
+    dataset.dev_instances = merge_topic_predictions(dataset.dev_instances, dev_pred_topics)
+    dataset.test_instances = merge_topic_predictions(dataset.test_instances, test_pred_topics)
 
     # merge know predictions
     dataset.dev_instances = merge_know_predictions(dataset.dev_instances, dev_pred_know)
