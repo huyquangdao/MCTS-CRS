@@ -209,8 +209,8 @@ if __name__ == '__main__':
     _, valid_preds, valid_labels = evaluator.report()
 
     # post processing labels
-    # valid_labels = [x.split(":")[-1].strip() for x in valid_labels]
-    # valid_preds = [x.split(":")[-1].strip() for x in valid_preds]
+    valid_labels = [x.split(":")[-1].strip() for x in valid_labels]
+    valid_preds = [x.split(":")[-1].strip() for x in valid_preds]
     goal_acc = PolicyEvaluator.compute_categorical_acc(valid_preds, valid_labels)
     logger.info({"goal_accuracy": goal_acc})
     if run:
@@ -247,8 +247,8 @@ if __name__ == '__main__':
     # metric
     accelerator.wait_for_everyone()
     _, test_preds, test_labels = evaluator.report()
-    # test_labels = [x.split(":")[-1].strip() for x in test_labels]
-    # test_preds = [x.split(":")[-1].strip() for x in test_preds]
+    test_labels = [x.split(":")[-1].strip() for x in test_labels]
+    test_preds = [x.split(":")[-1].strip() for x in test_preds]
     goal_acc = PolicyEvaluator.compute_categorical_acc(test_preds, test_labels)
     logger.info({"goal_accuracy": goal_acc})
     if run:
