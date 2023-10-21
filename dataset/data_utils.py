@@ -69,6 +69,8 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
     """
     dialogue_context = instance['dialogue_context']
     prev_paths = instance['pre_goals']
+    prev_topics = instance['pre_topics']
+    target = instance['task_background']['target_topic']
     dialogue_str = ""
     for utt in dialogue_context:
         if utt['role'] == "user":
@@ -78,12 +80,14 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
         dialogue_str += utt['content']
 
     path_str = ""
-    for goal in prev_paths:
+    for goal, topic in list(zip(prev_paths, prev_topics)):
+        path_str += GOAL_TOKEN
         path_str += goal
-        path_str += " "
+        path_str += TOPIC_TOKEN
+        path_str += topic
         path_str += SEP_TOKEN
 
-    input_str = f"{PATH_TOKEN}: {path_str} {CONTEXT_TOKEN}: {dialogue_str}"
+    input_str = f"{PATH_TOKEN}: {path_str} {TARGET}: {target} {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
