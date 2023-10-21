@@ -53,16 +53,24 @@ class DuRecdial(Dataset):
             # in each conversation we have user_profile, goal_sequencs, topics_sequences and conversations.
             scenario = line['goal']
             steps = scenario.split('-->')
+
             # get the target goal and target topic
             i = len(steps) - 1
             while i >= 0 and ("Say goodbye" in steps[i] or 'recommendation' not in steps[i]):
                 i = i - 1
+
             # we can not find the target recommendation goal
             if i < 0:
                 continue
+
             # preprocessing to get the target goal and the target topic
             target_goal = re.sub(r'\(.*?\)', '', steps[i]).replace(')', '').strip()
             target_topic = steps[i].replace(target_goal, "")[1:-1].strip()
+
+            # there are some cases such as "A. B", B is the accepted item therefore we want to get B.
+            if len(target_topic.split('.')) == 2:
+                target_topic = target_topic.split('.')[-1].strip()
+
             target_goal = re.sub(r'[0-9]', '', target_goal).replace("[]", '').strip()
             # if the target goal is not in our considered target list.
             assert target_goal in self.target_goals
