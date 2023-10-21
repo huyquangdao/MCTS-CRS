@@ -85,6 +85,20 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
 
         return mcts_agent
 
+    def update(self, state, system_response, system_action, user_response):
+        # update state
+        new_state = copy.deepcopy(state)
+        new_state['dialogue_context'].append(
+            {"role": "assistant", "content": system_response}
+        )
+        new_state['dialogue_context'].append(
+            {"role": "user", "content": user_response}
+        )
+        goal, topic = system_action
+        new_state['pre_goals'].append(goal)
+        new_state['pre_topics'].append(topic)
+        return new_state
+
     def pipeline(self, state):
         """
         method that perform one system pipeline including action prediction, knowledge generation and response generation
