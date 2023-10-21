@@ -182,8 +182,10 @@ def generate_knowledge_with_plm(generation_model, tokenizer, action, state, max_
     # convert state to input feature
     input_features = defaultdict(list)
 
-    # assign the predicted action to the input state
-    state['pred_goal'] = action
+    # assign the predicted goal to the input state
+    state['pred_goal'] = action[0]
+    # assign the predicted topic to the input state
+    state['pred_topic'] = action[1]
 
     # convert state to input features
     input_ids, _ = convert_example_to_feature_for_knowledge_generation(tokenizer=tokenizer, instance=state,
@@ -241,7 +243,8 @@ def generate_sys_response_with_plm(generation_model, tokenizer, action, knowledg
     input_features = defaultdict(list)
 
     # assign the predicted action to the input state
-    state['pred_goal'] = action
+    state['pred_goal'] = action[0]
+    state['pred_topic'] = action[1]
     state['pred_know'] = knowledge
 
     # convert state to input features
