@@ -99,6 +99,14 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
         new_state['pre_topics'].append(topic)
         return new_state
 
+    def check_terminated_condition(self, system_action):
+        """
+        function that check if the conversation is terminated
+        @param system_action: the input system action (goal)
+        @return: True if the conversation is terminated else False
+        """
+        return system_action[0] == self.terminal_act
+
     def pipeline(self, state):
         """
         method that perform one system pipeline including action prediction, knowledge generation and response generation

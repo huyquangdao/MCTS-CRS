@@ -69,7 +69,6 @@ def convert_example_to_feature_for_goal_prediction(tokenizer, instance, max_sequ
     """
     dialogue_context = instance['dialogue_context']
     prev_paths = instance['pre_goals']
-
     dialogue_str = ""
     for utt in dialogue_context:
         if utt['role'] == "user":
