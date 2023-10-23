@@ -443,9 +443,11 @@ def compute_reward_based_on_memory(state, memory, k=10):
         mems.append(memory.instances[idx])
     # compute reward based on memory
     print(state['task_background']['target_topic'])
+    print(state['dialogue_context'])
     print('______________________________________')
     for instance in mems:
         print(instance['task_background']['target_topic'])
+        print(instance['dialogue_context'])
     # split into two sets, successful and failed.
     assert 1 == 0
 
