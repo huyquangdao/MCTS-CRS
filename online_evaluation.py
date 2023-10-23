@@ -36,6 +36,7 @@ def parse_args():
     parser.add_argument('--rollouts', type=int, default=20, help="number of rollout in MCT")
     parser.add_argument('--width', type=int, default=3, help="abc")
     parser.add_argument('--gamma', type=float, default=1., help="abc")
+    parser.add_argument('--k', type=int, default=10, help="abc")
     parser.add_argument('--alg', type=str, default='p_uct', help="criterion for the selection step")
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
@@ -75,6 +76,7 @@ if __name__ == '__main__':
         gamma=args.gamma,
         width=args.width,
         alg=args.alg,  # or p_uct
+        k=args.k  # num retrieval
     )
 
     # will be passed to huggingface model.generate()
@@ -168,6 +170,7 @@ if __name__ == '__main__':
         know_generation_tokenizer=know_generation_tokenizer,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
+        memory=memory,
         horizon=args.horizon,
         reward_func=reward_func,
         uct_args=uct_args,

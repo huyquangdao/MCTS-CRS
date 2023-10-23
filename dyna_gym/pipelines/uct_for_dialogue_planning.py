@@ -17,6 +17,7 @@ def uct_for_dialogue_planning_pipeline(
         know_tokenizer,
         policy_model,
         policy_tokenizer: transformers.PreTrainedTokenizer,
+        memory,
         horizon: int = 5,
         terminal_act: str = 'Say goodbye',
         max_sequence_length=512,
@@ -55,6 +56,7 @@ def uct_for_dialogue_planning_pipeline(
         generation_tokenizer=generation_tokenizer,
         know_generation_model=know_generation_model,
         know_tokenizer=know_tokenizer,
+        memory = memory,
         terminal_act=terminal_act,
         horizon=horizon,
         reward_func=reward_func_,
@@ -83,6 +85,7 @@ def uct_for_dialogue_planning_pipeline(
 
     agent = uct.UCT(
         default_policy=default_policy,
+        memory = memory,
         **uct_args
     )
 

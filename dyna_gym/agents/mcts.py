@@ -12,6 +12,7 @@ from gym import spaces
 from tqdm import tqdm
 
 from dyna_gym.utils.utils import combinations, multigpu_breakpoint
+from dyna_gym.envs.utils import compute_reward_based_on_memory
 
 
 def chance_node_value(node, mode="best"):
@@ -34,7 +35,7 @@ def mcts_tree_policy(children):
     return random.choice(children)
 
 
-def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mode="sample"):
+def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, term_cond=None, ts_mode="sample"):
     """
     Compute the entire MCTS procedure wrt to the selected tree policy.
     Funciton tree_policy is a function taking an agent + a list of ChanceNodes as argument
@@ -74,7 +75,8 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
                     select = False  # Selected a terminal DecisionNode
                 else:
                     node = tree_policy(node.children)  # Move down the tree, node is now a ChanceNode
-            else:  # ChanceNode
+            else:
+                # ChanceNode
                 # Expansion
                 # Given s, a, sample s' ~ p(s'|s,a), also get the reward r(s,a,s') and whether s' is terminal
                 state_p, reward, terminal = env.transition(node.parent.state, node.action, ag.is_model_dynamic)
@@ -109,17 +111,19 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
 
         # do not have any default policy
         # if ag.default_policy is None:
-        if ag.default_policy is None:
-            t = 0
+        # retrieval
+        # the agent estimate the reward based on a memory
+        # it should run this step with a high probability.
+        if ag.default_policy is None and memory is not None:
             estimate = 0
-            while (not terminal) and (t < ag.horizon):
-                action = env.action_space.sample()
-                state, reward, terminal = env.transition(state, action, ag.is_model_dynamic)
-                estimate += reward * (ag.gamma ** t)
-                t += 1
+            reward = compute_reward_based_on_memory(state=state, memory=memory, k=k)
+            estimate += reward * (ag.gamma)
+        # simulation step
+        # the agent follow a random/predefined policy to generate a completed conversation
+        # with memory-augmented mcts, the agent should only run simulation with a very low probability
+        # to advoid computational bottle neck.
         else:
             if not node.is_terminal:
-
                 # follow the default policy to get a terminal state
                 simulated_conversation = ag.default_policy.get_predicted_sequence(state)
                 estimate = env.get_reward(simulated_conversation, state['task_background']['target_topic'],
@@ -136,7 +140,6 @@ def mcts_procedure(ag, tree_policy, env, done, root=None, term_cond=None, ts_mod
 
         if ag.lambda_coeff > 0:
             assert ag.value_func is not None, "value_func must be provided if lambda_coeff > 0"
-
             state_ids = current_state[0]
             value = ag.value_func(state_ids)
             estimate = ag.lambda_coeff * value + (1 - ag.lambda_coeff) * estimate

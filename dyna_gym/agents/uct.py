@@ -18,6 +18,7 @@ class UCT(object):
     """
     UCT agent
     """
+
     def __init__(
             self,
             action_space=[],
@@ -29,9 +30,11 @@ class UCT(object):
             is_model_dynamic=True,
             width=None,
             default_policy=None,
+            memory=None,
             ts_mode='sample',
             reuse_tree=False,
             alg='uct',
+            k=10,
             lambda_coeff=0.,
             value_func=None,
     ):
@@ -67,6 +70,8 @@ class UCT(object):
         self.reuse_tree = reuse_tree
 
         self.opt_act = None
+        self.memory = memory
+        self.k = k
 
         act_selection_criteria = {
             'uct': self.ucb,
@@ -109,14 +114,14 @@ class UCT(object):
         """
         Upper Confidence Bound of a chance node
         """
-        return mcts.chance_node_value(node)\
+        return mcts.chance_node_value(node) \
             + self.ucb_constant * sqrt(log(node.parent.visits)) / (1 + len(node.sampled_returns))
 
     def p_ucb(self, node):
         """
         Upper Confidence Bound of a chance node, weighted by prior probability
         """
-        return mcts.chance_node_value(node)\
+        return mcts.chance_node_value(node) \
             + self.ucb_constant * node.prob * sqrt(log(node.parent.visits)) / (1 + len(node.sampled_returns))
 
     def var_p_ucb(self, node):
@@ -124,11 +129,12 @@ class UCT(object):
         Upper Confidence Bound of a chance node, the ucb exploration weight is a variable
         """
         ucb_parameter = log((node.parent.visits + self.ucb_base + 1) / self.ucb_base) + self.ucb_constant
-        return mcts.chance_node_value(node)\
+        return mcts.chance_node_value(node) \
             + ucb_parameter * node.prob * sqrt(log(node.parent.visits)) / (1 + len(node.sampled_returns))
 
     def act(self, env, done, term_cond=None):
         root = self.root if self.reuse_tree else None
-        opt_act, self.root = mcts.mcts_procedure(self, self.tree_policy, env, done, root=root, term_cond=term_cond)
+        opt_act, self.root = mcts.mcts_procedure(self, self.tree_policy, env, done, memory=self.memory, k = self.k,
+                                                 root=root, term_cond=term_cond)
         self.opt_act = opt_act
         return opt_act

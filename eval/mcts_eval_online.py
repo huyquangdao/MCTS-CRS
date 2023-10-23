@@ -12,7 +12,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
 
     def __init__(self, target_set, terminal_act, generation_model, generation_tokenizer, know_generation_model,
                  know_generation_tokenizer,
-                 policy_model, policy_tokenizer, horizon, reward_func, uct_args, goal2id, device=None,
+                 policy_model, policy_tokenizer, memory, horizon, reward_func, uct_args, goal2id, device=None,
                  max_sequence_length=512, offline_policy=False, pad_to_multiple_of=True, padding='max_length',
                  max_gen_length=50, model_generation_args=None, should_plot_tree=True
                  ):
@@ -25,6 +25,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
         @param know_generation_tokenizer:
         @param policy_model:
         @param policy_tokenizer:
+        @param memory: the memory used to approximate the reward
         @param horizon:
         @param reward_func:
         @param uct_args:
@@ -44,6 +45,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
         self.know_generation_tokenizer = know_generation_tokenizer
         self.policy_model = policy_model
         self.policy_tokenizer = policy_tokenizer
+        self.memory = memory
         self.horizon = horizon
         self.reward_func = reward_func
         self.uct_args = uct_args
@@ -72,6 +74,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             know_tokenizer=self.know_generation_tokenizer,
             policy_model=self.policy_model,
             policy_tokenizer=self.policy_tokenizer,
+            memory = self.memory,
             horizon=self.horizon,
             reward_func=self.reward_func,
             uct_args=self.uct_args,

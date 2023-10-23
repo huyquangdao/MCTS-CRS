@@ -9,6 +9,8 @@ from torch.nn.utils.rnn import pad_sequence
 from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert_example_to_feature_for_goal_prediction, \
     convert_example_to_feature_for_response_generation, convert_example_to_feature_for_knowledge_generation
 
+from retrieval.utils import concatenate_sentences
+
 API_KEY = ""
 MODEL = "gpt-3.5-turbo"
 openai.api_key = API_KEY
@@ -423,6 +425,26 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
 
     reward += delta * math.exp(- len(conversations) / temperature)
     return reward
+
+
+def compute_reward_based_on_memory(state, memory, k=10):
+    """
+    function that compute the reward by using the memory
+    @param state: the input state
+    @param memory: the given memory
+    @param k: number of sampled candidates
+    @return: a float which is the reward for the agent.
+    """
+    dialogue_context = state['dialogue_context']
+    dialogue_context = concatenate_sentences(dialogue_context)
+    _, indices = memory.search(dialogue_context, k=k)
+    mems = []
+    for idx in indices[0]:
+        mems.append(memory.instances[idx])
+    # compute reward based on memory
+    print(mems)
+    # split into two sets, successful and failed.
+    assert 1 == 0
 
 
 def random_seed(seed):
