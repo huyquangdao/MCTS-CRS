@@ -5,16 +5,18 @@ import numpy as np
 
 class Memory:
 
-    def __init__(self, embedding_model, raw_memory, d_model=384):
+    def __init__(self, embedding_model, raw_memory, instances, d_model=384):
         """
         constructor for class me memory
         @param embedding_model: the sentence embedding model
         @param raw_memory: a set of raw dialogue contexts
+        @param instances:
         @param d_model: the dimension of vector indexes
         """
         self.embedding_model = embedding_model
         self.raw_memory = raw_memory
         self.d_model = d_model
+        self.instances = instances
         self.index = self.build_index()
 
     def __len__(self):

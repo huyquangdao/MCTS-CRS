@@ -157,6 +157,7 @@ if __name__ == '__main__':
     memory = Memory(
         embedding_model=embedding_model,
         raw_memory=raw_memory,
+        instances=dataset.train_instances,
         d_model=384
     )
 
