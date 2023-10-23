@@ -6,6 +6,7 @@ import torch
 import transformers
 from transformers import pipeline
 from transformers import AutoModel, AutoTokenizer, BartForConditionalGeneration
+from sentence_transformers import SentenceTransformer
 
 from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
@@ -15,6 +16,8 @@ from dataset.data_utils import create_target_set, load_binary_file, save_binary_
 
 from dyna_gym.envs.utils import reward_func, random_seed
 from eval.mcts_eval_online import MCTSCRSOnlineEval
+from retrieval.utils import construct_mcts_memory
+from retrieval.retrieval import Memory
 
 
 def parse_args():
@@ -143,6 +146,17 @@ if __name__ == '__main__':
         # create the target item set.
         target_set = create_target_set(dataset.train_convs, dataset.test_instances, num_items=args.num_items)
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
+
+    # retrieval model
+    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+    # build memory for mcts using the training dataset.
+    raw_memory = construct_mcts_memory(dataset.train_instances)
+    memory = Memory(
+        embedding_model=embedding_model,
+        raw_memory=raw_memory,
+        d_model=384
+    )
 
     terminal_act = "Say goodbye"
     mcts_online_eval = MCTSCRSOnlineEval(
