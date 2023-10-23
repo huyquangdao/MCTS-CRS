@@ -27,14 +27,13 @@ class Memory:
         assert sentence_embeddings.shape[1] == self.d_model
         index = faiss.IndexFlatIP(self.d_model)  # build the index
         # add vectors to the index
-        faiss.normalize_L2(sentence_embeddings)
         index.train(sentence_embeddings)
         index_gpu = faiss.index_cpu_to_gpu(device, 0, index)
         return index_gpu
 
     def search(self, queries, k=10):
-        faiss.normalize_L2(queries)
-        D, I = self.index.search(queries, k)
+        query_embed = self.embedding_model.encode(queries)
+        D, I = self.index.search(query_embed, k)
         return D, I
 
     def update(self, new_memories):
