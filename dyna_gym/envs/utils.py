@@ -442,7 +442,10 @@ def compute_reward_based_on_memory(state, memory, k=10):
     for idx in indices[0]:
         mems.append(memory.instances[idx])
     # compute reward based on memory
-    print(mems)
+    print(state['task_background']['target_topic'])
+    print('______________________________________')
+    for instance in mems:
+        print(instance['task_background']['target_topic'])
     # split into two sets, successful and failed.
     assert 1 == 0
 
