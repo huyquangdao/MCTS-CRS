@@ -30,7 +30,8 @@ class Memory:
         return index_gpu
 
     def search(self, queries, k=10):
-        D, I = self.index.search(faiss.normalize_L2(queries), k)
+        faiss.normalize_L2(queries)
+        D, I = self.index.search(queries, k)
         return D, I
 
     def update(self, new_memories):
