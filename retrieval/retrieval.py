@@ -32,7 +32,7 @@ class Memory:
         return index_gpu
 
     def search(self, queries, k=10):
-        query_embed = self.embedding_model.encode(queries)
+        query_embed = self.embedding_model.encode([queries])
         D, I = self.index.search(query_embed, k)
         return D, I
 
