@@ -25,6 +25,7 @@ def convert_example_to_feature_for_unimind_goal_prediction(tokenizer, instance, 
     """
     dialogue_context = instance['dialogue_context']
     prev_goals = instance['pre_goals']
+    target_item = instance['task_background']['target_topic']
 
     # Example of the input of unimind goal prediction
     # “[user] Who is the star of the movie < stolen life >? [goal] QA [system] It is Xun Zhou.[user]
@@ -40,7 +41,7 @@ def convert_example_to_feature_for_unimind_goal_prediction(tokenizer, instance, 
             input_str += SYSTEM_TOKEN + " "
         input_str += utt['content']
 
-    input_str = f"{input_str} {GOAL_TOKEN}"
+    input_str = f"{input_str} {TARGET} {target_item} {GOAL_TOKEN}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
     input_ids = input_ids[-(max_sequence_length - 2):]
     input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]

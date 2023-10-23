@@ -68,8 +68,8 @@ class DuRecdial(Dataset):
             target_topic = steps[i].replace(target_goal, "")[1:-1].strip()
 
             # there are some cases such as "A. B", B is the accepted item therefore we want to get B.
-            if len(target_topic.split('.')) == 2:
-                target_topic = target_topic.split('.')[-1].strip()
+            if len(target_topic.split('、')) == 2:
+                target_topic = target_topic.split('、')[-1].strip()
 
             target_goal = re.sub(r'[0-9]', '', target_goal).replace("[]", '').strip()
             # if the target goal is not in our considered target list.
