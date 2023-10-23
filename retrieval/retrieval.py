@@ -17,6 +17,9 @@ class Memory:
         self.d_model = d_model
         self.index = self.build_index()
 
+    def __len__(self):
+        return len(self.raw_memory)
+
     def build_index(self):
         sentence_embeddings = self.embedding_model.encode(self.raw_memory)
         device = faiss.StandardGpuResources()
