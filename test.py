@@ -1,32 +1,20 @@
-from dataset.durecdial import DuRecdial
-from dyna_gym.envs.utils import generate_sys_resp, get_user_resp, update_state
-from dataset.data_utils import randomly_sample_demonstrations
+import os
 
-# from dataset.data_utils import convert_example_to_feature
-# from dataset.data_utils import randomly_sample_demonstrations
+from retrieval.retrieval import Memory
+from sentence_transformers import SentenceTransformer
 
 if __name__ == '__main__':
-    train_data_path = 'data/DuRecDial/data/en_train.txt'
-    dev_data_path = 'data/DuRecDial/data/en_dev.txt'
-    test_data_path = 'data/DuRecDial/data/en_test.txt'
+    raw_memory = ['This framework generates embeddings for each input sentence',
+                  'Sentences are passed as a list of string.',
+                  'The quick brown fox jumps over the lazy dog.']
 
-    durecdial = DuRecdial(train_data_path=train_data_path,
-                          dev_data_path=dev_data_path,
-                          test_data_path=test_data_path,
-                          save_train_convs=True)
+    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+    memory = Memory(embedding_model=embedding_model, raw_memory=raw_memory, d_model=768)
 
-    # simulate a conversation:
-    demonstrations = randomly_sample_demonstrations(
-        all_convs=durecdial.train_convs,
-        instance=durecdial.test_instances[0]
-    )
-    durecdial.test_instances[0]['demonstration'] = demonstrations[0]
-    state = durecdial.test_instances[0]
-    while True:
-        resp = generate_sys_resp(state, action='Movie recommendation')
-        user_resp = get_user_resp(state, resp)
-        print('[System]: ', resp)
-        print('[USER]: ', user_resp)
-        #update the state
-        state = update_state(state, None, resp, user_resp)
+    queries = [
+        "Hello",
+        "Hi I'm Huy"
+    ]
 
+    results = memory.search(queries, k=1)
+    print(results)

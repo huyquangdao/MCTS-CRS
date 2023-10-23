@@ -1,6 +1,6 @@
 import math
-
 import torch
+from sklearn.metrics import precision_recall_fscore_support
 
 
 class PolicyEvaluator:
@@ -33,3 +33,8 @@ class PolicyEvaluator:
             if pred.lower().strip() == label.lower().strip():
                 count += 1
         return count / len(labels)
+
+    @staticmethod
+    def compute_precision_recall_f1_metrics(preds, labels, average='macro'):
+        p, r, f1 = precision_recall_fscore_support(labels, preds, average=average)
+        return p, r, f1
