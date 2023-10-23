@@ -15,7 +15,7 @@ class Memory:
     def build_index(self):
         sentence_embeddings = self.embedding_model.encode(self.raw_memory)
         assert sentence_embeddings.shape[0] == len(self.raw_memory)
-        assert sentence_embeddings.shape[1] == len(self.d_model)
+        assert sentence_embeddings.shape[1] == self.d_model
         sentence_embeddings = sentence_embeddings.detach().numpy()
         assert isinstance(sentence_embeddings, np.array)
         index = faiss.IndexFlatL2(self.d_model)  # build the index
