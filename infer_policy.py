@@ -180,6 +180,7 @@ if __name__ == '__main__':
     evaluator.reset_metric()
     # test
     test_preds = []
+    test_labels = []
     model.eval()
     for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
@@ -188,6 +189,7 @@ if __name__ == '__main__':
             pred_classes = logits.argmax(dim=-1)
             pred_classes = pred_classes.detach().cpu().numpy().tolist()
             test_preds.extend(pred_classes)
+            test_labels.extend(batch['labels'].detach().cpu().numpy().tolist())
 
     # metric
     accelerator.wait_for_everyone()
@@ -204,10 +206,19 @@ if __name__ == '__main__':
     valid_goal_preds, valid_topic_preds = split_goal_topic(valid_preds, goal2id)
     test_goal_preds, test_topic_preds = split_goal_topic(test_preds, goal2id)
 
+    # split goals and topics
+    test_goal_labels, test_topic_labels = split_goal_topic(test_labels, goal2id)
+
     # save results
     save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))
     save_knowledge_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"))
 
     save_knowledge_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"))
     save_knowledge_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"))
+
+    goal_p, goal_r, goal_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_goal_preds, test_goal_labels)
+    topic_p, topic_r, topic_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_topic_preds, test_topic_labels)
+
     logger.info('Save predictions successfully')
+    logger.info(f'Task: [Goal], precision: {goal_p}, recall: {goal_r}, f1: {goal_f}')
+    logger.info(f'Task: [Topic], precision: {topic_p}, recall: {topic_r}, f1: {topic_f}')
