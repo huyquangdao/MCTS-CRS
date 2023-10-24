@@ -112,8 +112,9 @@ def get_user_resp(state, sys_response):
     messages.append(
         {"role": "system", "content": seeker_instruction_2},
     )
+    new_state = copy.deepcopy(state)
     # current conversation
-    for utt in state['dialogue_context']:
+    for utt in new_state['dialogue_context']:
         # switch role
         if utt['role'] == 'user':
             utt['role'] = 'assistant'
@@ -439,7 +440,9 @@ def compute_reward_based_on_memory(state, memory, k=10):
     dialogue_context = concatenate_sentences(dialogue_context)
     _, indices = memory.search(dialogue_context, k=k)
     mems = []
+    check = []
     for idx in indices[0]:
+        if memory.instances[idx]['conv_Id']
         mems.append(memory.instances[idx])
     # compute reward based on memory
     print(state['task_background']['target_topic'])
