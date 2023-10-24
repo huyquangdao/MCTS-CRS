@@ -475,7 +475,7 @@ def compute_reward_based_on_memory(state, memory, k=10):
         # only considering one conversation.
         if not conv_id in check:
             # successful conversations.
-            if instance['tack_background']['target_topic'] == state['task_background']['target_topic']:
+            if instance['task_background']['target_topic'] == state['task_background']['target_topic']:
                 reward_scores.append(3)
             # failed conversations.
             else:
