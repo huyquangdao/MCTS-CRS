@@ -454,21 +454,23 @@ def compute_reward_based_on_memory(state, memory, k=10):
     dialogue_context = concatenate_sentences(dialogue_context)
     search_args = {
         "queries": dialogue_context,
-        "k": k
+        "k": 100
     }
-    _, indices = compute_run_time(memory.search, search_args)
-    mems = []
-    for idx in indices[0]:
-        mems.append(memory.instances[idx])
-    # compute reward based on memory
-    print(state['task_background']['target_topic'])
-    print(state['dialogue_context'])
-    print('______________________________________')
-    for instance in mems:
-        print(instance['task_background']['target_topic'])
-        print(instance['dialogue_context'])
-    # split into two sets, successful and failed.
-    assert 1 == 0
+    scores, indices = compute_run_time(memory.search, search_args)
+    count = 0
+    reward = 0
+    check = []
+    for score, idx in list(zip(scores[0], indices[0])):
+        instance = memory.instances[idx]
+        if instance['conv_id'] not in check:
+            if instance["task_background"]['target_topic'] == state['task_background']['target_topic']:
+                reward += 3 * score
+            else:
+                reward += -3 * score
+            count += 1
+            if count == 10:
+                break
+    return reward
 
 
 def random_seed(seed):
