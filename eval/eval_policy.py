@@ -36,5 +36,5 @@ class PolicyEvaluator:
 
     @staticmethod
     def compute_precision_recall_f1_metrics(preds, labels, average='macro'):
-        p, r, f1 = precision_recall_fscore_support(labels, preds, average=average)
+        p, r, f1, _ = precision_recall_fscore_support(labels, preds, average=average)
         return p, r, f1
