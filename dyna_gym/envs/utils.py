@@ -27,7 +27,7 @@ def compute_run_time(func, input):
     """
     t = time.time()
     result = func(**input)
-    print(f"{func.__name__}, run time: ", time.time() - t)
+    print(f"[Function Name]: {func.__name__}, [Run time]: ", time.time() - t)
     return result
 
 
