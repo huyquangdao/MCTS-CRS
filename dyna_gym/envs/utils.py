@@ -467,6 +467,7 @@ def compute_reward_based_on_memory(state, memory, k=10):
                 reward += 3 * score
             else:
                 reward += -3 * score
+            check.append(instance['conv_id'])
             count += 1
             if count == 10:
                 break
