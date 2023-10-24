@@ -6,6 +6,7 @@ import time
 import openai
 import torch
 from torch.nn.utils.rnn import pad_sequence
+import numpy as np
 
 from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert_example_to_feature_for_goal_prediction, \
     convert_example_to_feature_for_response_generation, convert_example_to_feature_for_knowledge_generation
@@ -16,6 +17,13 @@ API_KEY = ""
 MODEL = "gpt-3.5-turbo"
 openai.api_key = API_KEY
 IGNORE_INDEX = -100
+
+
+# correct solution:
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0)  # only difference
 
 
 def compute_run_time(func, input):
@@ -458,19 +466,32 @@ def compute_reward_based_on_memory(state, memory, k=10):
     }
     scores, indices = compute_run_time(memory.search, search_args)
     count = 0
-    reward = 0
     check = []
+    reward_scores = []
+    prob_scores = []
     for score, idx in list(zip(scores[0], indices[0])):
         instance = memory.instances[idx]
-        if instance['conv_id'] not in check:
-            if instance["task_background"]['target_topic'] == state['task_background']['target_topic']:
-                reward += 3 * score
+        conv_id = instance['conv_id']
+        # only considering one conversation.
+        if not conv_id in check:
+            # successful conversations.
+            if instance['tack_background']['target_topic'] == state['task_background']['target_topic']:
+                reward_scores.append(3)
+            # failed conversations.
             else:
-                reward += -3 * score
-            check.append(instance['conv_id'])
+                reward_scores.append(-3)
+            # get the retrieval scores.
+            prob_scores.append(score)
+            check.append(conv_id)
             count += 1
-            if count == 10:
-                break
+
+        # if aleardy more than k conversations:
+        if count >= k:
+            break
+    # compute softmax function
+    prob_scores = softmax(np.array(prob_scores))
+    # compute the reward
+    reward = np.sum(np.array(reward_scores) * prob_scores)
     return reward
 
 
