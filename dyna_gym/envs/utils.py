@@ -1,6 +1,7 @@
 from collections import defaultdict
 import copy
 import math
+import time
 
 import openai
 import torch
@@ -15,6 +16,19 @@ API_KEY = ""
 MODEL = "gpt-3.5-turbo"
 openai.api_key = API_KEY
 IGNORE_INDEX = -100
+
+
+def compute_run_time(func, input):
+    """
+    function that compute the computational time of a given input function
+    @param func: the given input function
+    @param input: the corresponding input of the given function
+    @return: the result of the given function
+    """
+    t = time.time()
+    result = func(**input)
+    print(f"{func.name}, run time: ", time.time() - t)
+    return result
 
 
 def reformat_demonstration(demonstration, is_agent_start=False):
@@ -438,11 +452,13 @@ def compute_reward_based_on_memory(state, memory, k=10):
     """
     dialogue_context = state['dialogue_context']
     dialogue_context = concatenate_sentences(dialogue_context)
-    _, indices = memory.search(dialogue_context, k=k)
+    search_args = {
+        "queries": dialogue_context,
+        "k": k
+    }
+    _, indices = compute_run_time(memory.search, search_args)
     mems = []
-    check = []
     for idx in indices[0]:
-        if memory.instances[idx]['conv_Id']
         mems.append(memory.instances[idx])
     # compute reward based on memory
     print(state['task_background']['target_topic'])
