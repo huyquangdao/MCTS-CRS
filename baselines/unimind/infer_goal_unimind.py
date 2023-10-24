@@ -261,3 +261,9 @@ if __name__ == '__main__':
 
     save_knowledge_results(valid_labels, os.path.join(args.output_dir, "dev_goal_labels.txt"))
     save_knowledge_results(test_labels, os.path.join(args.output_dir, "test_goal_labels.txt"))
+
+    # log metrics
+    goal_p, goal_r, goal_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_preds, test_labels)
+
+    logger.info('Save predictions successfully')
+    logger.info(f'Task: [Goal], precision: {goal_p}, recall: {goal_r}, f1: {goal_f}')
