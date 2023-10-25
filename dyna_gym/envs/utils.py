@@ -470,10 +470,12 @@ def compute_reward_based_on_memory(state, memory, k=10):
     reward_scores = []
     prob_scores = []
     for score, idx in list(zip(scores[0], indices[0])):
+
         instance = memory.instances[idx]
         conv_id = instance['conv_id']
+
         # only considering one conversation.
-        if not conv_id in check:
+        if conv_id not in check:
             # successful conversations.
             if instance['task_background']['target_topic'] == state['task_background']['target_topic']:
                 reward_scores.append(3)
@@ -481,6 +483,7 @@ def compute_reward_based_on_memory(state, memory, k=10):
             else:
                 reward_scores.append(-3)
             # get the retrieval scores.
+
             prob_scores.append(score)
             check.append(conv_id)
             count += 1
@@ -490,6 +493,7 @@ def compute_reward_based_on_memory(state, memory, k=10):
             break
     # compute softmax function
     prob_scores = softmax(np.array(prob_scores))
+
     # compute the reward
     reward = np.sum(np.array(reward_scores) * prob_scores)
     return reward

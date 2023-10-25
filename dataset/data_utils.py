@@ -339,13 +339,18 @@ def create_target_set(train_convs, test_instances, num_items=10):
     # copy instances before selecting target items
     copied_test_instances = copy.deepcopy(test_instances)
     random.shuffle(copied_test_instances)
+
     # get the set of items from the test set.
+
     i = 0
     selected_set = []
     selected_set_names = []
-    while i < num_items:
+
+    #
+    while len(selected_set) < num_items:
         instance = copied_test_instances[i]
         if instance['task_background']['target_topic'] in selected_set_names:
+            i += 1
             continue
 
         # sample a demonstration for user simulator:
