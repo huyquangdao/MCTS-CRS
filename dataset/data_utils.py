@@ -359,6 +359,9 @@ def create_target_set(train_convs, test_instances, num_items=10):
             instance=instance
         )
         # create the target
+
+
+
         target = {
             "topic": instance['task_background']['target_topic'],
             "goal": instance['task_background']['target_goal'],

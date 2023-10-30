@@ -450,11 +450,13 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     return reward
 
 
-def compute_reward_based_on_memory(state, memory, k=10):
+def compute_reward_based_on_memory(state, memory, pos_reward=3, neg_reward=-2, k=10):
     """
     function that compute the reward by using the memory
     @param state: the input state
     @param memory: the given memory
+    @param pos_reward: the reward value for a positive instance.
+    @param neg_reward: the reward value for a negative instance
     @param k: number of sampled candidates
     @return: a float which is the reward for the agent.
     """
@@ -469,6 +471,7 @@ def compute_reward_based_on_memory(state, memory, k=10):
     check = []
     reward_scores = []
     prob_scores = []
+
     for score, idx in list(zip(scores[0], indices[0])):
 
         instance = memory.instances[idx]
@@ -478,17 +481,17 @@ def compute_reward_based_on_memory(state, memory, k=10):
         if conv_id not in check:
             # successful conversations.
             if instance['task_background']['target_topic'] == state['task_background']['target_topic']:
-                reward_scores.append(3)
+                reward_scores.append(pos_reward)
             # failed conversations.
             else:
-                reward_scores.append(-3)
+                reward_scores.append(neg_reward)
             # get the retrieval scores.
 
             prob_scores.append(score)
             check.append(conv_id)
             count += 1
 
-        # if aleardy more than k conversations:
+        # if already more than k conversations:
         if count >= k:
             break
     # compute softmax function
