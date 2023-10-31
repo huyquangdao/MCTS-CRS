@@ -450,6 +450,10 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     return reward
 
 
+def get_dialogue_continuation(dialogue_context, instance):
+    pass
+
+
 def compute_reward_based_on_memory(state, memory, pos_reward=3, neg_reward=-2, k=10):
     """
     function that compute the reward by using the memory

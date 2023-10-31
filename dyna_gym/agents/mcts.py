@@ -114,7 +114,7 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
         # retrieval
         # the agent estimate the reward based on a memory
         # it should run this step with a high probability.
-        if ag.default_policy is None and memory is not None:
+        if  memory is not None:
             estimate = 0
             reward = compute_reward_based_on_memory(state=state, memory=memory, k=k)
             estimate += reward * (ag.gamma)
@@ -187,7 +187,6 @@ class DecisionNode:
         else:
             # get possible actions from default policy
             top_k_predict, top_k_scores = default_policy.get_top_k_tokens(self.state)
-
             self.possible_actions = top_k_predict
             self.action_scores = top_k_scores
 
@@ -240,7 +239,7 @@ class MCTS(object):
         self.gamma = gamma
         self.is_model_dynamic = is_model_dynamic
         self.default_policy = default_policy
-        self.lambda_coeff = 0.0
+        self.lambda_coeff = 0.8
 
     def display(self):
         """
