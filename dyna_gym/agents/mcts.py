@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 from dyna_gym.utils.utils import combinations, multigpu_breakpoint
 from dyna_gym.envs.utils import compute_reward_based_on_memory
+from dataset.data_utils import save_simulated_results
 
 
 def chance_node_value(node, mode="best"):
@@ -35,7 +36,8 @@ def mcts_tree_policy(children):
     return random.choice(children)
 
 
-def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, term_cond=None, ts_mode="sample"):
+def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, term_cond=None, ts_mode="sample",
+                   out_path="simulated_results.txt"):
     """
     Compute the entire MCTS procedure wrt to the selected tree policy.
     Funciton tree_policy is a function taking an agent + a list of ChanceNodes as argument
@@ -81,10 +83,11 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
                 # Given s, a, sample s' ~ p(s'|s,a), also get the reward r(s,a,s') and whether s' is terminal
                 state_p, reward, terminal = env.transition(node.parent.state, node.action, ag.is_model_dynamic)
                 rewards.append(reward)
-
                 new_state = True
+
                 # find if s' is already in the tree, if so point node to the corresponding DecisionNode (and new_state=False)
                 # if not, create a new DecisionNode for s' and point node to it
+
                 for i in range(len(node.children)):
                     if env.equality_operator(node.children[i].state, state_p):
                         # s' is already in the tree
@@ -114,7 +117,7 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
         # retrieval
         # the agent estimate the reward based on a memory
         # it should run this step with a high probability.
-        if  memory is not None:
+        if memory is not None:
             estimate = 0
             reward = compute_reward_based_on_memory(state=state, memory=memory, k=k)
             estimate += reward * (ag.gamma)
@@ -131,9 +134,13 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
 
                 ag.rolled_out_trajectories.append(simulated_conversation)
                 ag.rolled_out_rewards.append(estimate)
-
                 # also save this to current nodes for possible visualization
                 node.info['complete_program'] = simulated_conversation
+
+                # save the simulated results
+                with open(out_path, 'a') as f:
+                    save_simulated_results(f, state, simulated_conversation)
+
             else:
                 # the rewards are defined on terminating actions, the terminal states have no rewards
                 estimate = 0
@@ -239,7 +246,7 @@ class MCTS(object):
         self.gamma = gamma
         self.is_model_dynamic = is_model_dynamic
         self.default_policy = default_policy
-        self.lambda_coeff = 0.8
+        self.lambda_coeff = 0.0
 
     def display(self):
         """

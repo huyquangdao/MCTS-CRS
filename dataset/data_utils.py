@@ -1,4 +1,5 @@
 import copy
+import json
 import random
 import pickle
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
@@ -360,8 +361,6 @@ def create_target_set(train_convs, test_instances, num_items=10):
         )
         # create the target
 
-
-
         target = {
             "topic": instance['task_background']['target_topic'],
             "goal": instance['task_background']['target_goal'],
@@ -389,3 +388,17 @@ def split_goal_topic(preds, goal2id):
         goals.append(goal)
         topics.append(topic)
     return goals, topics
+
+
+def save_simulated_results(f, state, dialogue_continuation):
+    """
+    function that saves dialogue state and its corresponding dialogue continuation
+    @param state: an input dialogue state
+    @param dialogue_continuation: the corresponding dialogue continuation
+    @return: None
+    """
+    dic = {
+        "state": state,
+        "continuation": dialogue_continuation
+    }
+    f.write(json.dumps(dic) + "\n")
