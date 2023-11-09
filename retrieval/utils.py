@@ -41,7 +41,7 @@ def load_memory_from_file(file_path):
         for line in lines:
             dic = json.loads(line)
             state = dic['state']
-            continuation = dict['continuation']
+            continuation = dic['continuation']
             raw_memory.append((state, continuation))
     return raw_memory
 
