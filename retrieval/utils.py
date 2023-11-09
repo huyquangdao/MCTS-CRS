@@ -44,3 +44,19 @@ def load_memory_from_file(file_path):
             continuation = dict['continuation']
             raw_memory.append((state, continuation))
     return raw_memory
+
+
+def construct_memory_loaded_from_file(raw_memory):
+    """
+    function that constructs a set of memory which is loaded from file
+    @param raw_memory: list of pairs of historical instance, each contain a state and its continuation
+    @return: a set of memory
+    """
+    raw_states = []
+    raw_continations = []
+    for state, continuation in raw_memory:
+        raw_state = concatenate_sentences(state['dialogue_context'])
+        raw_continuation = concatenate_sentences(state['continuation'])
+        raw_states.append(raw_state)
+        raw_continations.append(raw_continuation)
+    return raw_states, raw_continations

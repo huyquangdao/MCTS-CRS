@@ -16,7 +16,7 @@ from dataset.data_utils import create_target_set, load_binary_file, save_binary_
 
 from dyna_gym.envs.utils import reward_func, random_seed
 from eval.mcts_eval_online import MCTSCRSOnlineEval
-from retrieval.utils import construct_mcts_memory, load_memory_from_file
+from retrieval.utils import construct_mcts_memory, load_memory_from_file, construct_memory_loaded_from_file
 from retrieval.retrieval import Memory
 
 
@@ -157,11 +157,12 @@ if __name__ == '__main__':
     # raw_memory = construct_mcts_memory(dataset.train_instances)
 
     raw_memory = load_memory_from_file(args.memory_path)
+    raw_states, raw_continations = construct_memory_loaded_from_file(raw_memory)
 
     memory = Memory(
         embedding_model=embedding_model,
-        raw_memory=raw_memory,
-        instances=dataset.train_instances,
+        raw_memory=raw_states,
+        instances=raw_continations,
         d_model=384
     )
 

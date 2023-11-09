@@ -477,36 +477,36 @@ def compute_reward_based_on_memory(state, memory, pos_reward=3, neg_reward=-2, k
     dialogue_context = concatenate_sentences(dialogue_context)
     search_args = {
         "queries": dialogue_context,
-        "k": 100
+        "k": k
     }
     scores, indices = compute_run_time(memory.search, search_args)
     count = 0
-    check = []
     reward_scores = []
     prob_scores = []
 
     for score, idx in list(zip(scores[0], indices[0])):
-
+        # dialogue continuation
         instance = memory.instances[idx]
-        conv_id = instance['conv_id']
-
+        # conv_id = instance['conv_id']
         # only considering one conversation.
-        if conv_id not in check:
-            # successful conversations.
-            if instance['task_background']['target_topic'] == state['task_background']['target_topic']:
-                reward_scores.append(pos_reward)
-            # failed conversations.
-            else:
-                reward_scores.append(neg_reward)
-            # get the retrieval scores.
+        # if conv_id not in check:
+        # successful conversations.
+        check = False
+        for utt in instance:
+            if utt['role'] == "user":
+                continue
+            if state['task_background']['target_topic'].lower() in utt['content'].lower():
+                check = True
+        if check:
+            reward_scores.append(pos_reward)
+        # failed conversations.
+        else:
+            reward_scores.append(neg_reward)
+        # get the retrieval scores.
 
-            prob_scores.append(score)
-            check.append(conv_id)
-            count += 1
+        prob_scores.append(score)
+        count += 1
 
-        # if already more than k conversations:
-        if count >= k:
-            break
     # compute softmax function
     prob_scores = softmax(np.array(prob_scores))
 
