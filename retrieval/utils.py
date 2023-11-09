@@ -56,7 +56,7 @@ def construct_memory_loaded_from_file(raw_memory):
     raw_continations = []
     for state, continuation in raw_memory:
         raw_state = concatenate_sentences(state['dialogue_context'])
-        raw_continuation = concatenate_sentences(continuation['continuation'])
+        raw_continuation = concatenate_sentences(continuation)
         raw_states.append(raw_state)
         raw_continations.append(raw_continuation)
     return raw_states, raw_continations
