@@ -1,5 +1,6 @@
 import copy
 import json
+import math
 import random
 import pickle
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \

@@ -450,8 +450,17 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     return reward
 
 
-def get_dialogue_continuation(dialogue_context, instance):
-    pass
+def compute_reward(outcome, conv_length, alpha=3.0, lamda=1.0, temperature=1):
+    """
+    function that maps outcome to reward
+    @param outcome: the outcome of the conversation
+    @param conv_length: the length of the dialogue continuation
+    @param alpha: scaling parameter of the outcome
+    @param lamda: scaling parameter for the conversation length part.
+    @param temperature: the temperature
+    @return:
+    """
+    return outcome * alpha + lamda * math.exp(-1.0 * conv_length / temperature)
 
 
 def compute_reward_based_on_memory(state, memory, pos_reward=3, neg_reward=-2, k=10):

@@ -1,4 +1,5 @@
 import os
+import json
 
 
 def concatenate_sentences(list_of_sents):
@@ -25,4 +26,21 @@ def construct_mcts_memory(train_instances):
         context = instance['dialogue_context']
         context = concatenate_sentences(context)
         raw_memory.append(context)
+    return raw_memory
+
+
+def load_memory_from_file(file_path):
+    """
+    function that loads historical instances into the memory
+    @param file_path: the path to the file containing the memory.
+    @return:
+    """
+    raw_memory = []
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            dic = json.loads(line)
+            state = dic['state']
+            continuation = dict['continuation']
+            raw_memory.append((state, continuation))
     return raw_memory

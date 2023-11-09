@@ -16,7 +16,7 @@ from dataset.data_utils import create_target_set, load_binary_file, save_binary_
 
 from dyna_gym.envs.utils import reward_func, random_seed
 from eval.mcts_eval_online import MCTSCRSOnlineEval
-from retrieval.utils import construct_mcts_memory
+from retrieval.utils import construct_mcts_memory, load_memory_from_file
 from retrieval.retrieval import Memory
 
 
@@ -30,6 +30,7 @@ def parse_args():
     parser.add_argument("--train_data_path", type=str, required=True, help="A file containing all data.")
     parser.add_argument("--dev_data_path", type=str, required=True, help="A file containing all data.")
     parser.add_argument("--test_data_path", type=str, required=True, help="A file containing all data.")
+    parser.add_argument("--memory_path", type=str, required=True, help="A file containing all data.")
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_gen_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--horizon', type=int, default=5, help="max length of both encoder and decoder input.")
@@ -153,7 +154,10 @@ if __name__ == '__main__':
     embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
     # build memory for mcts using the training dataset.
-    raw_memory = construct_mcts_memory(dataset.train_instances)
+    # raw_memory = construct_mcts_memory(dataset.train_instances)
+
+    raw_memory = load_memory_from_file(args.memory_path)
+
     memory = Memory(
         embedding_model=embedding_model,
         raw_memory=raw_memory,
