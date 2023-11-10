@@ -463,7 +463,7 @@ def compute_reward(outcome, conv_length, alpha=3.0, lamda=1.0, temperature=1):
     return outcome * alpha + lamda * math.exp(-1.0 * conv_length / temperature)
 
 
-def compute_reward_based_on_memory(state, memory, pos_reward=3, neg_reward=-2, k=10):
+def compute_reward_based_on_memory(state, memory, pos_reward=1, neg_reward=-1, k=10):
     """
     function that compute the reward by using the memory
     @param state: the input state
@@ -498,10 +498,10 @@ def compute_reward_based_on_memory(state, memory, pos_reward=3, neg_reward=-2, k
             if state['task_background']['target_topic'].lower() in utt['content'].lower():
                 check = True
         if check:
-            reward_scores.append(pos_reward)
+            reward_scores.append(compute_reward(pos_reward, len(instance)))
         # failed conversations.
         else:
-            reward_scores.append(neg_reward)
+            reward_scores.append(compute_reward(neg_reward, len(instance)))
         # get the retrieval scores.
 
         prob_scores.append(score)
