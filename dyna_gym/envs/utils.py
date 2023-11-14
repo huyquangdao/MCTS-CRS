@@ -1,3 +1,4 @@
+import random
 from collections import defaultdict
 import copy
 import math
@@ -345,10 +346,61 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
     return action
 
 
+def predict_topk_action(policy_model, tokenizer, state, max_sequence_length, goal2id=None, pad_to_multiple_of=True,
+                        padding='max_length', device=None, top_k=3):
+    """
+    function that predicts an action given the input state
+    @param policy_model: the offline policy model
+    @param tokenizer: a huggingface tokenizer.
+    @param state: the current state of the env
+    @param max_sequence_length: the maximum number of tokens in the input sequence
+    @param goal2id: a dictionary that map goals to indices
+    @param pad_to_multiple_of: pad to multiple instances
+    @param padding: type of padding
+    @param device: device to allocate tensors
+    @param top_k: number of sampled actions
+    @return: a predicted action
+    """
+    input_features = defaultdict(list)
+    # convert state to input features
+    input_ids, _ = convert_example_to_feature_for_goal_prediction(tokenizer, state, max_sequence_length,
+                                                                  goal2id)
+
+    input_features['input_ids'] = input_ids
+    # padding the input features
+    input_features = tokenizer.pad(
+        input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+        max_length=max_sequence_length
+    )
+    # convert features to torch tensors
+    for k, v in input_features.items():
+        if not isinstance(v, torch.Tensor):
+            input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
+
+    # compute policy with offline policy model.
+    # compute policy with offline policy model.
+    logits = policy_model(input_features)
+
+    # convert logits to probabilities
+    all_probs = torch.softmax(logits, dim=-1)
+
+    # compute top-k predictions
+    topk_probs, topk_indices = torch.topk(all_probs, top_k, sorted=True)
+    topk_probs = topk_probs.tolist()[0]
+    topk_indices = topk_indices.tolist()[0]
+
+    # randomly sample an action to from top_k predictions.
+    idx = random.choice(topk_indices)
+    id2goal = {v: k for k, v in goal2id.items()}
+    action = id2goal[idx]
+    return action
+
+
 def simulate_conversation(generation_model, generation_tokenizer, know_generation_model, know_tokenizer, policy_model,
                           policy_tokenizer, state, horizon=5,
                           max_sequence_length=512, max_gen_length=50, padding='max_length',
-                          pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None):
+                          pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None,
+                          greedy_search=True, top_k=3):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param generation_model: a response generation used to produce a system response
@@ -365,6 +417,8 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
     @param pad_to_multiple_of: if pad to multiple instances.
     @param goal2id: a dictionary that convert goals to indices.
     @param device the device to allocate tensors
+    @param greedy_search: True if we use greedy search
+    @param top_k: get top_k predictions
     @return: the last generated system response.
     """
     is_terminal = False
@@ -373,17 +427,30 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
     simulated_conversation = []
     while (not is_terminal) and i < horizon:
 
-        # predict system action using the offline policy model
-        action = predict_action(policy_model,
-                                policy_tokenizer,
-                                start_state,
-                                max_sequence_length,
-                                goal2id,
-                                pad_to_multiple_of,
-                                padding,
-                                device=device)
+        if greedy_search:
+            # predict system action using the offline policy model
+            action = predict_action(policy_model,
+                                    policy_tokenizer,
+                                    start_state,
+                                    max_sequence_length,
+                                    goal2id,
+                                    pad_to_multiple_of,
+                                    padding,
+                                    device=device)
+        else:
+            # improving the uncertainty of the predictions
+            # choose one from top_k predictions
+            action = predict_topk_action(policy_model,
+                                         policy_tokenizer,
+                                         start_state,
+                                         max_sequence_length,
+                                         goal2id,
+                                         pad_to_multiple_of,
+                                         padding,
+                                         device=device,
+                                         top_k=top_k)
 
-        # generate relevant knowledge
+            # generate relevant knowledge
         knowledge = generate_knowledge_with_plm(generation_model=know_generation_model,
                                                 tokenizer=know_tokenizer,
                                                 action=action,
@@ -531,4 +598,86 @@ def random_seed(seed):
     np.random.seed(seed)
 
 
-def self_play()
+def construct_initial_state(target_item, system_initial_resp="Hello ! May I help you today"):
+    """
+    function that constructs the initial state for each conversation
+    @param target_item: the targeted item
+    @param system_initial_resp: default system response
+    @return: the constructed state.
+    """
+    state = {
+        "task_background": {
+            "target_topic": target_item['topic'],
+            "target_goal": target_item['goal']
+        },
+        "demonstration": target_item["demonstration"],
+        "dialogue_context": [],
+        "goal": "Greetings",  # will not affect anything, only including it for code convenience
+        "topic": "Greetings",
+        "knowledge": "",  # will not affect anything, only including it for code convenience
+        "response": "",  # will not affect anything, only including it for code convenience
+        "pre_goals": [],
+        "pre_topics": []
+    }
+    user_initial_response = get_user_resp(state, sys_response=system_initial_resp)
+    state['dialogue_context'].append({'role': 'user', 'content': user_initial_response})
+    return state
+
+
+def self_simulation(num_simulations, target_set, generation_model, generation_tokenizer, know_generation_model,
+                    know_tokenizer, policy_model,
+                    policy_tokenizer, horizon=5,
+                    max_sequence_length=512, max_gen_length=50, padding='max_length',
+                    pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None,
+                    greedy_search=True, top_k=3):
+    """
+    function that simulates a conversation between an user and a system starting from a given input state.
+    @param num_simulations: number of simulations used to run each target item
+    @param target_set the targeted item set.
+    @param generation_model: a response generation used to produce a system response
+    @param generation_tokenizer: a huggingface tokenizer used for response generation
+    @param know_generation_model: a knowledge generation model used to produce relevant knowledge
+    @param know_tokenizer: a huggingface tokenizer used with the knowledge generation model
+    @param policy_model: a prediction model used to produce a system action
+    @param policy_tokenizer: a huggingface tokenizer
+    @param horizon: the maximum number of turn in the simulated conversation
+    @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param max_gen_length: the maximum number of tokens in the generated response.
+    @param padding: type of padding
+    @param pad_to_multiple_of: if pad to multiple instances.
+    @param goal2id: a dictionary that convert goals to indices.
+    @param device the device to allocate tensors
+    @param greedy_search: True if we use greedy search
+    @param top_k: get top_k predictions
+    @return: a set of simulated conversations.
+    """
+    simulated_conversations = []
+    for target_item in target_set:
+        for i in range(num_simulations):
+            # adding some randomization
+            seed = random.randint(10000)
+            random_seed(seed)
+            # construct the initial state
+            state = construct_initial_state(target_item)
+            # generate a simulated conversation
+            simulated_conversation = simulate_conversation(
+                generation_model=generation_model,
+                generation_tokenizer=generation_tokenizer,
+                know_generation_model=know_generation_model,
+                know_tokenizer=know_tokenizer,
+                policy_model=policy_model,
+                policy_tokenizer=policy_tokenizer,
+                state=state,
+                horizon=horizon,
+                max_sequence_length=max_sequence_length,
+                max_gen_length=max_gen_length,
+                padding=padding,
+                pad_to_multiple_of=pad_to_multiple_of,
+                goal2id=goal2id,
+                terminated_action=terminated_action,
+                device=device,
+                greedy_search=greedy_search,
+                top_k=top_k
+            )
+            simulated_conversations.append(simulated_conversation)
+    return simulated_conversations
