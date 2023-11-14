@@ -29,7 +29,7 @@ class Memory:
         assert sentence_embeddings.shape[1] == self.d_model
         index = faiss.IndexFlatIP(self.d_model)  # build the index
         # add vectors to the index
-        index.train(sentence_embeddings)
+        index.add(sentence_embeddings)
         index_gpu = faiss.index_cpu_to_gpu(device, 0, index)
         return index_gpu
 

@@ -25,11 +25,12 @@ class BaseOnlineEval(object):
         """
         return get_user_resp(state, system_resp)
 
-    def init_state(self, target_item):
+    def init_state(self, target_item, system_initial_resp="Hello !"):
         """
         method that create the initial state of a conversation
         we assume the user start a conversation.
         @param target_item:
+        @param system_initial_resp: The initial response from the system
         @return:
         """
         state = {
@@ -38,7 +39,7 @@ class BaseOnlineEval(object):
                 "target_goal": target_item['goal']
             },
             "demonstration": target_item["demonstration"],
-            "dialogue_context": [{"role": "user", "content": "Hello !"}],
+            "dialogue_context": [],
             "goal": "Greetings",  # will not affect anything, only including it for code convenience
             "topic": "Greetings",
             "knowledge": "",  # will not affect anything, only including it for code convenience
@@ -46,6 +47,8 @@ class BaseOnlineEval(object):
             "pre_goals": [],
             "pre_topics": []
         }
+        user_initial_response = get_user_resp(state, sys_response=system_initial_resp)
+        state['dialogue_context'].append({'role': 'user', 'content': user_initial_response})
         return state
 
     def update(self, state, system_response, system_action, user_response):

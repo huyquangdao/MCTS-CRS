@@ -188,7 +188,6 @@ class DecisionNode:
         if default_policy is None:
             self.possible_actions = possible_actions
             random.shuffle(self.possible_actions)
-
             # if no default policy is provided, assume selection probability is uniform
             self.action_scores = [1.0 / len(self.possible_actions)] * len(self.possible_actions)
         else:
