@@ -108,11 +108,8 @@ class DialogueEnv(gym.Env):
         else:
             done = False
 
-        if done:
-            reward = self.get_reward(simulated_conversation, self.state['task_background']['target_topic'],
-                                     self.state['task_background']['target_goal'])
-        else:
-            reward = 0  # no intermediate reward
+        reward = self.get_reward(simulated_conversation, self.state['task_background']['target_topic'],
+                                 self.state['task_background']['target_goal'])
 
         # update the current state.
         new_state = update_state(state, action, resp, user_resp)
