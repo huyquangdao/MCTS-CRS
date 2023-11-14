@@ -25,7 +25,7 @@ class BaseOnlineEval(object):
         """
         return get_user_resp(state, system_resp)
 
-    def init_state(self, target_item, system_initial_resp="Hello !"):
+    def init_state(self, target_item, system_initial_resp="Hello ! May I help you today ?"):
         """
         method that create the initial state of a conversation
         we assume the user start a conversation.
