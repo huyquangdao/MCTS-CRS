@@ -443,7 +443,7 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     # this is the intermediate reward during the state transition.
     reward = 0
     for utt in conversations:
-        if utt['role'] == 'system':
+        if utt['role'] == 'assistant':
             if target_topic.lower() in utt['content'].lower() and target_goal == utt['goal']:
                 reward = 3.0
 
