@@ -120,7 +120,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             # predict system action using monte-carlo tree search
             action = self.mcts_agent(state)
         else:
-            # predict the system action using the offline policy model
+            # predict the system action using the greedy search model
             action = predict_action(self.policy_model,
                                     self.policy_tokenizer,
                                     state,

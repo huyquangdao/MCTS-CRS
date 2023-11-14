@@ -529,3 +529,6 @@ def random_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     np.random.seed(seed)
+
+
+def self_play()

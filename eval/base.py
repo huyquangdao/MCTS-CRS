@@ -39,7 +39,7 @@ class BaseOnlineEval(object):
                 "target_goal": target_item['goal']
             },
             "demonstration": target_item["demonstration"],
-            "dialogue_context": [],
+            "dialogue_context": [{'role': 'assistant', 'content': "Hello ! How do I help you ?"}],
             "goal": "Greetings",  # will not affect anything, only including it for code convenience
             "topic": "Greetings",
             "knowledge": "",  # will not affect anything, only including it for code convenience
