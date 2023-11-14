@@ -127,8 +127,8 @@ class BaseOnlineEval(object):
         @param target_item: set of target item
         @return: dialogue-level SR and averaged number of conversational turn
         """
-        sr = self.is_successful(generated_conversation, target_item)
-        turn = self.compute_turn(generated_conversation)
+        sr, turn = self.is_successful(generated_conversation, target_item)
+        # turn = self.compute_turn(generated_conversation)
         return int(sr), turn
 
     def is_successful(self, generated_conversation, target_item):
@@ -138,10 +138,10 @@ class BaseOnlineEval(object):
         @param target_item: the targeted item
         @return: True if success else False
         """
-        for utt in generated_conversation:
+        for idx,  utt in enumerate(generated_conversation):
             if utt['role'] == 'system' and target_item.lower() in utt['content'].lower():
-                return True
-        return False
+                return True, idx + 1
+        return False, len(generated_conversation)
 
     def compute_turn(self, generated_conversation):
         """
