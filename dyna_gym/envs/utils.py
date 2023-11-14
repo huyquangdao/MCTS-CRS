@@ -440,13 +440,14 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     @param temperature: temperature
     @return: a float value which is the reward.
     """
-    reward = -3.0
+    # this is the intermediate reward during the state transition.
+    reward = 0
     for utt in conversations:
         if utt['role'] == 'system':
             if target_topic.lower() in utt['content'].lower() and target_goal == utt['goal']:
                 reward = 3.0
 
-    reward += delta * math.exp(- len(conversations) / temperature)
+    # reward += delta * math.exp(- len(conversations) / temperature)
     return reward
 
 

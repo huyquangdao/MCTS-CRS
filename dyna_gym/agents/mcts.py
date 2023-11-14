@@ -118,8 +118,7 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
         # the agent estimate the reward based on a memory
         # it should run this step with a high probability.
         if memory is not None:
-            estimate = 0
-            reward = compute_reward_based_on_memory(state=state, memory=memory, k=k)
+            estimate = compute_reward_based_on_memory(state=state, memory=memory, k=k)
             estimate += reward * (ag.gamma)
         # simulation step
         # the agent follow a random/predefined policy to generate a completed conversation
