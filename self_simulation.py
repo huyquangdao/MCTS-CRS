@@ -50,6 +50,8 @@ def parse_args():
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--offline_policy", action="store_true", help="whether to use offline policy")
     parser.add_argument("--lm_size", type=int)
+    parser.add_argument("--greedy_search", action="store_true", help="whether to use wandb")
+
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
     parser.add_argument("--entity", type=str, help="wandb username")
