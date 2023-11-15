@@ -155,4 +155,5 @@ if __name__ == '__main__':
                                               max_gen_length=args.max_gen_length,
                                               greedy_search=args.greedy_search,
                                               top_k=args.top_k,
+                                              device=device
                                               )
