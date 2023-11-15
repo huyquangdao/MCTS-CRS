@@ -139,6 +139,7 @@ if __name__ == '__main__':
         target_set = create_target_set(dataset.train_convs, dataset.test_instances, num_items=args.num_items)
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
+    goal2id = load_binary_file(os.path.join(policy_model_path, "goal2id.pkl"))
     # self simulation
     simulated_conversations = self_simulation(args.rollouts,
                                               target_set,
@@ -149,6 +150,7 @@ if __name__ == '__main__':
                                               policy_model=policy_model,
                                               policy_tokenizer=policy_tokenizer,
                                               horizon=args.horizon,
+                                              goal2id=goal2id,
                                               max_sequence_length=args.max_sequence_length,
                                               max_gen_length=args.max_gen_length,
                                               greedy_search=args.greedy_search,
