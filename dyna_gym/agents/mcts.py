@@ -157,6 +157,11 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
         while node:
             if len(rewards) != 0:
                 estimate = rewards.pop() + ag.gamma * estimate
+
+            # estimate is the memory base estimation
+            estimate = node.memory_sampled_returns[-1] +
+
+
             node.sampled_returns.append(estimate)
             node.parent.visits += 1
             node = node.parent.parent
@@ -223,6 +228,7 @@ class ChanceNode:
         self.children = []
         self.prob = action_and_score[1]  # the probability that this action should be token, provided by default policy
         self.sampled_returns = []
+        self.memory_sampled_returns = []
 
     def expanded(self):
         return len(self.children) > 0

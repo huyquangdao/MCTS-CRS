@@ -66,20 +66,10 @@ if __name__ == '__main__':
     args = parse_args()
 
     random_seed(args.seed)
-
     device = torch.device('cuda:0')
-    # arguments for the UCT agent
-    uct_args = dict(
-        rollouts=args.rollouts,
-        gamma=args.gamma,
-        width=args.width,
-        alg=args.alg,  # or p_uct
-        k=args.k  # num retrieval
-    )
 
     # will be passed to huggingface model.generate()
     model_generation_args = dict()
-
     plm_policy_model = args.plm_policy_model
     policy_model_path = args.policy_model_path
     policy_model_name = 'policy.pth'
