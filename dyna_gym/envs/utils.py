@@ -655,7 +655,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
     for target_item in target_set:
         for i in range(num_simulations):
             # adding some randomization
-            seed = random.randint(10000)
+            seed = random.randint(0, 10000)
             random_seed(seed)
             # construct the initial state
             state = construct_initial_state(target_item)

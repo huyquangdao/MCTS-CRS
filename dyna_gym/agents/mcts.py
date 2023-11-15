@@ -159,9 +159,6 @@ def mcts_procedure(ag, tree_policy, env, done, memory=None, k=10, root=None, ter
                 estimate = rewards.pop() + ag.gamma * estimate
 
             # estimate is the memory base estimation
-            estimate = node.memory_sampled_returns[-1] +
-
-
             node.sampled_returns.append(estimate)
             node.parent.visits += 1
             node = node.parent.parent
