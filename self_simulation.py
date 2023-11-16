@@ -12,7 +12,7 @@ from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
 from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, DURECDIALGOALS
-from dataset.data_utils import create_target_set, load_binary_file, save_binary_file
+from dataset.data_utils import create_target_set, load_binary_file, save_binary_file, save_simulated_results
 
 from dyna_gym.envs.utils import reward_func, random_seed, self_simulation
 
@@ -142,22 +142,24 @@ if __name__ == '__main__':
 
     goal2id = load_binary_file(os.path.join(policy_model_path, "goal2id.pkl"))
     # self simulation
-    simulated_conversations = self_simulation(args.rollouts,
-                                              target_set,
-                                              generation_model=generation_model,
-                                              generation_tokenizer=generation_tokenizer,
-                                              know_generation_model=know_generation_model,
-                                              know_tokenizer=know_generation_tokenizer,
-                                              policy_model=policy_model,
-                                              policy_tokenizer=policy_tokenizer,
-                                              horizon=args.horizon,
-                                              goal2id=goal2id,
-                                              max_sequence_length=args.max_sequence_length,
-                                              max_gen_length=args.max_gen_length,
-                                              greedy_search=args.greedy_search,
-                                              top_k=args.top_k,
-                                              device=device,
-                                              epsilon=args.epsilon
-                                              )
+    memory_instances = self_simulation(args.rollouts,
+                                       target_set,
+                                       generation_model=generation_model,
+                                       generation_tokenizer=generation_tokenizer,
+                                       know_generation_model=know_generation_model,
+                                       know_tokenizer=know_generation_tokenizer,
+                                       policy_model=policy_model,
+                                       policy_tokenizer=policy_tokenizer,
+                                       horizon=args.horizon,
+                                       goal2id=goal2id,
+                                       max_sequence_length=args.max_sequence_length,
+                                       max_gen_length=args.max_gen_length,
+                                       greedy_search=args.greedy_search,
+                                       top_k=args.top_k,
+                                       device=device,
+                                       epsilon=args.epsilon
+                                       )
 
-
+    with open("self_simulations.txt", 'r') as f:
+        for instance in memory_instances:
+            save_simulated_results(f, instance['state'], instance['dialogue_continuation'])

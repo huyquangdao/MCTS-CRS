@@ -662,7 +662,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
     @param epsilon: a small probability used for exploration
     @return: a set of simulated conversations.
     """
-    simulated_conversations = []
+    memory_instances = []
     for target_item in target_set:
         for i in range(num_simulations):
             # adding some randomization
@@ -692,8 +692,8 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                 epsilon=epsilon
             )
 
-            simulated_conversations.append([state, simulated_conversation])
-    return simulated_conversations
+            memory_instances.append(reformat_simulated_conversation([state, simulated_conversation]))
+    return memory_instances
 
 
 def reformat_simulated_conversation(simulated_conversation):
@@ -715,6 +715,5 @@ def reformat_simulated_conversation(simulated_conversation):
         new_state['dialogue_context'].append({'role': 'assistant', 'content': utt['content']})
         instance = {'state': new_state, 'continuation': conversation[idx:]}
         instances.append(instance)
-
         state = new_state
     return instances
