@@ -162,4 +162,4 @@ if __name__ == '__main__':
 
     with open("self_simulations.txt", 'r') as f:
         for instance in memory_instances:
-            save_simulated_results(f, instance['state'], instance['dialogue_continuation'])
+            save_simulated_results(f, instance['state'], instance['continuation'])

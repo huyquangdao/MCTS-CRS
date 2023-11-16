@@ -8,6 +8,7 @@ import openai
 import torch
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
+from tqdm import tqdm
 
 from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert_example_to_feature_for_goal_prediction, \
     convert_example_to_feature_for_response_generation, convert_example_to_feature_for_knowledge_generation
@@ -663,7 +664,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
     @return: a set of simulated conversations.
     """
     memory_instances = []
-    for target_item in target_set:
+    for target_item in tqdm(target_set):
         for i in range(num_simulations):
             # adding some randomization
             seed = random.randint(0, 10000)
@@ -692,7 +693,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                 epsilon=epsilon
             )
 
-            memory_instances.append(reformat_simulated_conversation([state, simulated_conversation]))
+            memory_instances.extend(reformat_simulated_conversation([state, simulated_conversation]))
     return memory_instances
 
 
