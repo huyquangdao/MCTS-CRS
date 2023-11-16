@@ -694,3 +694,28 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
 
             simulated_conversations.append([state, simulated_conversation])
     return simulated_conversations
+
+
+def reformat_simulated_conversation(simulated_conversation):
+    """
+    function that reformat a simulated conversation into state - continuation format
+    @param simulated_conversation: a list with two elements the initial state and the simulated conversation
+    @return: a list of state - continuation elements
+    """
+    state, conversation = simulated_conversation
+    instances = []
+    for idx, utt in enumerate(simulated_conversation):
+        if utt['role'] == "user":
+            state['dialogue_context'].append(utt)
+            continue
+
+        new_state = copy.deepcopy(state)
+        new_state['pre_goals'].append(utt['goal'][0])
+        new_state['pre_topics'].append(utt['goal'][1])
+        new_state['dialogue_context'].append({'role': utt['role'], 'content': utt['content']})
+
+        instance = {'state': new_state, 'continuation': simulated_conversation[idx:]}
+        instances.append(instance)
+
+        state = new_state
+    return instances
