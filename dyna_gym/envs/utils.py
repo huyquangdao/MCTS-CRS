@@ -691,5 +691,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                 top_k=top_k,
                 epsilon=epsilon
             )
-            simulated_conversations.append([simulated_conversation, state])
+
+            conversation = [state['dialogue_context'], simulated_conversation]
+            simulated_conversations.append(conversation)
     return simulated_conversations
