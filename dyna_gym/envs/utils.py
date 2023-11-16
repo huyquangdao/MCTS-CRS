@@ -503,7 +503,7 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
         ])
 
     # return the simulated conversation and the initial state.
-    return simulated_conversation, start_state['dialogue_context']
+    return simulated_conversation
 
 
 # define a reward function based the generated conversation
@@ -671,7 +671,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
             # construct the initial state
             state = construct_initial_state(target_item)
             # generate a simulated conversation
-            simulated_conversation, initial_state = simulate_conversation(
+            simulated_conversation = simulate_conversation(
                 generation_model=generation_model,
                 generation_tokenizer=generation_tokenizer,
                 know_generation_model=know_generation_model,
@@ -691,5 +691,5 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                 top_k=top_k,
                 epsilon=epsilon
             )
-            simulated_conversations.append([simulated_conversation, initial_state])
+            simulated_conversations.append([simulated_conversation, state])
     return simulated_conversations
