@@ -704,7 +704,7 @@ def reformat_simulated_conversation(simulated_conversation):
     """
     state, conversation = simulated_conversation
     instances = []
-    for idx, utt in enumerate(simulated_conversation):
+    for idx, utt in enumerate(conversation):
         if utt['role'] == "user":
             state['dialogue_context'].append(utt)
             continue
@@ -712,10 +712,8 @@ def reformat_simulated_conversation(simulated_conversation):
         new_state = copy.deepcopy(state)
         new_state['pre_goals'].append(utt['goal'][0])
         new_state['pre_topics'].append(utt['goal'][1])
-        new_state['dialogue_context'].append({'role': utt['role'], 'content': utt['content']})
-
-        instance = {'state': new_state, 'continuation': simulated_conversation[idx:]}
+        instance = {'state': new_state, 'continuation': conversation[idx:]}
         instances.append(instance)
-
+        new_state['dialogue_context'].append({'role': utt['role'], 'content': utt['content']})
         state = new_state
     return instances
