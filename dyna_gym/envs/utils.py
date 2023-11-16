@@ -347,7 +347,7 @@ def predict_action(policy_model, tokenizer, state, max_sequence_length, goal2id=
 
 
 def predict_topk_action(policy_model, tokenizer, state, max_sequence_length, goal2id=None, pad_to_multiple_of=True,
-                        padding='max_length', device=None, top_k=3):
+                        padding='max_length', device=None, top_k=3, epsilon=0.1):
     """
     function that predicts an action given the input state
     @param policy_model: the offline policy model
@@ -359,6 +359,7 @@ def predict_topk_action(policy_model, tokenizer, state, max_sequence_length, goa
     @param padding: type of padding
     @param device: device to allocate tensors
     @param top_k: number of sampled actions
+    @param epsilon: a small probability used for exploration.
     @return: a predicted action
     """
     input_features = defaultdict(list)
@@ -388,9 +389,16 @@ def predict_topk_action(policy_model, tokenizer, state, max_sequence_length, goa
     topk_probs, topk_indices = torch.topk(all_probs, top_k, sorted=True)
     topk_probs = topk_probs.tolist()[0]
     topk_indices = topk_indices.tolist()[0]
-
-    # randomly sample an action to from top_k predictions.
-    idx = random.choice(topk_indices)
+    # epsilon greedy algorithm
+    p = np.random.random()
+    if p < epsilon:
+        # a random action from top-k predictions.
+        idx = np.random.choice(top_k)
+    else:
+        # action with the highest probability
+        idx = topk_indices[0]
+    # # randomly sample an action to from top_k predictions.
+    # idx = random.choice(topk_indices)
     id2goal = {v: k for k, v in goal2id.items()}
     action = id2goal[idx]
     return action
@@ -400,7 +408,7 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
                           policy_tokenizer, state, horizon=5,
                           max_sequence_length=512, max_gen_length=50, padding='max_length',
                           pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None,
-                          greedy_search=True, top_k=3):
+                          greedy_search=True, top_k=3, epsilon=0.1):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param generation_model: a response generation used to produce a system response
@@ -419,6 +427,7 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
     @param device the device to allocate tensors
     @param greedy_search: True if we use greedy search
     @param top_k: get top_k predictions
+    @param epsilon: a small probability used for exploration
     @return: the last generated system response.
     """
     is_terminal = False
@@ -448,9 +457,10 @@ def simulate_conversation(generation_model, generation_tokenizer, know_generatio
                                          pad_to_multiple_of,
                                          padding,
                                          device=device,
-                                         top_k=top_k)
+                                         top_k=top_k,
+                                         epsilon=epsilon)
 
-            # generate relevant knowledge
+        # generate relevant knowledge
         knowledge = generate_knowledge_with_plm(generation_model=know_generation_model,
                                                 tokenizer=know_tokenizer,
                                                 action=action,
@@ -629,7 +639,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                     policy_tokenizer, horizon=5,
                     max_sequence_length=512, max_gen_length=50, padding='max_length',
                     pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None,
-                    greedy_search=True, top_k=3):
+                    greedy_search=True, top_k=3, epsilon=0.1):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param num_simulations: number of simulations used to run each target item
@@ -649,6 +659,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
     @param device the device to allocate tensors
     @param greedy_search: True if we use greedy search
     @param top_k: get top_k predictions
+    @param epsilon: a small probability used for exploration
     @return: a set of simulated conversations.
     """
     simulated_conversations = []
@@ -677,7 +688,8 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                 terminated_action=terminated_action,
                 device=device,
                 greedy_search=greedy_search,
-                top_k=top_k
+                top_k=top_k,
+                epsilon=epsilon
             )
             simulated_conversations.append(simulated_conversation)
     return simulated_conversations

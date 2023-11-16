@@ -12,6 +12,7 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 self_simulation.py \
     --plm_know_generation_model facebook/bart-base \
     --rollouts 10 \
     --top_k 3 \
+    --epsilon 0.1 \
     --num_items 1 \
     --alg p_uct \
     --hidden_size 128 \
