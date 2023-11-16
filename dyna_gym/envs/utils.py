@@ -713,7 +713,7 @@ def reformat_simulated_conversation(simulated_conversation):
         new_state['pre_goals'].append(utt['goal'][0])
         new_state['pre_topics'].append(utt['goal'][1])
         new_state['dialogue_context'].append({'role': 'assistant', 'content': utt['content']})
-        instance = {'state': new_state, 'continuation': conversation[idx + 1:]}
+        instance = {'state': new_state, 'continuation': conversation[idx:]}
         instances.append(instance)
 
         state = new_state
