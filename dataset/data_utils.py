@@ -113,7 +113,6 @@ def convert_example_to_feature_for_response_generation(tokenizer, instance, max_
     """
     dialogue_context = instance['dialogue_context']
     dialogue_str = ""
-    target = instance['task_background']['target_topic']
     for utt in dialogue_context:
         if utt['role'] == "user":
             dialogue_str += USER_TOKEN
@@ -136,13 +135,6 @@ def convert_example_to_feature_for_response_generation(tokenizer, instance, max_
         knowledge_str = convert_list_to_str(knowledge)
     else:
         knowledge_str = knowledge
-    dialogue_str = ""
-    for utt in dialogue_context:
-        if utt['role'] == "user":
-            dialogue_str += USER_TOKEN
-        elif utt['role'] == 'assistant':
-            dialogue_str += SYSTEM_TOKEN
-        dialogue_str += utt['content']
 
     # construct the input sequence for response generation task
     input_str = f"{GOAL_TOKEN}: {goal} {TOPIC_TOKEN}: {topic} {KNOW_TOKEN}: {knowledge_str}  {CONTEXT_TOKEN}: {dialogue_str}"
