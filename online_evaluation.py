@@ -155,7 +155,6 @@ if __name__ == '__main__':
 
     # build memory for mcts using the training dataset.
     # raw_memory = construct_mcts_memory(dataset.train_instances)
-
     raw_memory = load_memory_from_file(args.memory_path)
     raw_states, raw_continations = construct_memory_loaded_from_file(raw_memory)
 
@@ -165,7 +164,6 @@ if __name__ == '__main__':
         instances=raw_continations,
         d_model=384
     )
-
     terminal_act = "Say goodbye"
     mcts_online_eval = MCTSCRSOnlineEval(
         target_set=target_set,
