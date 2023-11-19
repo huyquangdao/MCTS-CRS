@@ -718,3 +718,79 @@ def reformat_simulated_conversation(simulated_conversation):
         instances.append(instance)
         state = new_state
     return instances
+
+
+def get_llm_based_assessment(target_topic, simulated_conversation, demonstration=None, n=10, thresh=6):
+    """
+    function that evaluate if a target-driven conversation is successful with LLM.
+    @param target_topic: the targe item
+    @param simulated_conversation:
+    @param demonstration: the given 1-shot demonstration.
+    @param n: number of times to prompt the LLM.
+    @param thresh: the threshold to determine if a conversation is successful.
+    @return: 1 if the conversation is successful or 0 if it is failed.
+    """
+    messages = []
+    if demonstration is not None:
+        system_instruction_1 = '''You are an user chatting with a recommender for recommendation. 
+        Your target items: {}. You must follow the instructions below during chat.
+        You should never directly tell the target item title. 
+        The following is an example conversation between a recommender and an user.
+        '''.format(target_topic)
+        # the first instruction prompt
+        messages = [
+            {"role": "system", "content": system_instruction_1},
+        ]
+        # 1-shot demonstration
+        for utt in reformat_demonstration(demonstration,
+                                          is_agent_start=demonstration['goal_type_list'][0] == 'Greetings'):
+            messages.append(utt)
+
+    system_instruction_2 = """
+    The following is a new conversation between a recommender and an user.
+    """
+    # the second instruction prompt
+    messages.append(
+        {"role": "system", "content": system_instruction_2},
+    )
+    # simulated conversation
+    for utt in simulated_conversation:
+        # switch role
+        if utt['role'] == 'user':
+            utt['role'] = 'assistant'
+        else:
+            utt['role'] = 'user'
+        messages.append(utt)
+
+    accept_string = "accept"
+    reject_string = "reject"
+
+    # assessment instruction
+    system_instruction_3 = '''Based on the given conversation and the attitude of the user towards the 
+    target item : {}. You need to predict if the user is happy or willing to accept the target item. 
+    If the user is convinced and happy, you need to generate the word: {}
+    If the user is confused or unhappy, you need to generate the word: {}
+    '''.format(target_topic, accept_string, reject_string)
+
+    # the new generate response.
+    messages.append(
+        {'role': 'user', 'content': system_instruction_3}
+    )
+
+    responses = []
+    for i in range(n):
+        # getting the response.
+        response = openai.ChatCompletion.create(
+            model=MODEL,
+            messages=messages,
+            temperature=1.1,
+            max_tokens=50
+        )
+        responses.append(response.choices[0]['message']['content'])
+
+    is_successful = 0
+    for response in responses:
+        if response == "accept":
+            is_successful += 1
+
+    return float(is_successful) / n
