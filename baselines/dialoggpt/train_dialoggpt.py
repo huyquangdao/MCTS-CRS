@@ -13,7 +13,7 @@ from accelerate.utils import set_seed
 from loguru import logger
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from transformers import AdamW, get_linear_schedule_with_warmup, GPT2Tokenizer, GPT2LMHeadModel
+from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, GPT2LMHeadModel
 
 from dyna_gym.models.policy import save_model
 from dataset.base import BaseTorchDataset
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     # t5 as the response generation model
     model = GPT2LMHeadModel.from_pretrained(args.plm_model)
-    tokenizer = GPT2Tokenizer.from_pretrained(args.tokenizer)
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
     model.to(device)
