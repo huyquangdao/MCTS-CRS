@@ -1,6 +1,6 @@
 import os
 
-from dyna_gym.envs.utils import simulate_conversation, update_state, get_user_resp
+from dyna_gym.envs.utils import simulate_conversation, update_state, get_user_resp, get_llm_based_assessment
 
 
 class BaseOnlineEval(object):
@@ -127,6 +127,7 @@ class BaseOnlineEval(object):
         @param target_item: set of target item
         @return: dialogue-level SR and averaged number of conversational turn
         """
+        score = self.is_llm_based_successful(generated_conversation, target_item)
         sr, turn = self.is_successful(generated_conversation, target_item)
         # turn = self.compute_turn(generated_conversation)
         return int(sr), turn
@@ -138,10 +139,20 @@ class BaseOnlineEval(object):
         @param target_item: the targeted item
         @return: True if success else False
         """
-        for idx,  utt in enumerate(generated_conversation):
+        for idx, utt in enumerate(generated_conversation):
             if utt['role'] == 'system' and target_item.lower() in utt['content'].lower():
                 return True, idx + 1
         return False, len(generated_conversation)
+
+    def is_llm_based_successful(self, generated_conversation, target_item):
+        """
+        method that return a score which si LLM-based assessment
+        @param generated_conversation: the generated conversation
+        @param target_item: the target item
+        @return: a float score
+        """
+        score = get_llm_based_assessment(target_item, generated_conversation)
+        return score
 
     def compute_turn(self, generated_conversation):
         """
