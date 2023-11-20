@@ -19,7 +19,7 @@ from dyna_gym.models.policy import save_model
 from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
-from config.config import special_tokens_dict
+from config.config import special_tokens_dict, PAD_TOKEN
 from baselines.dialoggpt.utils import convert_example_to_feature_for_gpt_response_generation
 
 
@@ -122,6 +122,9 @@ if __name__ == '__main__':
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
     model.to(device)
+
+    # pad token for GPT2 and DialogGPT
+    special_tokens_dict['pad_token'] = PAD_TOKEN
 
     # optim & amp
     modules = [model]
