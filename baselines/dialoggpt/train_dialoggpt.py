@@ -287,7 +287,7 @@ if __name__ == '__main__':
                 gen_resp_ids.append(gen_seq[length:])
 
             label_resp_ids = []
-            for label_seq in batch['labels']:
+            for label_seq in batch['labels_gen']:
                 label_seq = [token_id for token_id in label_seq if token_id != -100]
                 label_resp_ids.append(label_seq)
             evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
@@ -332,7 +332,7 @@ if __name__ == '__main__':
                 gen_resp_ids.append(gen_seq[length:])
 
             label_resp_ids = []
-            for label_seq in batch['labels']:
+            for label_seq in batch['labels_gen']:
                 label_seq = [token_id for token_id in label_seq if token_id != -100]
                 label_resp_ids.append(label_seq)
 

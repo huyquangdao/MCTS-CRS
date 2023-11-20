@@ -40,31 +40,35 @@ class UnimindTorchDataset(BaseTorchDataset):
 class GPTTorchDataset(BaseTorchDataset):
 
     def collate_fn(self, batch):
-
+        """
+        method that construct tensor-kind of inputs for DialogGPT, GPT2 models.
+        @param batch: the input batch
+        @return: a dictionary of torch tensors.
+        """
         input_features = defaultdict(list)
-        labels = []
+        labels_gen = []
         context_length_batch = []
         for instance in batch:
             input_features['input_ids'].append(instance['input_ids'])
             context_length_batch.append(len(instance['input_ids']))
-            labels.append(instance['label'])
+            labels_gen.append(instance['label'])
 
         # padding the input features
         input_features = self.tokenizer.pad(
             input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
             max_length=self.max_sequence_length
         )
-        # labels for response generation task
-        if not self.is_test:
-            labels = input_features['input_ids']
-            labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
-                      in labels]
-            labels = torch.as_tensor(labels, device=self.device)
-        else:
-            labels = pad_sequence(
-                [torch.tensor(label, dtype=torch.long) for label in labels],
-                batch_first=True, padding_value=IGNORE_INDEX)
-            labels = labels.to(self.device)
+        # labels for response generation task, for computing the loss function
+        labels = input_features['input_ids']
+        labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
+                  in labels]
+        labels = torch.as_tensor(labels, device=self.device)
+
+        # labels for response generation task, for computing generation metrics.
+        labels_gen = pad_sequence(
+            [torch.tensor(label, dtype=torch.long) for label in labels_gen],
+            batch_first=True, padding_value=IGNORE_INDEX)
+        labels_gen = labels_gen.to(self.device)
 
         # convert features to torch tensors
         for k, v in input_features.items():
@@ -74,6 +78,7 @@ class GPTTorchDataset(BaseTorchDataset):
         new_batch = {
             "context": input_features,
             "labels": labels,
+            "labels_gen": labels_gen,
             "context_len": context_length_batch
         }
         return new_batch
