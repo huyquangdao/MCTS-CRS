@@ -130,7 +130,7 @@ class BaseOnlineEval(object):
         score = self.is_llm_based_successful(generated_conversation, target_item)
         sr, turn = self.is_successful(generated_conversation, target_item)
         # turn = self.compute_turn(generated_conversation)
-        return int(sr), turn
+        return float(score), turn
 
     def is_successful(self, generated_conversation, target_item):
         """
