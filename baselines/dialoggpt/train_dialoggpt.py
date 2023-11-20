@@ -20,7 +20,7 @@ from dataset.base import BaseTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict
-from baselines.dialogpt.utils import convert_example_to_feature_for_gpt_response_generation
+from baselines.dialoggpt.utils import convert_example_to_feature_for_gpt_response_generation
 
 
 def parse_args():
