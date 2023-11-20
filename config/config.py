@@ -9,6 +9,7 @@ GOAL_TOKEN = "[GOAL]"
 TARGET = "[TARGET]"
 TOPIC_TOKEN = "[TOPIC]"
 PAD_TOKEN = "<pad>"
+IGNORE_INDEX = -100
 
 special_tokens_dict = {
     'additional_special_tokens': [USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN,

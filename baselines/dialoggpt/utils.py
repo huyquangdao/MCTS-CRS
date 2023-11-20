@@ -3,7 +3,7 @@ from collections import defaultdict
 import torch
 
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
-    CONTEXT_TOKEN, TARGET, TOPIC_TOKEN
+    CONTEXT_TOKEN, TARGET, TOPIC_TOKEN, IGNORE_INDEX
 
 
 def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, max_sequence_length=512,
@@ -37,8 +37,11 @@ def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, 
     # construct the label for response generation task
     label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
     label = label[:max_target_length]
-    label = label + [tokenizer.eos_token_id]
 
+    input_ids = input_ids + label + [tokenizer.eos_token_id]
+    label = [IGNORE_INDEX] * len(input_ids) + label + [tokenizer.eos_token_id]
+
+    # concaternate context and label.
     return input_ids, label
 
 
