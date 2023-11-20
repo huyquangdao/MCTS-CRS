@@ -36,10 +36,13 @@ def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, 
     label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
     label = label[:max_target_length]
 
-    input_ids = input_ids + label + [tokenizer.eos_token_id]
-    input_ids = input_ids[-(max_sequence_length):]
-
-    label = [IGNORE_INDEX] * len(input_ids) + label + [tokenizer.eos_token_id]
+    if not is_test:
+        input_ids = input_ids + label + [tokenizer.eos_token_id]
+        input_ids = input_ids[-(max_sequence_length):]
+        label = [IGNORE_INDEX] * len(input_ids) + label + [tokenizer.eos_token_id]
+    else:
+        input_ids = input_ids + tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: "))
+        input_ids = input_ids[-(max_sequence_length):]
 
     # concaternate context and label.
     return input_ids, label
