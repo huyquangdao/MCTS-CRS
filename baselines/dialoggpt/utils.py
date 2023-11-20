@@ -31,14 +31,14 @@ def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, 
     # construct the input sequence for response generation task
     input_str = f"{TARGET}: {target}  {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
-    input_ids = input_ids[-(max_sequence_length - 1):]
     # input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
-
     # construct the label for response generation task
     label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
     label = label[:max_target_length]
 
     input_ids = input_ids + label + [tokenizer.eos_token_id]
+    input_ids = input_ids[-(max_sequence_length):]
+
     label = [IGNORE_INDEX] * len(input_ids) + label + [tokenizer.eos_token_id]
 
     # concaternate context and label.
