@@ -17,10 +17,11 @@ from transformers import AdamW, get_linear_schedule_with_warmup, GPT2Tokenizer, 
     T5ForConditionalGeneration
 
 from dyna_gym.models.policy import load_model
-from dataset.base import BaseTorchDataset
+# from dataset.base import BaseTorchDataset
+from dataset.datasets import GPTTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
-from config.config import special_tokens_dict
+from config.config import special_tokens_dict, PAD_TOKEN
 from dataset.data_utils import save_knowledge_results
 from baselines.dialoggpt.utils import convert_example_to_feature_for_gpt_response_generation
 
@@ -74,6 +75,7 @@ if __name__ == '__main__':
         transformers.utils.logging.set_verbosity_info()
     else:
         transformers.utils.logging.set_verbosity_error()
+
     # wandb
     if args.use_wandb:
         name = args.name if args.name else local_time
@@ -103,6 +105,8 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
 
+    special_tokens_dict['pad_token'] = PAD_TOKEN
+
     goal2id = None
     # bart as the response generation model
     model = GPT2LMHeadModel.from_pretrained(args.plm_model)
@@ -114,7 +118,7 @@ if __name__ == '__main__':
     model.to(device)
 
     # data
-    dev_torch_dataset = BaseTorchDataset(
+    dev_torch_dataset = GPTTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
@@ -125,7 +129,7 @@ if __name__ == '__main__':
         is_gen=True,
         max_target_length=args.max_target_length
     )
-    test_torch_dataset = BaseTorchDataset(
+    test_torch_dataset = GPTTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
@@ -187,12 +191,12 @@ if __name__ == '__main__':
             no_repeat_ngram_size=3
         )
         gen_resp_ids = []
-        for gen_seq in gen_seqs:
+        for gen_seq, length in zip(gen_seqs, batch['context_len']):
             gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-            gen_resp_ids.append(gen_seq)
+            gen_resp_ids.append(gen_seq[length:])
 
         label_resp_ids = []
-        for label_seq in batch['labels']:
+        for label_seq in batch['labels_gen']:
             label_seq = [token_id for token_id in label_seq if token_id != -100]
             label_resp_ids.append(label_seq)
         evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
@@ -227,12 +231,12 @@ if __name__ == '__main__':
             no_repeat_ngram_size=3
         )
         gen_resp_ids = []
-        for gen_seq in gen_seqs:
+        for gen_seq, length in zip(gen_seqs, batch['context_len']):
             gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-            gen_resp_ids.append(gen_seq)
+            gen_resp_ids.append(gen_seq[length:])
 
         label_resp_ids = []
-        for label_seq in batch['labels']:
+        for label_seq in batch['labels_gen']:
             label_seq = [token_id for token_id in label_seq if token_id != -100]
             label_resp_ids.append(label_seq)
         evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
