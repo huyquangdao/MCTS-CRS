@@ -41,8 +41,10 @@ class GPTTorchDataset(BaseTorchDataset):
 
         input_features = defaultdict(list)
         # labels = []
+        context_length_batch = []
         for instance in batch:
             input_features['input_ids'].append(instance['input_ids'])
+            context_length_batch.append(len(instance['input_ids']))
             # labels.append(instance['label'])
 
         # padding the input features
@@ -63,6 +65,7 @@ class GPTTorchDataset(BaseTorchDataset):
 
         new_batch = {
             "context": input_features,
-            "labels": labels
+            "labels": labels,
+            "context_len": context_length_batch
         }
         return new_batch

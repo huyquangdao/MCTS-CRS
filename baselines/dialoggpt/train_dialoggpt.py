@@ -282,9 +282,9 @@ if __name__ == '__main__':
                 no_repeat_ngram_size=3
             )
             gen_resp_ids = []
-            for gen_seq in gen_seqs:
+            for gen_seq, length in zip(gen_seqs, batch['context_len']):
                 gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-                gen_resp_ids.append(gen_seq)
+                gen_resp_ids.append(gen_seq[length:])
 
             label_resp_ids = []
             for label_seq in batch['labels']:
@@ -327,14 +327,15 @@ if __name__ == '__main__':
                 no_repeat_ngram_size=3
             )
             gen_resp_ids = []
-            for gen_seq in gen_seqs:
+            for gen_seq, length in zip(gen_seqs, batch['context_len']):
                 gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-                gen_resp_ids.append(gen_seq)
+                gen_resp_ids.append(gen_seq[length:])
 
             label_resp_ids = []
             for label_seq in batch['labels']:
                 label_seq = [token_id for token_id in label_seq if token_id != -100]
                 label_resp_ids.append(label_seq)
+
             evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
         # metric

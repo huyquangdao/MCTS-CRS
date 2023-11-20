@@ -4,6 +4,8 @@ from collections import Counter
 import json
 from nltk import ngrams
 from nltk.translate.bleu_score import sentence_bleu
+
+
 # from nltk.translate.meteor_score import single_meteor_score
 
 
@@ -27,12 +29,12 @@ class GenerationEvaluator:
         @param log: log to file
         @return: None
         """
-        decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=False)
+        decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
         decoded_preds = [decoded_pred.replace('</s>', '').replace('<s>', '') for decoded_pred in
                          decoded_preds]
         decoded_preds = [pred.strip() for pred in decoded_preds]
 
-        decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=False)
+        decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
         decoded_labels = [decoded_label.replace('</s>', '').replace('<s>', '') for decoded_label in
                           decoded_labels]
         decoded_labels = [label.strip() for label in decoded_labels]
