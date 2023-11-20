@@ -31,7 +31,7 @@ def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, 
     # construct the input sequence for response generation task
     input_str = f"{TARGET}: {target}  {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
-    input_ids = input_ids[-(max_sequence_length - 2):]
+    input_ids = input_ids[-(max_sequence_length - 1):]
     # input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
 
     # construct the label for response generation task
