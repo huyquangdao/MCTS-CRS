@@ -790,7 +790,7 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
 
     is_successful = 0
     for response in responses:
-        if response == "accept":
+        if response.lower() == "accept":
             is_successful += 1
 
     return float(is_successful) / n
