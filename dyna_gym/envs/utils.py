@@ -380,7 +380,6 @@ def predict_topk_action(policy_model, tokenizer, state, max_sequence_length, goa
             input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
 
     # compute policy with offline policy model.
-    # compute policy with offline policy model.
     logits = policy_model(input_features)
 
     # convert logits to probabilities
