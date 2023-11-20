@@ -116,15 +116,15 @@ if __name__ == '__main__':
     )
     goal2id = None
 
+    # pad token for GPT2 and DialogGPT
+    special_tokens_dict['pad_token'] = PAD_TOKEN
+
     # t5 as the response generation model
     model = GPT2LMHeadModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
     model.to(device)
-
-    # pad token for GPT2 and DialogGPT
-    special_tokens_dict['pad_token'] = PAD_TOKEN
 
     # optim & amp
     modules = [model]
