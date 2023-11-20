@@ -16,7 +16,7 @@ from tqdm.auto import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, GPT2LMHeadModel
 
 from dyna_gym.models.policy import save_model
-from dataset.base import BaseTorchDataset
+from dataset.datasets import GPTTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict, PAD_TOKEN
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
     criterion = torch.nn.CrossEntropyLoss()
     # data
-    train_torch_dataset = BaseTorchDataset(
+    train_torch_dataset = GPTTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.train_instances,
         goal2id=goal2id,
@@ -155,7 +155,7 @@ if __name__ == '__main__':
         is_gen=True,
         max_target_length=args.max_target_length
     )
-    dev_torch_dataset = BaseTorchDataset(
+    dev_torch_dataset = GPTTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         is_gen=True,
         max_target_length=args.max_target_length
     )
-    test_torch_dataset = BaseTorchDataset(
+    test_torch_dataset = GPTTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,

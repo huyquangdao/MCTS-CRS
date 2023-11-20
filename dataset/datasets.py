@@ -1,5 +1,9 @@
 import os
+from collections import defaultdict
+
+import torch
 from dataset.base import BaseTorchDataset
+from config.config import IGNORE_INDEX
 
 
 class UnimindTorchDataset(BaseTorchDataset):
@@ -29,3 +33,36 @@ class UnimindTorchDataset(BaseTorchDataset):
             return processed_instances
         else:
             return super().preprocess_data(instances, convert_example_to_feature)
+
+
+class GPTTorchDataset(BaseTorchDataset):
+
+    def collate_fn(self, batch):
+
+        input_features = defaultdict(list)
+        # labels = []
+        for instance in batch:
+            input_features['input_ids'].append(instance['input_ids'])
+            # labels.append(instance['label'])
+
+        # padding the input features
+        input_features = self.tokenizer.pad(
+            input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
+            max_length=self.max_sequence_length
+        )
+        # labels for response generation task
+        labels = input_features['input_ids']
+        labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
+                  in labels]
+        labels = torch.as_tensor(labels, device=self.device)
+
+        # convert features to torch tensors
+        for k, v in input_features.items():
+            if not isinstance(v, torch.Tensor):
+                input_features[k] = torch.as_tensor(v, device=self.device)
+
+        new_batch = {
+            "context": input_features,
+            "labels": labels
+        }
+        return new_batch
