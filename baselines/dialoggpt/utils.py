@@ -44,7 +44,6 @@ def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, 
         input_ids = input_ids + tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: "))
         input_ids = input_ids[-(max_sequence_length):]
 
-    # concaternate context and label.
     return input_ids, label
 
 

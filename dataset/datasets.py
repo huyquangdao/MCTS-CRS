@@ -2,6 +2,8 @@ import os
 from collections import defaultdict
 
 import torch
+from torch.nn.utils.rnn import pad_sequence
+
 from dataset.base import BaseTorchDataset
 from config.config import IGNORE_INDEX
 
@@ -40,12 +42,12 @@ class GPTTorchDataset(BaseTorchDataset):
     def collate_fn(self, batch):
 
         input_features = defaultdict(list)
-        # labels = []
+        labels = []
         context_length_batch = []
         for instance in batch:
             input_features['input_ids'].append(instance['input_ids'])
             context_length_batch.append(len(instance['input_ids']))
-            # labels.append(instance['label'])
+            labels.append(instance['label'])
 
         # padding the input features
         input_features = self.tokenizer.pad(
@@ -53,10 +55,16 @@ class GPTTorchDataset(BaseTorchDataset):
             max_length=self.max_sequence_length
         )
         # labels for response generation task
-        labels = input_features['input_ids']
-        labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
-                  in labels]
-        labels = torch.as_tensor(labels, device=self.device)
+        if not self.is_test:
+            labels = input_features['input_ids']
+            labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
+                      in labels]
+            labels = torch.as_tensor(labels, device=self.device)
+        else:
+            labels = pad_sequence(
+                [torch.tensor(label, dtype=torch.long) for label in labels],
+                batch_first=True, padding_value=IGNORE_INDEX)
+            labels = labels.to(self.device)
 
         # convert features to torch tensors
         for k, v in input_features.items():
