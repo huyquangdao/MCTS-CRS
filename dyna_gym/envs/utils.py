@@ -768,8 +768,9 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
     system_instruction_3 = '''Based on the given conversation and the attitude of the user towards the 
     target item : {}. You need to predict if the user is happy or willing to accept the target item. 
     If the user is convinced and happy, you need to generate the word: {}
-    If the user is confused or unhappy, you need to generate the word: {}
-    '''.format(target_topic, accept_string, reject_string)
+    If the user is confused or unhappy or if the target item :{} is not in the given conversation, 
+    you need to generate the word: {}
+    '''.format(target_topic, accept_string, target_topic, reject_string)
 
     # the new generate response.
     messages.append(
