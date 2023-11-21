@@ -2,7 +2,7 @@ import os
 import copy
 from eval.base import BaseOnlineEval
 
-from baselines.bart.utils import generate_response_bart
+from baselines.dialoggpt.utils import generate_response_gpt
 
 
 class GPTOnlineEval(BaseOnlineEval):
@@ -90,12 +90,12 @@ class GPTOnlineEval(BaseOnlineEval):
         return generated_conversation
 
     def pipeline(self, state):
-        system_resp = generate_response_bart(generation_model=self.response_model,
-                                             tokenizer=self.tokenizer,
-                                             state=state,
-                                             max_sequence_length=self.max_sequence_length,
-                                             max_gen_length=self.max_gen_length,
-                                             pad_to_multiple_of=self.pad_to_multiple_of,
-                                             padding=self.padding,
-                                             device=self.device)
+        system_resp = generate_response_gpt(generation_model=self.response_model,
+                                            tokenizer=self.tokenizer,
+                                            state=state,
+                                            max_sequence_length=self.max_sequence_length,
+                                            max_gen_length=self.max_gen_length,
+                                            pad_to_multiple_of=self.pad_to_multiple_of,
+                                            padding=self.padding,
+                                            device=self.device)
         return system_resp
