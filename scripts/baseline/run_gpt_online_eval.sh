@@ -12,5 +12,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/dialoggpt/online_
     --horizon 5 \
     --max_sequence_length 512 \
     --max_gen_length 50 \
-    --model_path ./bart/ \
+    --model_path ./dialoggpt/ \
     --seed ${seed}
