@@ -71,9 +71,12 @@ class GPTTorchDataset(BaseTorchDataset):
         )
         # labels for response generation task, for computing the loss function
         # labels = input_features['input_ids']
-        labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
-                  in labels]
-        labels = torch.as_tensor(labels, device=self.device)
+        # labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
+        #           in labels]
+        labels = pad_sequence(
+            [torch.tensor(label, dtype=torch.long) for label in labels],
+            batch_first=True, padding_value=IGNORE_INDEX)
+        labels.to(self.device)
 
         # labels for response generation task, for computing generation metrics.
         labels_gen = pad_sequence(
