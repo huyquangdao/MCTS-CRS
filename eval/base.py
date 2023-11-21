@@ -127,11 +127,11 @@ class BaseOnlineEval(object):
         @param target_item: set of target item
         @return: dialogue-level SR and averaged number of conversational turn
         """
-        score = self.is_llm_based_successful(generated_conversation, target_item)
-        # sr, turn = self.is_successful(generated_conversation, target_item)
+        # score = self.is_llm_based_successful(generated_conversation, target_item)
+        sr, turn = self.is_successful(generated_conversation, target_item)
         # turn = self.compute_turn(generated_conversation)
-        # return float(score), turn
-        return score, len(generated_conversation)
+        return int(sr), turn
+        # return score, len(generated_conversation)
 
     def is_successful(self, generated_conversation, target_item):
         """
