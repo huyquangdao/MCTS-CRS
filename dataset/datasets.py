@@ -65,8 +65,8 @@ class GPTTorchDataset(BaseTorchDataset):
                   in labels]
 
         # padding the dialogue context.
-        for label, label_gen in list(zip(labels, labels_gen)):
-            label[:-(len(label_gen) + 1)] = IGNORE_INDEX
+        for idx, (_, label_gen) in enumerate(list(zip(labels, labels_gen))):
+            labels[idx][:-(len(label_gen) + 1)] = IGNORE_INDEX
 
         labels = torch.as_tensor(labels, device=self.device)
 
