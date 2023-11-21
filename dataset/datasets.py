@@ -48,6 +48,7 @@ class GPTTorchDataset(BaseTorchDataset):
         input_features = defaultdict(list)
         labels_gen = []
         context_length_batch = []
+        labels = []
         for instance in batch:
             input_features['input_ids'].append(instance['input_ids'])
             context_length_batch.append(len(instance['input_ids']))
@@ -59,9 +60,14 @@ class GPTTorchDataset(BaseTorchDataset):
             max_length=self.max_sequence_length
         )
         # labels for response generation task, for computing the loss function
-        labels = input_features['input_ids']
+        # labels = input_features['input_ids']
         labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
                   in labels]
+
+        # padding the dialogue context.
+        for label, label_gen in list(zip(labels, labels_gen)):
+            label[:-(len(label_gen) + 1)] = IGNORE_INDEX
+
         labels = torch.as_tensor(labels, device=self.device)
 
         # labels for response generation task, for computing generation metrics.

@@ -114,8 +114,8 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    goal2id = None
 
+    goal2id = None
     # pad token for GPT2 and DialogGPT
     special_tokens_dict['pad_token'] = PAD_TOKEN
 
