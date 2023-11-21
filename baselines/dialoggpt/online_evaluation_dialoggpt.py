@@ -66,23 +66,15 @@ if __name__ == '__main__':
     # create and load the weights for generation model
     plm_model = args.plm_model
     model_path = args.model_path
-    model_name = 'unimind.pth'
+    model_name = 'response_generation.pth'
     model = GPT2LMHeadModel.from_pretrained(plm_model)
 
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
 
-    # goal model
-    goal_model = load_model(model, os.path.join(model_path, "goal", model_name))
-    goal_model.to(device)
-
-    # topic model
-    topic_model = load_model(model, os.path.join(model_path, "topic", model_name))
-    topic_model.to(device)
-
     # respone model
-    response_model = load_model(model, os.path.join(model_path, "response", model_name))
+    response_model = load_model(model, os.path.join(model_path, model_name))
     response_model.to(device)
 
     if not os.path.exists(args.target_set_path):
@@ -96,7 +88,7 @@ if __name__ == '__main__':
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
     terminal_act = "Say goodbye"
-    unimind_online_eval = GPTOnlineEval(
+    gpt_online_eval = GPTOnlineEval(
         target_set=target_set,
         terminal_act=terminal_act,
         response_model=response_model,
@@ -111,7 +103,7 @@ if __name__ == '__main__':
     )
 
     # compute online evaluation metrics
-    sr, avg_turn = unimind_online_eval.eval()
+    sr, avg_turn = gpt_online_eval.eval()
 
     print("Success rate:", sr)
     print("Avg turn: ", avg_turn)
