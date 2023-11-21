@@ -6,7 +6,7 @@ from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH
     CONTEXT_TOKEN, TARGET, TOPIC_TOKEN, IGNORE_INDEX
 
 
-def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance, max_sequence_length=512,
+def convert_example_to_feature_for_gpt_response_generation(tokenizer, instance, max_sequence_length=512,
                                                            max_target_length=50,
                                                            is_test=False):
     """
