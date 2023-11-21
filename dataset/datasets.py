@@ -50,9 +50,20 @@ class GPTTorchDataset(BaseTorchDataset):
         context_length_batch = []
         labels = []
         for instance in batch:
-            input_features['input_ids'].append(instance['input_ids'])
+            # construct the input for decoder-style of pretrained language model
+            # the input is the concaternation of dialogue context and response
+            # the label is similar to the input but we mask all position corresponding to the dialogue context
+            # the label will be shifted to the right direction in the model
+            input_ids = instance['input_ids'] + instance['label']
+            input_ids = input_ids[-(self.max_sequence_length):]
+            label = len(instance['input_ids']) * [IGNORE_INDEX] + instance['label']
+            label = label[-(self.max_sequence_length):]
+
+            input_features['input_ids'].append(input_ids)
             context_length_batch.append(len(instance['input_ids']))
             labels_gen.append(instance['label'])
+
+            labels.append(label)
 
         # padding the input features
         input_features = self.tokenizer.pad(
