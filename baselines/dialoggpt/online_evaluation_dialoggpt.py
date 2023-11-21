@@ -7,11 +7,11 @@ from transformers import AutoModel, AutoTokenizer, GPT2LMHeadModel
 
 from dyna_gym.models.policy import PolicyModel, load_model
 from dataset.durecdial import DuRecdial
-from config.config import special_tokens_dict, DURECDIALGOALS
+from config.config import special_tokens_dict, DURECDIALGOALS, PAD_TOKEN
 from dataset.data_utils import create_target_set, load_binary_file, save_binary_file
 
 from dyna_gym.envs.utils import reward_func, random_seed
-from eval.unimind_online_eval import UnimindOnlineEval
+from eval.gpt_online_eval import GPTOnlineEval
 
 
 def parse_args():
@@ -59,11 +59,15 @@ if __name__ == '__main__':
         save_train_convs=True  # for demonstration retrieval
     )
 
+    goal2id = None
+    # pad token for GPT2 and DialogGPT
+    special_tokens_dict['pad_token'] = PAD_TOKEN
+
     # create and load the weights for generation model
     plm_model = args.plm_model
     model_path = args.model_path
     model_name = 'unimind.pth'
-    model = BartForConditionalGeneration.from_pretrained(plm_model)
+    model = GPT2LMHeadModel.from_pretrained(plm_model)
 
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
@@ -92,11 +96,9 @@ if __name__ == '__main__':
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
     terminal_act = "Say goodbye"
-    unimind_online_eval = UnimindOnlineEval(
+    unimind_online_eval = GPTOnlineEval(
         target_set=target_set,
         terminal_act=terminal_act,
-        goal_model=goal_model,
-        topic_model=topic_model,
         response_model=response_model,
         tokenizer=tokenizer,
         horizon=args.horizon,
