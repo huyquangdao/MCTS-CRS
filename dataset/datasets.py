@@ -62,7 +62,6 @@ class GPTTorchDataset(BaseTorchDataset):
             input_features['input_ids'].append(input_ids)
             context_length_batch.append(len(instance['input_ids']))
             labels_gen.append(instance['label'])
-
             labels.append(label)
 
         # padding the input features
@@ -74,11 +73,6 @@ class GPTTorchDataset(BaseTorchDataset):
         # labels = input_features['input_ids']
         labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
                   in labels]
-
-        # padding the dialogue context.
-        for idx, (_, label_gen) in enumerate(list(zip(labels, labels_gen))):
-            labels[idx][:-(len(label_gen) + 1)] = IGNORE_INDEX
-
         labels = torch.as_tensor(labels, device=self.device)
 
         # labels for response generation task, for computing generation metrics.
