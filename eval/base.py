@@ -1,5 +1,6 @@
 import os
 
+from tqdm import tqdm
 from dyna_gym.envs.utils import simulate_conversation, update_state, get_user_resp, get_llm_based_assessment
 
 
@@ -109,7 +110,7 @@ class BaseOnlineEval(object):
         """
         avg_sr = []
         avg_turn = []
-        for target_item in self.target_set:
+        for target_item in tqdm(self.target_set):
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
             sr, turn = self.compute_metrics(generated_conversation, target_item['topic'])
@@ -118,6 +119,11 @@ class BaseOnlineEval(object):
         return sum(avg_sr) / len(self.target_set), sum(avg_turn) / len(self.target_set)
 
     def check_terminated_condition(self, system_action):
+        """
+        method that check if the conversation is terminated
+        @param system_action: the predicted system action
+        @return: True if the conversaiton is terminated else False
+        """
         return system_action == self.terminal_act
 
     def compute_metrics(self, generated_conversation, target_item):
