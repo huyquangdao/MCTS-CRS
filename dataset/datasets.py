@@ -48,21 +48,14 @@ class GPTTorchDataset(BaseTorchDataset):
         input_features = defaultdict(list)
         labels_gen = []
         context_length_batch = []
-        labels = []
         for instance in batch:
             # construct the input for decoder-style of pretrained language model
             # the input is the concaternation of dialogue context and response
             # the label is similar to the input but we mask all position corresponding to the dialogue context
             # the label will be shifted to the right direction in the model
-            input_ids = instance['input_ids'] + instance['label']
-            input_ids = input_ids[-(self.max_sequence_length):]
-            label = len(instance['input_ids']) * [IGNORE_INDEX] + instance['label']
-            label = label[-(self.max_sequence_length):]
-
-            input_features['input_ids'].append(input_ids)
+            input_features['input_ids'].append(instance['input_ids'])
             context_length_batch.append(len(instance['input_ids']))
             labels_gen.append(instance['label'])
-            labels.append(label)
 
         # padding the input features
         input_features = self.tokenizer.pad(
@@ -70,13 +63,11 @@ class GPTTorchDataset(BaseTorchDataset):
             max_length=self.max_sequence_length
         )
         # labels for response generation task, for computing the loss function
-        # labels = input_features['input_ids']
-        # labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
-        #           in labels]
-        labels = pad_sequence(
-            [torch.tensor(label, dtype=torch.long) for label in labels],
-            batch_first=True, padding_value=IGNORE_INDEX)
-        labels.to(self.device)
+        labels = input_features['input_ids']
+        labels = [[token_id if token_id != self.tokenizer.pad_token_id else IGNORE_INDEX for token_id in resp] for resp
+                  in labels]
+
+        labels = torch.as_tensor(labels, device=self.device)
 
         # labels for response generation task, for computing generation metrics.
         labels_gen = pad_sequence(
