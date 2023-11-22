@@ -234,7 +234,7 @@ class PolicyModel(nn.Module):
             "knowledge_latent": context_latents,  # still pass but did not use to prevent a buch of code modifications
             "path_latent": path_latents,
             "context_mask": inputs['context']['attention_mask'],
-            "knowledge_mask": inputs['knowledge'][3],
+            "knowledge_mask": inputs['context']['attention_mask'],
             # still pass but did not use to prevent a bunch of code modidications
             "path_mask": inputs['context']['attention_mask']
         }
