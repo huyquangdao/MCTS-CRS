@@ -295,7 +295,7 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch['context'])
+                outputs = model(batch)
                 loss = outputs['loss']
                 valid_loss.append(float(loss))
                 # only compute the topic accuracy
@@ -325,7 +325,7 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch['context'])
+                outputs = model(batch)
                 loss = outputs['loss']
                 test_loss.append(float(loss))
                 evaluator.evaluate(outputs['topic_logits'], batch['labels_topic'])
