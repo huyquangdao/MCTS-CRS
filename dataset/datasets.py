@@ -154,8 +154,8 @@ class RTCPTorchDataset(BaseTorchDataset):
         labels_goal = []
         labels_topic = []
         for instance in batch:
-            context_input_features['context_ids'].append(instance['context_ids'])
-            path_input_features['path_ids'].append(instance['path_ids'])
+            context_input_features['input_ids'].append(instance['context_ids'])
+            path_input_features['input_ids'].append(instance['path_ids'])
             labels_goal.append(instance['label_goal'])
             labels_topic.append(instance['label_topic'])
 
