@@ -51,7 +51,7 @@ def convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer, instanc
     path_ids = [tokenizer.cls_token_id] + path_ids + [tokenizer.sep_token_id]
 
     # if not inference time.
-    label_goal, label_topic = goal2id(instance['goal']), topic2id(instance['topic'])
+    label_goal, label_topic = goal2id[instance['goal']], topic2id[instance['topic']]
 
     return input_ids, path_ids, label_goal, label_topic
 

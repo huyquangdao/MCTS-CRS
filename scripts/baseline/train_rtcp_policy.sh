@@ -17,7 +17,6 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/train_policy
     --gradient_accumulation_steps 1 \
     --num_warmup_steps 6345   \
     --max_sequence_length 512 \
-    --max_target_length 80 \
     --learning_rate 5e-5 \
     --output_dir ./rtcp/ \
     --seed 21
