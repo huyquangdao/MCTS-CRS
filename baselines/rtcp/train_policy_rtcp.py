@@ -17,6 +17,7 @@ from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, 
 import itertools
 
 # from dyna_gym.models.policy import PolicyModel, save_model
+from dyna_gym.models.policy import save_model
 from dataset.base import BaseTorchDataset
 from baselines.rtcp.policy import PolicyModel
 
@@ -24,7 +25,9 @@ from dataset.durecdial import DuRecdial
 from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict, DURECDIALGOALS
 
-# from dataset.data_utils import convert_example_to_feature_for_goal_prediction, save_binary_file
+from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_goal_topic_prediction
+from dataset.data_utils import save_binary_file
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -42,6 +45,11 @@ def parse_args():
     parser.add_argument("--tokenizer", type=str)
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--lm_size", type=int)
+    parser.add_argument("--ffn_size", type=int)
+    parser.add_argument("--fc_size", type=int)
+    parser.add_argument("--n_layers", type=int)
+    parser.add_argument("--n_heads", type=int)
+
     # optim
     parser.add_argument("--num_train_epochs", type=int, default=10, help="Total number of training epochs to perform.")
     parser.add_argument("--max_train_steps", type=int, default=None,
@@ -117,22 +125,33 @@ if __name__ == '__main__':
         dev_data_path=args.dev_data_path,
         test_data_path=args.test_data_path
     )
-    # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
+
+    goal2id = {k: v for v, k in enumerate(dataset.goals)}
+    topic2id = {k: v for v, k in enumerate(dataset.topics)}
 
     # switch from predicting a goal to predicting a pair of a goal and a topic
-    goal2id = itertools.product(dataset.goals, dataset.topics)
-    goal2id = {k: v for v, k in enumerate(goal2id)}
+    # goal2id = itertools.product(dataset.goals, dataset.topics)
+    # goal2id = {k: v for v, k in enumerate(goal2id)}
 
-    plm = AutoModel.from_pretrained(args.plm_model)
+    context_encoder = AutoModel.from_pretrained(args.plm_model)
+    path_encoder = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+
     tokenizer.add_special_tokens(special_tokens_dict)
-    plm.resize_token_embeddings(len(tokenizer))
+    context_encoder.resize_token_embeddings(len(tokenizer))
+    path_encoder.resize_token_embeddings(len(tokenizer))
 
     model = PolicyModel(
-        plm=plm,
-        n_goals=len(goal2id),
-        hidden_size=args.hidden_size,
-        lm_size=args.lm_size
+        context_encoder=context_encoder,
+        path_encoder=path_encoder,
+        knowledge_encoder=None,  # do not have knowledge,
+        n_layers=args.n_layers,
+        n_topics=len(dataset.topics),
+        n_goals=len(dataset.goals),
+        n_heads=args.n_heads,
+        lm_hidden_size=args.lm_size,
+        ffn_size=args.ffn_size,
+        fc_hidden_size=args.fc_size
     )
 
     model.to(device)
@@ -160,7 +179,7 @@ if __name__ == '__main__':
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_goal_prediction
+        convert_example_to_feature=convert_example_to_feature_for_rtcp_goal_topic_prediction
     )
     dev_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
@@ -168,7 +187,7 @@ if __name__ == '__main__':
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_goal_prediction
+        convert_example_to_feature=convert_example_to_feature_for_rtcp_goal_topic_prediction
     )
     test_torch_dataset = BaseTorchDataset(
         tokenizer=tokenizer,
@@ -176,7 +195,7 @@ if __name__ == '__main__':
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_goal_prediction
+        convert_example_to_feature=convert_example_to_feature_for_rtcp_goal_topic_prediction
     )
 
     train_dataloader = DataLoader(

@@ -87,3 +87,106 @@ class GPTTorchDataset(BaseTorchDataset):
             "context_len": context_length_batch
         }
         return new_batch
+
+
+class RTCPTorchDataset(BaseTorchDataset):
+
+    def __init__(self, tokenizer, instances, goal2id=None, topic2id=None, max_sequence_length=512, padding='max_length',
+                 pad_to_multiple_of=True, device=None, convert_example_to_feature=None, max_target_length=50,
+                 is_test=False, is_gen=False):
+        """
+        constructor for the BaseTorchDataset Class
+        @param tokenizer: an huggingface tokenizer
+        @param instances: a list of instances
+        @param goal2id: a dictionary which maps goal to index.
+        @param max_sequence_length: the maximum length of the input sequence.
+        @param padding: type of padding
+        @param pad_to_multiple_of: pad to multiple instances
+        @param device: device to allocate the data, eg: cpu or gpu
+        @param convert_example_to_feature: a function that convert raw instances to
+        corresponding inputs and labels for the model.
+        @param max_target_length the maximum number of the target sequence (response generation only)
+        @param is_test True if inference step False if training step
+        @param is_gen True if response generation else False
+        """
+        self.topic2id = topic2id
+        super(BaseTorchDataset, self).__init__(tokenizer,
+                                               instances,
+                                               goal2id,
+                                               max_sequence_length,
+                                               padding,
+                                               pad_to_multiple_of,
+                                               device,
+                                               convert_example_to_feature,
+                                               max_target_length,
+                                               is_test,
+                                               is_gen)
+
+    def preprocess_data(self, instances, convert_example_to_feature):
+        """
+        method that preprocess the input data for the RTCP model.
+        @param instances: a list of input instances.
+        @param convert_example_to_feature: a function that processes the given input instance.
+        @return:
+        """
+        processed_instances = []
+        for instance in instances:
+            context_ids, path_ids, label_goal, label_topic = convert_example_to_feature(self.tokenizer, instance,
+                                                                                        self.max_sequence_length,
+                                                                                        self.goal2id,
+                                                                                        self.topic2id)
+            new_instance = {
+                "context_ids": context_ids,
+                "path_ids": path_ids,
+                "label_goal": label_goal,
+                "label_topic": label_topic
+            }
+            processed_instances.append(new_instance)
+        return processed_instances
+
+    def collate_fn(self, batch):
+        """
+        method that construct tensor-kind of inputs for DialogGPT, GPT2 models.
+        @param batch: the input batch
+        @return: a dictionary of torch tensors.
+        """
+        context_input_features = defaultdict(list)
+        path_input_features = defaultdict(list)
+        labels_goal = []
+        labels_topic = []
+        for instance in batch:
+            context_input_features['context_ids'].append(instance['context_ids'])
+            path_input_features['path_ids'].append(instance['path_ids'])
+            labels_goal.append(instance['label_goal'])
+            labels_topic.append(instance['label_topic'])
+
+        # padding the context features
+        context_input_features = self.tokenizer.pad(
+            context_input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
+            max_length=self.max_sequence_length
+        )
+        # convert features to torch tensors
+        for k, v in context_input_features.items():
+            if not isinstance(v, torch.Tensor):
+                context_input_features[k] = torch.as_tensor(v, device=self.device)
+
+        # padding the path features
+        path_input_features = self.tokenizer.pad(
+            path_input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
+            max_length=self.max_sequence_length
+        )
+        # convert features to torch tensors
+        for k, v in path_input_features.items():
+            if not isinstance(v, torch.Tensor):
+                path_input_features[k] = torch.as_tensor(v, device=self.device)
+
+        labels_goal = torch.LongTensor(labels_goal).to(self.device)
+        labels_topic = torch.LongTensor(labels_topic).to(self.device)
+
+        new_batch = {
+            "context": context_input_features,
+            "path": path_input_features,
+            "labels_goal": labels_goal,
+            "labels_topic": labels_topic
+        }
+        return new_batch
