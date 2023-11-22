@@ -104,6 +104,7 @@ if __name__ == '__main__':
     )
     # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
     goal2id = load_binary_file(os.path.join(args.output_dir, 'goal2id.pkl'))
+
     plm = AutoModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)

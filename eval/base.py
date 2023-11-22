@@ -153,7 +153,7 @@ class BaseOnlineEval(object):
 
     def is_llm_based_successful(self, generated_conversation, target_item):
         """
-        method that return a score which si LLM-based assessment
+        method that return a score which is a LLM-based assessment
         @param generated_conversation: the generated conversation
         @param target_item: the target item
         @return: a float score
