@@ -92,7 +92,7 @@ def generate_response_gpt(generation_model, tokenizer, state, max_sequence_lengt
     gen_resp_ids = []
     for gen_seq in gen_seqs:
         gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-        gen_resp_ids.append(gen_seq)
+        gen_resp_ids.append(gen_seq[len(input_ids):])
 
     decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=True)
     decoded_preds = [decoded_pred.replace('<pad>', '').replace('<s>', '').replace('</s>', '') for decoded_pred in
