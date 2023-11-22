@@ -18,7 +18,8 @@ import itertools
 
 # from dyna_gym.models.policy import PolicyModel, save_model
 from dyna_gym.models.policy import save_model
-from dataset.base import BaseTorchDataset
+# from dataset.base import BaseTorchDataset
+from dataset.datasets import RTCPTorchDataset
 from baselines.rtcp.policy import PolicyModel
 
 from dataset.durecdial import DuRecdial
@@ -170,29 +171,34 @@ if __name__ == '__main__':
             "weight_decay": 0.0,
         },
     ]
+
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
     criterion = torch.nn.CrossEntropyLoss()
     # data
-    train_torch_dataset = BaseTorchDataset(
+
+    train_torch_dataset = RTCPTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.train_instances,
         goal2id=goal2id,
+        topic2id=topic2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=convert_example_to_feature_for_rtcp_goal_topic_prediction
     )
-    dev_torch_dataset = BaseTorchDataset(
+    dev_torch_dataset = RTCPTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
+        topic2id=topic2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=convert_example_to_feature_for_rtcp_goal_topic_prediction
     )
-    test_torch_dataset = BaseTorchDataset(
+    test_torch_dataset = RTCPTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
+        topic2id=topic2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=convert_example_to_feature_for_rtcp_goal_topic_prediction
