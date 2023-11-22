@@ -218,31 +218,23 @@ class PolicyModel(nn.Module):
         # self.topic_out_layer = nn.Linear(2 * fc_hidden_size, n_topics)
 
     def forward(self, inputs):
-        context_latents = self.context_encoder(input_ids=inputs['conversation'][0],
-                                               token_type_ids=inputs['conversation'][1],
-                                               position_ids=inputs['conversation'][2],
-                                               attention_mask=inputs['conversation'][3],
-                                               )[0]
+        context_latents = self.context_encoder(**inputs['context'])[0]
 
-        knowledge_latents = self.knowledge_encoder(input_ids=inputs['knowledge'][0],
-                                                   token_type_ids=inputs['knowledge'][1],
-                                                   position_ids=inputs['knowledge'][2],
-                                                   attention_mask=inputs['knowledge'][3],
-                                                   )[0]
+        # currrently, knowledge part is not available
+        # knowledge_latents = self.knowledge_encoder(input_ids=inputs['knowledge'][0],
+        #                                            token_type_ids=inputs['knowledge'][1],
+        #                                            position_ids=inputs['knowledge'][2],
+        #                                            attention_mask=inputs['knowledge'][3],
+        #                                            )[0]
 
-        path_latents = self.path_encoder(input_ids=inputs['path'][0],
-                                         token_type_ids=inputs['path'][1],
-                                         position_ids=inputs['path'][2],
-                                         attention_mask=inputs['path'][3],
-                                         )[0]
-
+        path_latents = self.path_encoder(**inputs['path'])[0]
         out_dict = {
             "context_latent": context_latents,
-            "knowledge_latent": knowledge_latents,
+            # "knowledge_latent": knowledge_latents,
             "path_latent": path_latents,
-            "context_mask": inputs['conversation'][3],
-            "knowledge_mask": inputs['knowledge'][3],
-            "path_mask": inputs['path'][3]
+            "context_mask": inputs['context']['attention_mask'],
+            # "knowledge_mask": inputs['knowledge'][3],
+            "path_mask": inputs['context']['attention_mask']
         }
 
         output = self.cross_encoder_model(out_dict)
@@ -251,32 +243,28 @@ class PolicyModel(nn.Module):
 
         ### goal prediction loss and accuracy
         ce_loss = CrossEntropyLoss()
-        goal_loss = ce_loss(goal_logits, inputs['next_goal'])
-        goal_pred = torch.softmax(goal_logits, -1)
+        goal_loss = ce_loss(goal_logits, inputs['labels_goal'])
+        # goal_pred = torch.softmax(goal_logits, -1)
 
-        _, pred_goal = goal_pred.max(-1)
-        goal_acc = (torch.eq(pred_goal, inputs['next_goal']).float()).sum().item()
+        # _, pred_goal = goal_pred.max(-1)
+        # goal_acc = (torch.eq(pred_goal, inputs['next_goal']).float()).sum().item()
 
         # ### topic prediction loss and accuracy
         ### with goal information
         # goal_embeded = self.goal_embedding(pred_goal)
         # topic_logits = self.topic_out_layer(torch.cat([torch.relu(self.topic_fc(cls_tokens)), goal_embeded], dim =-1))
 
-        ### without goal information
+        # without goal information
         topic_logits = self.topic_out_layer(torch.relu(self.topic_fc(cls_tokens)))
-
-        topic_loss = ce_loss(topic_logits, inputs['next_topic'])
-        topic_pred = torch.softmax(topic_logits, -1)
-
-        _, pred_topic = topic_pred.max(-1)
-        topic_acc = (torch.eq(pred_topic, inputs['next_topic']).float()).sum().item()
+        topic_loss = ce_loss(topic_logits, inputs['labels_topic'])
+        # topic_pred = torch.softmax(topic_logits, -1)
+        #
+        # _, pred_topic = topic_pred.max(-1)
+        # topic_acc = (torch.eq(pred_topic, inputs['next_topic']).float()).sum().item()
 
         output = {
             "goal_logits": goal_logits,
             "topics_logits": topic_logits,
             "loss": goal_loss + topic_loss,
-            "acc": goal_acc,
-            "total_tokens": pred_goal.shape[0],
-            "topic_acc": topic_acc,
         }
         return output

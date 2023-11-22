@@ -264,7 +264,7 @@ if __name__ == '__main__':
         train_loss = []
         model.train()
         for step, batch in enumerate(train_dataloader):
-            logits = model(batch['context'])
+            outputs = model(batch['context'], batch['path'])
             loss = criterion(logits, batch['labels']) / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
