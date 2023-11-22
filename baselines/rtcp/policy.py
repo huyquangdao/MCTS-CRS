@@ -129,11 +129,12 @@ class CrossEncoderLayer(nn.Module):
         o = _normalize(o, self.norm2)
         # o *= p_mask.unsqueeze(-1).type_as(o)
 
-        ### cross_multi_head_attention for output and knowledge
-        o = self.knowledge_attention(o, k, k, (1 - k_mask).bool())
-        o = _normalize(o, self.norm1)
-        o = o + self.dropout(self.ffn_k(o))
-        o = _normalize(o, self.norm2)
+        # since knowledge is not available therefore we ignore the knowledge attention part.
+        # cross_multi_head_attention for output and knowledge
+        # o = self.knowledge_attention(o, k, k, (1 - k_mask).bool())
+        # o = _normalize(o, self.norm1)
+        # o = o + self.dropout(self.ffn_k(o))
+        # o = _normalize(o, self.norm2)
         # o *= k_mask.unsqueeze(-1).type_as(o)
 
         return o
@@ -230,10 +231,11 @@ class PolicyModel(nn.Module):
         path_latents = self.path_encoder(**inputs['path'])[0]
         out_dict = {
             "context_latent": context_latents,
-            # "knowledge_latent": knowledge_latents,
+            "knowledge_latent": context_latents,  # still pass but did not use to prevent a buch of code modifications
             "path_latent": path_latents,
             "context_mask": inputs['context']['attention_mask'],
-            # "knowledge_mask": inputs['knowledge'][3],
+            "knowledge_mask": inputs['knowledge'][3],
+            # still pass but did not use to prevent a bunch of code modidications
             "path_mask": inputs['context']['attention_mask']
         }
 
