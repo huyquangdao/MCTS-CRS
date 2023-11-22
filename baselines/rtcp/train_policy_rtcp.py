@@ -264,8 +264,8 @@ if __name__ == '__main__':
         train_loss = []
         model.train()
         for step, batch in enumerate(train_dataloader):
-            outputs = model(batch['context'], batch['path'])
-            loss = criterion(logits, batch['labels']) / args.gradient_accumulation_steps
+            outputs = model(batch)
+            loss = (outputs['loss'] / args.gradient_accumulation_steps)
             accelerator.backward(loss)
             train_loss.append(float(loss))
             # optim step
@@ -324,8 +324,8 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                logits = model(batch['context'])
-                loss = criterion(logits, batch['labels'])
+                outputs = model(batch['context'])
+                loss = outputs['loss']
                 test_loss.append(float(loss))
                 evaluator.evaluate(logits, batch['labels'])
 
