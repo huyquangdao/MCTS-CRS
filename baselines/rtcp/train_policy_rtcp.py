@@ -295,10 +295,11 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                logits = model(batch['context'])
-                loss = criterion(logits, batch['labels'])
+                outputs = model(batch['context'])
+                loss = outputs['loss']
                 valid_loss.append(float(loss))
-                evaluator.evaluate(logits, batch['labels'])
+                # only compute the topic accuracy
+                evaluator.evaluate(outputs['topic_logits'], batch['labels_topic'])
 
         # metric
         accelerator.wait_for_everyone()
@@ -327,7 +328,7 @@ if __name__ == '__main__':
                 outputs = model(batch['context'])
                 loss = outputs['loss']
                 test_loss.append(float(loss))
-                evaluator.evaluate(logits, batch['labels'])
+                evaluator.evaluate(outputs['topic_logits'], batch['labels_topic'])
 
         # metric
         accelerator.wait_for_everyone()
@@ -344,4 +345,6 @@ if __name__ == '__main__':
         evaluator.reset_metric()
 
         # save the goal2id
-        save_binary_file(goal2id, os.path.join(args.output_dir, "goal2id.pkl"))
+        save_binary_file(goal2id, os.path.join(args.output_dir, "rtcp_goal2id.pkl"))
+        save_binary_file(topic2id, os.path.join(args.output_dir, "rtcp_topic2id.pkl"))
+

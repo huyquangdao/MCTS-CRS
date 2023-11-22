@@ -170,9 +170,9 @@ class CrossEncoder(nn.Module):
         ### initialize the output with the path latent
         x = inputs['path_latent']
 
-        ### forward pass
+        # forward pass
         for layer in self.layers:
-            ### forward the input through each layer
+            # forward the input through each layer
             x = layer(
                 x,
                 inputs['context_latent'],
@@ -243,7 +243,7 @@ class PolicyModel(nn.Module):
         cls_tokens = output[:, 0, :]
         goal_logits = self.goal_out_layer(torch.relu(self.goal_fc(cls_tokens)))
 
-        ### goal prediction loss and accuracy
+        # goal prediction loss and accuracy
         ce_loss = CrossEntropyLoss()
         goal_loss = ce_loss(goal_logits, inputs['labels_goal'])
         # goal_pred = torch.softmax(goal_logits, -1)
@@ -266,7 +266,7 @@ class PolicyModel(nn.Module):
 
         output = {
             "goal_logits": goal_logits,
-            "topics_logits": topic_logits,
+            "topic_logits": topic_logits,
             "loss": goal_loss + topic_loss,
         }
         return output
