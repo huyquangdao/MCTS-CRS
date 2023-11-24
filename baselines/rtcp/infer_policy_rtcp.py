@@ -131,7 +131,7 @@ if __name__ == '__main__':
     # topic2id = {k: v for v, k in enumerate(dataset.topics)}
 
     goal2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_goal2id.pkl'))
-    topic2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_goal2id.pkl'))
+    topic2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_topic2id.pkl'))
 
     # switch from predicting a goal to predicting a pair of a goal and a topic
     # goal2id = itertools.product(dataset.goals, dataset.topics)
@@ -266,11 +266,9 @@ if __name__ == '__main__':
             test_goal_labels.extend(batch['labels_goal'].detach().cpu().numpy().tolist())
             test_topic_labels.extend(batch['labels_topic'].detach().cpu().numpy().tolist())
 
-
     goal_p, goal_r, goal_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_goal_preds, test_goal_labels)
     topic_p, topic_r, topic_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_topic_preds, test_topic_labels)
 
     logger.info('Save predictions successfully')
     logger.info(f'Task: [Goal], precision: {goal_p}, recall: {goal_r}, f1: {goal_f}')
     logger.info(f'Task: [Topic], precision: {topic_p}, recall: {topic_r}, f1: {topic_f}')
-
