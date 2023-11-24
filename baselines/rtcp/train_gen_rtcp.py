@@ -13,7 +13,7 @@ from accelerate.utils import set_seed
 from loguru import logger
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, GPT2LMHeadModel
+from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, GPT2LMHeadModel, GPT2Config
 
 from dyna_gym.models.policy import save_model
 from baselines.rtcp.prefix_tuning import PrefixTuningTemplate
@@ -133,8 +133,10 @@ if __name__ == '__main__':
     tokenizer.add_special_tokens(special_tokens_dict)
     plm.resize_token_embeddings(len(tokenizer))
 
+    plm_config = GPT2Config.from_pretrained(args.plm_model)
+
     prefix_model = PrefixTuningTemplate(
-        config=config,
+        config=plm_config,
         num_token=args.num_tokens,
         n_action_toks=args.n_goal_toks,
         n_topic_toks=args.n_topic_toks,
