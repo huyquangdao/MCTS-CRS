@@ -281,7 +281,8 @@ if __name__ == '__main__':
         train_loss = []
         model.train()
         for step, batch in enumerate(train_dataloader):
-            loss = model(batch)['loss']
+            batch = model(batch)
+            loss = model.plm(**batch, return_dict=True)['loss']
             loss = loss / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
@@ -312,13 +313,14 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch)
+                batch = model(batch)
+                outputs = model.plm(**batch, return_dict=True)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 valid_loss.append(float(loss))
 
-            gen_seqs = accelerator.unwrap_model(model).generate(
-                **batch['context'],
+            gen_seqs = accelerator.unwrap_model(model.plm).generate(
+                **batch,
                 max_new_tokens=args.max_gen_length,
                 no_repeat_ngram_size=3
             )
@@ -357,13 +359,14 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch)
+                batch = model(batch)
+                outputs = model.plm(**batch, return_dict=True)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 test_loss.append(float(loss))
 
-            gen_seqs = accelerator.unwrap_model(model).generate(
-                **batch['context'],
+            gen_seqs = accelerator.unwrap_model(model.plm).generate(
+                **batch,
                 max_new_tokens=args.max_gen_length,
                 no_repeat_ngram_size=3
             )

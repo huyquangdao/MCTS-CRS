@@ -22,5 +22,5 @@ class PromptGPT2(nn.Module):
             "labels": labels,
             "past_key_values": batch["past_key_values"]
         }
-        output = self.plm(**batch, return_dict=True)
-        return output
+        # output = self.plm(**batch, return_dict=True)
+        return batch
