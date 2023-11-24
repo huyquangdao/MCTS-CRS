@@ -14,11 +14,12 @@ class PromptGPT2(nn.Module):
                 param.requires_grad = False
 
     def forward(self, batch):
+        labels = batch['labels']
         batch = self.prefix_model(batch['context'])
         batch = {
             "input_ids": batch['input_ids'],
             "attention_mask": batch['attention_mask'],
-            "labels": batch["labels"],
+            "labels": labels,
             "past_key_values": batch["past_key_values"]
         }
         output = self.plm(**batch, return_dict=True)
