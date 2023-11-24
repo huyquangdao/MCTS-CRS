@@ -280,12 +280,17 @@ if __name__ == '__main__':
     valid_topic_preds = [id2topic[x] for x in valid_topic_preds]
     test_topic_preds = [id2topic[x] for x in test_topic_preds]
 
-    # save policy results
-    save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))
-    save_knowledge_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"))
+    # # save policy results
+    # save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))
+    # save_knowledge_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"))
+    #
+    # save_knowledge_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"))
+    # save_knowledge_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"))
 
-    save_knowledge_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"))
-    save_knowledge_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"))
+    save_binary_file(valid_goal_preds, os.path.join(args.output_dir, 'dev_goal.pkl'))
+    save_binary_file(test_goal_preds, os.path.join(args.output_dir, 'test_goal.pkl'))
+    save_binary_file(valid_topic_preds, os.path.join(args.output_dir, 'dev_topic.pkl'))
+    save_binary_file(test_topic_preds, os.path.join(args.output_dir, 'test_topic.pkl'))
 
     logger.info('Save predictions successfully')
     logger.info(f'Task: [Goal], precision: {goal_p}, recall: {goal_r}, f1: {goal_f}')

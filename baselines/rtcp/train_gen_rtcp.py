@@ -129,11 +129,11 @@ if __name__ == '__main__':
     topic2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_topic2id.pkl'))
 
     # load goal predictions
-    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_goal.txt"))
-    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_goal.txt"))
+    dev_pred_goals = load_binary_file(os.path.join(args.goal_outpath, "dev_goal.pkl"))
+    test_pred_goals = load_binary_file(os.path.join(args.goal_outpath, "test_goal.pkl"))
 
-    dev_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "dev_topic.txt"))
-    test_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "test_topic.txt"))
+    dev_pred_topics = load_binary_file(os.path.join(args.goal_outpath, "dev_topic.pkl"))
+    test_pred_topics = load_binary_file(os.path.join(args.goal_outpath, "test_topic.pkl"))
 
     # merge predictions
     dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
