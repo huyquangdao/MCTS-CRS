@@ -5,7 +5,7 @@ import math
 from collections import defaultdict
 import torch
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
-    CONTEXT_TOKEN, TARGET, TOPIC_TOKEN
+    CONTEXT_TOKEN, TARGET, TOPIC_TOKEN, IGNORE_INDEX
 
 import numpy as np
 
@@ -57,7 +57,8 @@ def convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer, instanc
 
 
 def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance, max_sequence_length=512,
-                                                            max_target_length=50, is_test=False,
+                                                            max_target_length=50, goal2id=None, topic2id=None,
+                                                            is_test=False,
                                                             is_gen=False):
     """
     function that creates the input sequence for unimind response generation task
@@ -70,15 +71,15 @@ def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance,
     @return: the input sequence of the unimind topic prediction task
     """
     dialogue_context = instance['dialogue_context']
-    input_str = ""
+    dialogue_str = ""
+    target = instance['task_background']['target_topic']
     for utt in dialogue_context:
         if utt['role'] == "user":
-            input_str += USER_TOKEN + " "
+            dialogue_str += USER_TOKEN
         elif utt['role'] == 'assistant':
-            input_str += SYSTEM_TOKEN + " "
-        input_str += utt['content']
+            dialogue_str += SYSTEM_TOKEN
+        dialogue_str += utt['content']
 
-    # ground truth goal and topic
     if not is_test:
         goal = instance['goal']
         topic = instance['topic']
@@ -86,17 +87,26 @@ def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance,
         goal = instance['pred_goal']
         topic = instance['pred_topic']
 
-    input_str = f"{input_str} {GOAL_TOKEN} {goal} {TOPIC_TOKEN} {topic} {SYSTEM_TOKEN}"
+    # construct the input sequence for response generation task
+    input_str = f"{GOAL_TOKEN}: {goal} {TOPIC_TOKEN} {topic}  {CONTEXT_TOKEN}: {dialogue_str}"
     input_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(input_str))
-    input_ids = input_ids[-(max_sequence_length - 2):]
-    input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
+    # input_ids = [tokenizer.cls_token_id] + input_ids + [tokenizer.sep_token_id]
+    # construct the label for response generation task
 
-    # if not inference time.
     label = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: " + instance['response']))
     label = label[:max_target_length]
-    label = label + [tokenizer.eos_token_id]
 
-    return input_ids, label
+    if not is_test:
+        input_ids = input_ids + label + [tokenizer.eos_token_id]
+        input_ids = input_ids[-(max_sequence_length):]
+        label = [IGNORE_INDEX] * len(input_ids) + label + [tokenizer.eos_token_id]
+    else:
+        input_ids = input_ids + tokenizer.convert_tokens_to_ids(tokenizer.tokenize(f"{SYSTEM_TOKEN}: "))
+        input_ids = input_ids[-(max_sequence_length):]
+
+    # convert goal and topic to indices.
+    goal_id, topic_id = goal2id[goal], topic2id[topic]
+    return input_ids, label, goal_id, topic_id
 
 
 def predict_action_rtcp(generation_model, tokenizer, state, max_sequence_length, max_gen_length=50,

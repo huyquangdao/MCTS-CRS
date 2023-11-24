@@ -16,6 +16,8 @@ from tqdm.auto import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, GPT2LMHeadModel
 
 from dyna_gym.models.policy import save_model
+from baselines.rtcp.prefix_tuning import PrefixTuningTemplate
+from baselines.rtcp.gen_model import PromptGPT2
 from dataset.datasets import GPTTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
@@ -120,11 +122,20 @@ if __name__ == '__main__':
     special_tokens_dict['pad_token'] = PAD_TOKEN
 
     # t5 as the response generation model
-    model = GPT2LMHeadModel.from_pretrained(args.plm_model)
+    plm = GPT2LMHeadModel.from_pretrained(args.plm_model)
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     tokenizer.add_special_tokens(special_tokens_dict)
-    model.resize_token_embeddings(len(tokenizer))
-    model.to(device)
+    plm.resize_token_embeddings(len(tokenizer))
+
+    prefix_model = PrefixTuningTemplate(
+        config=config,
+        num_token=args.num_tokens,
+        n_action_toks=args.n_action_toks,
+        n_topic_toks=args.n_topic_toks,
+        use_goal_topic=args.use_goal_topic
+    )
+    model = PromptGPT2(plm=plm, prefix_model=prefix_model, freeze_plm=args.freeze_plm)
+    model.to(args.device)
 
     # optim & amp
     modules = [model]
