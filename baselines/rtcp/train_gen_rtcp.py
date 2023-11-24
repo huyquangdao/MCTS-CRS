@@ -23,7 +23,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict, PAD_TOKEN
 from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_response_generation
-from dataset.data_utils import load_binary_file
+from dataset.data_utils import load_binary_file, load_policy_results, merge_predictions, merge_topic_predictions
 
 
 def parse_args():
@@ -126,6 +126,21 @@ if __name__ == '__main__':
 
     goal2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_goal2id.pkl'))
     topic2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_topic2id.pkl'))
+
+    # load goal predictions
+    dev_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "dev_goal.txt"))
+    test_pred_goals = load_policy_results(os.path.join(args.goal_outpath, "test_goal.txt"))
+
+    dev_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "dev_topic.txt"))
+    test_pred_topics = load_policy_results(os.path.join(args.goal_outpath, "test_topic.txt"))
+
+    # merge predictions
+    dataset.dev_instances = merge_predictions(dataset.dev_instances, dev_pred_goals)
+    dataset.test_instances = merge_predictions(dataset.test_instances, test_pred_goals)
+
+    # merge predictions
+    dataset.dev_instances = merge_topic_predictions(dataset.dev_instances, dev_pred_topics)
+    dataset.test_instances = merge_topic_predictions(dataset.test_instances, test_pred_topics)
 
     # pad token for GPT2 and DialogGPT
     special_tokens_dict['pad_token'] = PAD_TOKEN

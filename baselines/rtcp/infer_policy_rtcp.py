@@ -27,7 +27,7 @@ from eval.eval_policy import PolicyEvaluator
 from config.config import special_tokens_dict, DURECDIALGOALS
 
 from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_goal_topic_prediction
-from dataset.data_utils import save_binary_file, load_binary_file
+from dataset.data_utils import save_binary_file, load_binary_file, save_knowledge_results
 
 
 def parse_args():
@@ -270,6 +270,22 @@ if __name__ == '__main__':
 
     goal_p, goal_r, goal_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_goal_preds, test_goal_labels)
     topic_p, topic_r, topic_f = PolicyEvaluator.compute_precision_recall_f1_metrics(test_topic_preds, test_topic_labels)
+
+    id2goal = {v: k for k, v in goal2id.items()}
+    id2topic = {v: k for k, v in topic2id.items()}
+
+    # convert goal, topic indices to categories
+    valid_goal_preds = [id2goal[x] for x in valid_goal_preds]
+    test_goal_preds = [id2goal[x] for x in test_goal_preds]
+    valid_topic_preds = [id2goal[x] for x in valid_topic_preds]
+    test_topic_preds = [id2goal[x] for x in test_topic_preds]
+
+    # save policy results
+    save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))
+    save_knowledge_results(test_goal_preds, os.path.join(args.output_dir, "test_goal.txt"))
+
+    save_knowledge_results(valid_topic_preds, os.path.join(args.output_dir, "dev_topic.txt"))
+    save_knowledge_results(test_topic_preds, os.path.join(args.output_dir, "test_topic.txt"))
 
     logger.info('Save predictions successfully')
     logger.info(f'Task: [Goal], precision: {goal_p}, recall: {goal_r}, f1: {goal_f}')
