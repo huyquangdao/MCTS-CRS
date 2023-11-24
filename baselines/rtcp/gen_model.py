@@ -16,7 +16,8 @@ class PromptGPT2(nn.Module):
     def forward(self, batch):
         batch = self.prefix_model(batch['context'])
         batch = {
-            **batch['context'],
+            "input_ids": batch['input_ids'],
+            "attention_mask": batch['attention_mask'],
             "labels": batch["labels"],
             "past_key_values": batch["past_key_values"]
         }
