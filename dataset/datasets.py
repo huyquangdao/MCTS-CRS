@@ -146,6 +146,7 @@ class RTCPTorchDataset(BaseTorchDataset):
             else:
                 input_ids, label, goal_id, topic_id = convert_example_to_feature(self.tokenizer, instance,
                                                                                  self.max_sequence_length,
+                                                                                 self.max_target_length,
                                                                                  self.goal2id,
                                                                                  self.topic2id,
                                                                                  is_test=self.is_test)
