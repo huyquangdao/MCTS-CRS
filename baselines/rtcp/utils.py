@@ -4,6 +4,7 @@ from tqdm import tqdm
 import math
 from collections import defaultdict
 import torch
+import torch.nn.functional as F
 from config.config import GOAL_TOKEN, USER_TOKEN, SYSTEM_TOKEN, KNOW_TOKEN, PATH_TOKEN, SEP_TOKEN, PROFILE_TOKEN, \
     CONTEXT_TOKEN, TARGET, TOPIC_TOKEN, IGNORE_INDEX
 
@@ -219,3 +220,87 @@ def generate_response_rtcp(generation_model, tokenizer, action, topic, state, ma
     decoded_preds = [pred.strip() for pred in decoded_preds]
 
     return decoded_preds[0]
+
+
+def top_filtering(logits, top_k=0, top_p=0.0, threshold=-float('Inf'), filter_value=-float('Inf')):
+    """ Filter a distribution of logits using top-k, top-p (nucleus) and/or threshold filtering
+        Args:
+            logits: logits distribution shape (vocabulary size)
+            top_k: <=0: no filtering, >0: keep only top k tokens with highest probability.
+            top_p: <=0.0: no filtering, >0.0: keep only a subset S of candidates, where S is the smallest subset
+                whose total probability mass is greater than or equal to the threshold top_p.
+                In practice, we select the highest probability tokens whose cumulative probability mass exceeds
+                the threshold top_p.
+            threshold: a minimal threshold to keep logits
+    """
+    assert logits.dim() == 1  # Only work for batch size 1 for now - could update but it would obfuscate a bit the code
+    top_k = min(top_k, logits.size(-1))
+    if top_k > 0:
+        # Remove all tokens with a probability less than the last token in the top-k tokens
+        indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
+        logits[indices_to_remove] = filter_value
+
+    if top_p > 0.0:
+        # Compute cumulative probabilities of sorted tokens
+        sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+        cumulative_probabilities = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+
+        # Remove tokens with cumulative probability above the threshold
+        sorted_indices_to_remove = cumulative_probabilities > top_p
+        # Shift the indices to the right to keep also the first token above the threshold
+        sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+        sorted_indices_to_remove[..., 0] = 0
+
+        # Back to unsorted indices and set them to -infinity
+        indices_to_remove = sorted_indices[sorted_indices_to_remove]
+        logits[indices_to_remove] = filter_value
+
+    indices_to_remove = logits < threshold
+    logits[indices_to_remove] = filter_value
+
+    return logits
+
+
+def sample_sequence(model, context, action_id, topic_id, tokenizer, args, contrained_vocab=None):
+    special_tokens_ids = [tokenizer.pad_token_id, tokenizer.cls_token_id, tokenizer.sep_token_id]
+    context = torch.tensor(context, dtype=torch.long, device=args.device).unsqueeze(0)
+    generated = context
+    n_ctx = model.plm.config.n_ctx
+    output_ids = []
+    action_tensor = torch.LongTensor([action_id]).unsqueeze(0).to(args.device)
+    topic_tensor = torch.LongTensor([topic_id]).unsqueeze(0).to(args.device)
+
+    for i in range(args.max_dec_len):
+        input_ids = generated[0][-(n_ctx - 1):].unsqueeze(0)
+        batch = {
+            "input_ids": input_ids,
+            "action_id": action_tensor,
+            "topic_id": topic_tensor,
+            "labels": None
+        }
+        lm_output = model(batch)
+        #### we only consider token that belong to the contrained vocabulary.
+        logits = lm_output["logits"]
+        logits = logits[0, -1, :] / args.temperature
+
+        if args.top_k > 0 or (args.top_p > 0 and args.top_p <= 1):
+            filtered_logits = top_filtering(logits, top_k=args.top_k, top_p=args.top_p)
+            probs = F.softmax(filtered_logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+        else:
+            probs = F.softmax(logits, dim=-1)
+            next_token = torch.topk(probs, 1)[1]
+
+        if i < args.min_dec_len and next_token.item() in special_tokens_ids:
+            while next_token.item() in special_tokens_ids:
+                next_token = torch.multinomial(probs, num_samples=1)
+        output_ids.append(next_token.item())
+        generated = torch.cat((generated, next_token.unsqueeze(0)), dim=1)
+
+        if next_token.item() in special_tokens_ids:
+            break
+
+    output_text = tokenizer.decode(output_ids, skip_special_tokens=True)
+    # output_text = output_text.replace("<|endoftext|>","")
+    # output_text = output_text.replace(" ", "")
+    return output_text

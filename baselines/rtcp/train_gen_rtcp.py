@@ -319,22 +319,6 @@ if __name__ == '__main__':
                 logits = outputs['logits']
                 valid_loss.append(float(loss))
 
-            gen_seqs = accelerator.unwrap_model(model.plm).generate(
-                **batch,
-                max_new_tokens=args.max_gen_length,
-                no_repeat_ngram_size=3
-            )
-            gen_resp_ids = []
-            for gen_seq, length in zip(gen_seqs, batch['context_len']):
-                gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-                gen_resp_ids.append(gen_seq[length:])
-
-            label_resp_ids = []
-            for label_seq in batch['labels_gen']:
-                label_seq = [token_id for token_id in label_seq if token_id != -100]
-                label_resp_ids.append(label_seq)
-            evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
-
         # metric
         accelerator.wait_for_everyone()
         report, valid_decoded_preds, valid_decoded_labels = evaluator.report()
@@ -364,23 +348,6 @@ if __name__ == '__main__':
                 loss = outputs['loss']
                 logits = outputs['logits']
                 test_loss.append(float(loss))
-
-            gen_seqs = accelerator.unwrap_model(model.plm).generate(
-                **batch,
-                max_new_tokens=args.max_gen_length,
-                no_repeat_ngram_size=3
-            )
-            gen_resp_ids = []
-            for gen_seq, length in zip(gen_seqs, batch['context_len']):
-                gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-                gen_resp_ids.append(gen_seq[length:])
-
-            label_resp_ids = []
-            for label_seq in batch['labels_gen']:
-                label_seq = [token_id for token_id in label_seq if token_id != -100]
-                label_resp_ids.append(label_seq)
-
-            evaluator.evaluate(gen_resp_ids, label_resp_ids, log=accelerator.is_local_main_process)
 
         # metric
         accelerator.wait_for_everyone()
