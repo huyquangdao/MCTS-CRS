@@ -143,7 +143,7 @@ if __name__ == '__main__':
         use_goal_topic=args.use_goal_topic
     )
     model = PromptGPT2(plm=plm, prefix_model=prefix_model, freeze_plm=args.freeze_plm)
-    model.to(args.device)
+    model.to(device)
 
     # optim & amp
     modules = [model]
