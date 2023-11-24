@@ -41,9 +41,9 @@ def parse_args():
     # model
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
-    parser.add_argument("--num_tokens", default=50, type=str)
-    parser.add_argument("--n_goal_toks", default=2, type=str)
-    parser.add_argument("--n_topic_toks", default=2, type=str)
+    parser.add_argument("--num_tokens", default=50, type=int)
+    parser.add_argument("--n_goal_toks", default=2, type=int)
+    parser.add_argument("--n_topic_toks", default=2, type=int)
     parser.add_argument("--use_goal_topic", action="store_true", help="whether to use wandb")
     parser.add_argument("--freeze_plm", action="store_true", help="whether to use wandb")
 
