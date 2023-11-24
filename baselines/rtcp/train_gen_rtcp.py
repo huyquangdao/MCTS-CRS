@@ -41,6 +41,12 @@ def parse_args():
     # model
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
+    parser.add_argument("--num_tokens", default=50, type=str)
+    parser.add_argument("--n_goal_toks", default=2, type=str)
+    parser.add_argument("--n_topic_toks", default=2, type=str)
+    parser.add_argument("--use_goal_topic", action="store_true", help="whether to use wandb")
+    parser.add_argument("--freeze_plm", action="store_true", help="whether to use wandb")
+
     # optim
     parser.add_argument("--num_train_epochs", type=int, default=10, help="Total number of training epochs to perform.")
     parser.add_argument("--max_train_steps", type=int, default=None,
@@ -130,7 +136,7 @@ if __name__ == '__main__':
     prefix_model = PrefixTuningTemplate(
         config=config,
         num_token=args.num_tokens,
-        n_action_toks=args.n_action_toks,
+        n_action_toks=args.n_goal_toks,
         n_topic_toks=args.n_topic_toks,
         use_goal_topic=args.use_goal_topic
     )
