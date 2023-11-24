@@ -14,7 +14,7 @@ class PromptGPT2(nn.Module):
                 param.requires_grad = False
 
     def forward(self, batch):
-        batch = self.prefix_model(batch)
+        batch = self.prefix_model(batch['context'])
         batch = {
             **batch['context'],
             "labels": batch["labels"],

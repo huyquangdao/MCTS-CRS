@@ -251,12 +251,13 @@ class RTCPTorchDataset(BaseTorchDataset):
             goal_indices = torch.LongTensor(goal_indices).to(self.device)
             topic_indices = torch.LongTensor(topic_indices).to(self.device)
 
+            input_features['goal_ids'] = goal_indices,
+            input_features['topic_ids'] = topic_indices
+
             new_batch = {
                 "context": input_features,
                 "labels": labels,
                 "labels_gen": labels_gen,
                 "context_len": context_length_batch,
-                "goal_ids": goal_indices,
-                "topic_ids": topic_indices
             }
         return new_batch
