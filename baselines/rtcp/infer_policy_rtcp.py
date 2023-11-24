@@ -277,8 +277,8 @@ if __name__ == '__main__':
     # convert goal, topic indices to categories
     valid_goal_preds = [id2goal[x] for x in valid_goal_preds]
     test_goal_preds = [id2goal[x] for x in test_goal_preds]
-    valid_topic_preds = [id2goal[x] for x in valid_topic_preds]
-    test_topic_preds = [id2goal[x] for x in test_topic_preds]
+    valid_topic_preds = [id2topic[x] for x in valid_topic_preds]
+    test_topic_preds = [id2topic[x] for x in test_topic_preds]
 
     # save policy results
     save_knowledge_results(valid_goal_preds, os.path.join(args.output_dir, "dev_goal.txt"))
