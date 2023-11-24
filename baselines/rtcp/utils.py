@@ -105,7 +105,8 @@ def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance,
         input_ids = input_ids[-(max_sequence_length):]
 
     # convert goal and topic to indices.
-    goal_id, topic_id = goal2id[goal], topic2id[topic]
+    goal_id = goal2id[goal],
+    topic_id = topic2id[topic]
     return input_ids, label, goal_id, topic_id
 
 
