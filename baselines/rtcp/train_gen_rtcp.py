@@ -18,11 +18,11 @@ from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, 
 from dyna_gym.models.policy import save_model
 from baselines.rtcp.prefix_tuning import PrefixTuningTemplate
 from baselines.rtcp.gen_model import PromptGPT2
-from dataset.datasets import GPTTorchDataset
+from dataset.datasets import RTCPTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict, PAD_TOKEN
-from baselines.dialoggpt.utils import convert_example_to_feature_for_gpt_response_generation
+from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_response_generation
 
 
 def parse_args():
@@ -163,35 +163,35 @@ if __name__ == '__main__':
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
     criterion = torch.nn.CrossEntropyLoss()
     # data
-    train_torch_dataset = GPTTorchDataset(
+    train_torch_dataset = RTCPTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.train_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_gpt_response_generation,
+        convert_example_to_feature=convert_example_to_feature_for_rtcp_response_generation,
         is_test=False,
         is_gen=True,
         max_target_length=args.max_target_length
     )
-    dev_torch_dataset = GPTTorchDataset(
+    dev_torch_dataset = RTCPTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_gpt_response_generation,
+        convert_example_to_feature=convert_example_to_feature_for_rtcp_response_generation,
         is_test=True,
         is_gen=True,
         max_target_length=args.max_target_length
     )
-    test_torch_dataset = GPTTorchDataset(
+    test_torch_dataset = RTCPTorchDataset(
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
-        convert_example_to_feature=convert_example_to_feature_for_gpt_response_generation,
+        convert_example_to_feature=convert_example_to_feature_for_rtcp_response_generation,
         is_test=True,
         is_gen=True,
         max_target_length=args.max_target_length
