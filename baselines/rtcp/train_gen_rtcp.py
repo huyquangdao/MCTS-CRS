@@ -259,7 +259,7 @@ if __name__ == '__main__':
         train_loss = []
         model.train()
         for step, batch in enumerate(train_dataloader):
-            loss = model(batch['context'])['loss']
+            loss = model(batch)['loss']
             loss = loss / args.gradient_accumulation_steps
             accelerator.backward(loss)
             train_loss.append(float(loss))
@@ -290,7 +290,7 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch['context'])
+                outputs = model(batch)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 valid_loss.append(float(loss))
@@ -335,7 +335,7 @@ if __name__ == '__main__':
         model.eval()
         for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
             with torch.no_grad():
-                outputs = model(batch['context'])
+                outputs = model(batch)
                 loss = outputs['loss']
                 logits = outputs['logits']
                 test_loss.append(float(loss))
