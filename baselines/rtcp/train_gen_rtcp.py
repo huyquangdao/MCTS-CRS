@@ -23,6 +23,7 @@ from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict, PAD_TOKEN
 from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_response_generation
+from dataset.data_utils import load_binary_file
 
 
 def parse_args():
@@ -123,7 +124,9 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
 
-    goal2id = None
+    goal2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_goal2id.pkl'))
+    topic2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_topic2id.pkl'))
+
     # pad token for GPT2 and DialogGPT
     special_tokens_dict['pad_token'] = PAD_TOKEN
 
@@ -167,6 +170,7 @@ if __name__ == '__main__':
         tokenizer=tokenizer,
         instances=dataset.train_instances,
         goal2id=goal2id,
+        topic2id=topic2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=convert_example_to_feature_for_rtcp_response_generation,
@@ -178,6 +182,7 @@ if __name__ == '__main__':
         tokenizer=tokenizer,
         instances=dataset.dev_instances,
         goal2id=goal2id,
+        topic2id=topic2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=convert_example_to_feature_for_rtcp_response_generation,
@@ -189,6 +194,7 @@ if __name__ == '__main__':
         tokenizer=tokenizer,
         instances=dataset.test_instances,
         goal2id=goal2id,
+        topic2id=topic2id,
         max_sequence_length=args.max_sequence_length,
         device=device,
         convert_example_to_feature=convert_example_to_feature_for_rtcp_response_generation,
