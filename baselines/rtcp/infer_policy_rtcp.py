@@ -17,7 +17,7 @@ from transformers import AdamW, get_linear_schedule_with_warmup, AutoTokenizer, 
 import itertools
 
 # from dyna_gym.models.policy import PolicyModel, save_model
-from dyna_gym.models.policy import save_model
+from dyna_gym.models.policy import load_model
 # from dataset.base import BaseTorchDataset
 from dataset.datasets import RTCPTorchDataset
 from baselines.rtcp.policy import PolicyModel
@@ -158,6 +158,8 @@ if __name__ == '__main__':
         fc_hidden_size=args.fc_size
     )
     model.to(device)
+    model = load_model(model, os.path.join(args.output_dir, "policy.pth"))
+
     # optim & amp
 
     dev_torch_dataset = RTCPTorchDataset(
