@@ -30,6 +30,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=42, help="A seed for reproducible training.")
     parser.add_argument("--output_dir", type=str, help="Where to store the final model.")
+    parser.add_argument("--goal_outpath", type=str, help="Where to store the final model.")
     parser.add_argument("--debug", action='store_true', help="Debug mode.")
     # data
     parser.add_argument("--train_data_path", type=str, required=True, help="A file containing all data.")

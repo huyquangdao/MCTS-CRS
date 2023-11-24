@@ -19,4 +19,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/train_gen_rt
     --max_sequence_length 512 \
     --learning_rate 5e-5 \
     --output_dir ./rtcp/ \
+    --goal_outpath ./rtcp/ \
     --seed 21
