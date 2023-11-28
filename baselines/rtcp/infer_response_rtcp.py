@@ -1,4 +1,3 @@
-
 import argparse
 import math
 import os
@@ -41,6 +40,10 @@ def parse_args():
     parser.add_argument('--max_sequence_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_target_length', type=int, help="max length of both encoder and decoder input.")
     parser.add_argument('--max_gen_length', default=50, type=int, help="max length of both encoder and decoder input.")
+    parser.add_argument('--top_k', default=0, type=int, help="max length of both encoder and decoder input.")
+    parser.add_argument('--top_p', default=0.0, type=float, help="max length of both encoder and decoder input.")
+    parser.add_argument('--temperature', default=1, type=float, help="max length of both encoder and decoder input.")
+
     # model
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
@@ -216,14 +219,14 @@ if __name__ == '__main__':
         batch_size=args.per_device_eval_batch_size,
         num_workers=args.num_workers,
         collate_fn=dev_torch_dataset.collate_fn,
-        shuffle = False
+        shuffle=False
     )
     test_dataloader = DataLoader(
         test_torch_dataset,
         batch_size=args.per_device_eval_batch_size,
         num_workers=args.num_workers,
         collate_fn=test_torch_dataset.collate_fn,
-        shuffle = False
+        shuffle=False
     )
 
     model, optimizer = accelerator.prepare(model, optimizer)
@@ -243,9 +246,10 @@ if __name__ == '__main__':
             history = instance["input_ids"]
             action_id = instance["action_id"]
             topic_id = instance["topic_id"]
-
             # contrain the vocabulary
-            output_text = sample_sequence(model, history, action_id, topic_id, tokenizer, args)
+            output_text = sample_sequence(model, history, action_id, topic_id, tokenizer, device=device,
+                                          max_dec_len=args.max_gen_length, top_k=args.top_k, top_p=args.top_p,
+                                          temperature=args.temperature)
             sample = {"response": output_text}
 
     # metric
