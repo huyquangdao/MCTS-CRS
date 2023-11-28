@@ -244,7 +244,7 @@ if __name__ == '__main__':
     for instance in tqdm(dev_torch_dataset.instances, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
             history = instance["input_ids"]
-            action_id = instance["action_id"]
+            action_id = instance["goal_id"]
             topic_id = instance["topic_id"]
             label_ids = instance["label"]
 
@@ -275,7 +275,7 @@ if __name__ == '__main__':
     for instance in tqdm(test_torch_dataset.instances, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
             history = instance["input_ids"]
-            action_id = instance["action_id"]
+            action_id = instance["goal_id"]
             topic_id = instance["topic_id"]
             label_ids = instance["label"]
 
