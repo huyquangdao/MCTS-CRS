@@ -246,14 +246,14 @@ if __name__ == '__main__':
             history = instance["input_ids"]
             action_id = instance["action_id"]
             topic_id = instance["topic_id"]
-            label = instance["label"]
+            label_ids = instance["label"]
 
             # contrain the vocabulary
-            output_text = sample_sequence(model, history, action_id, topic_id, tokenizer, device=device,
-                                          max_dec_len=args.max_gen_length, top_k=args.top_k, top_p=args.top_p,
-                                          temperature=args.temperature)
-            sample = {"response": output_text}
+            gen_resp_ids = sample_sequence(model, history, action_id, topic_id, tokenizer, device=device,
+                                           max_dec_len=args.max_gen_length, top_k=args.top_k, top_p=args.top_p,
+                                           temperature=args.temperature)
 
+            evaluator.evaluate([gen_resp_ids], [label_ids], log=accelerator.is_local_main_process)
     # metric
     accelerator.wait_for_everyone()
     report, valid_decoded_preds, valid_decoded_labels = evaluator.report()

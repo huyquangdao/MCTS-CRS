@@ -302,7 +302,7 @@ def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None,
         if next_token.item() in special_tokens_ids:
             break
 
-    output_text = tokenizer.decode(output_ids, skip_special_tokens=True)
-    output_text = output_text.replace("<|endoftext|>", "")
+    # output_text = tokenizer.decode(output_ids, skip_special_tokens=True)
+    # output_text = output_text.replace("<|endoftext|>", "")
     # output_text = output_text.replace(" ", "")
-    return output_text
+    return output_ids
