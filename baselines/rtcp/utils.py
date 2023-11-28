@@ -147,7 +147,7 @@ def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_leng
     # convert features to torch tensors
     for k, v in context_input_features.items():
         if not isinstance(v, torch.Tensor):
-            context_input_features[k] = torch.as_tensor(v, device=device)
+            context_input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
 
     # padding the path features
     path_input_features = policy_tokenizer.pad(
@@ -157,11 +157,11 @@ def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_leng
     # convert features to torch tensors
     for k, v in path_input_features.items():
         if not isinstance(v, torch.Tensor):
-            path_input_features[k] = torch.as_tensor(v, device=device)
+            path_input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
 
     # label goal, topic. Just using for computational convenience.
-    labels_goal = torch.LongTensor([0]).to(device)
-    labels_topic = torch.LongTensor([0]).to(device)
+    labels_goal = torch.LongTensor([0]).to(device).unsqueeze(0)
+    labels_topic = torch.LongTensor([0]).to(device).unsqueeze(0)
 
     batch = {
         "context": context_input_features,
