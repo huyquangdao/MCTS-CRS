@@ -261,16 +261,17 @@ def top_filtering(logits, top_k=0, top_p=0.0, threshold=-float('Inf'), filter_va
     return logits
 
 
-def sample_sequence(model, context, action_id, topic_id, tokenizer, args, contrained_vocab=None):
+def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None, temperature=1, max_dec_len=50,
+                    min_dec_len=10, top_k=0, top_p=0.0):
     special_tokens_ids = [tokenizer.pad_token_id, tokenizer.cls_token_id, tokenizer.sep_token_id]
-    context = torch.tensor(context, dtype=torch.long, device=args.device).unsqueeze(0)
+    context = torch.tensor(context, dtype=torch.long, device=device).unsqueeze(0)
     generated = context
     n_ctx = model.plm.config.n_ctx
     output_ids = []
-    action_tensor = torch.LongTensor([action_id]).unsqueeze(0).to(args.device)
-    topic_tensor = torch.LongTensor([topic_id]).unsqueeze(0).to(args.device)
+    action_tensor = torch.LongTensor([action_id]).unsqueeze(0).to(device)
+    topic_tensor = torch.LongTensor([topic_id]).unsqueeze(0).to(device)
 
-    for i in range(args.max_dec_len):
+    for i in range(max_dec_len):
         input_ids = generated[0][-(n_ctx - 1):].unsqueeze(0)
         batch = {
             "input_ids": input_ids,
@@ -281,17 +282,17 @@ def sample_sequence(model, context, action_id, topic_id, tokenizer, args, contra
         lm_output = model(batch)
         #### we only consider token that belong to the contrained vocabulary.
         logits = lm_output["logits"]
-        logits = logits[0, -1, :] / args.temperature
+        logits = logits[0, -1, :] / temperature
 
-        if args.top_k > 0 or (args.top_p > 0 and args.top_p <= 1):
-            filtered_logits = top_filtering(logits, top_k=args.top_k, top_p=args.top_p)
+        if top_k > 0 or (top_p > 0 and top_p <= 1):
+            filtered_logits = top_filtering(logits, top_k=top_k, top_p=top_p)
             probs = F.softmax(filtered_logits, dim=-1)
             next_token = torch.multinomial(probs, num_samples=1)
         else:
             probs = F.softmax(logits, dim=-1)
             next_token = torch.topk(probs, 1)[1]
 
-        if i < args.min_dec_len and next_token.item() in special_tokens_ids:
+        if i < min_dec_len and next_token.item() in special_tokens_ids:
             while next_token.item() in special_tokens_ids:
                 next_token = torch.multinomial(probs, num_samples=1)
         output_ids.append(next_token.item())

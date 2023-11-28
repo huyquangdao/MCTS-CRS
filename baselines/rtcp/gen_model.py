@@ -15,12 +15,14 @@ class PromptGPT2(nn.Module):
 
     def forward(self, batch):
         labels = batch['labels']
+        context_length = batch['context_len']
         batch = self.prefix_model(batch['context'])
         batch = {
             "input_ids": batch['input_ids'],
             "attention_mask": batch['attention_mask'],
             "labels": labels,
-            "past_key_values": batch["past_key_values"]
+            "past_key_values": batch["past_key_values"],
+            "context_len": context_length
         }
         # output = self.plm(**batch, return_dict=True)
         return batch

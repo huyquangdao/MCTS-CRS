@@ -238,13 +238,15 @@ if __name__ == '__main__':
     # dev
     valid_loss = []
     model.eval()
-    for batch in tqdm(valid_dataloader, disable=not accelerator.is_local_main_process):
+    for instance in tqdm(dev_torch_dataset.instances, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
-            batch = model(batch)
-            outputs = model.plm(**batch, return_dict=True)
-            loss = outputs['loss']
-            logits = outputs['logits']
-            valid_loss.append(float(loss))
+            history = instance["input_ids"]
+            action_id = instance["action_id"]
+            topic_id = instance["topic_id"]
+
+            # contrain the vocabulary
+            output_text = sample_sequence(model, history, action_id, topic_id, tokenizer, args)
+            sample = {"response": output_text}
 
     # metric
     accelerator.wait_for_everyone()
