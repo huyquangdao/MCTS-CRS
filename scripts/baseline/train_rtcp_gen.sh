@@ -12,10 +12,10 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/train_gen_rt
     --n_topic_toks 2 \
     --use_goal_topic \
     --freeze_plm \
-    --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 32 \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 8 \
     --gradient_accumulation_steps 1 \
-    --num_warmup_steps 6345   \
+    --num_warmup_steps 3000   \
     --max_sequence_length 512 \
     --learning_rate 5e-5 \
     --output_dir ./rtcp/ \

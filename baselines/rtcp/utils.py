@@ -262,24 +262,16 @@ def top_filtering(logits, top_k=0, top_p=0.0, threshold=-float('Inf'), filter_va
 
 
 def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None, temperature=1, max_dec_len=50,
-                    min_dec_len=10, top_k=0, top_p=0.0):
-    special_tokens_ids = [tokenizer.pad_token_id, tokenizer.cls_token_id, tokenizer.sep_token_id]
+                    min_dec_len=1, top_k=0, top_p=0.0):
+    special_tokens_ids = [tokenizer.pad_token_id, tokenizer.cls_token_id, tokenizer.eos_token_id]
     context = torch.tensor(context, dtype=torch.long, device=device).unsqueeze(0)
     generated = context
     n_ctx = model.plm.config.n_ctx
     output_ids = []
     goal_tensor = torch.LongTensor([action_id]).unsqueeze(0).to(device)
     topic_tensor = torch.LongTensor([topic_id]).unsqueeze(0).to(device)
-
     for i in range(max_dec_len):
         input_ids = generated[0][-(n_ctx - 1):].unsqueeze(0)
-        # batch = {
-        #     "input_ids": input_ids,
-        #     "goal_id": goal_tensor,
-        #     "topic_id": topic_tensor,
-        #     "labels": None
-        # }
-        #
         batch = {}
         batch['context'] = {
             "input_ids": input_ids,
@@ -307,11 +299,10 @@ def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None,
                 next_token = torch.multinomial(probs, num_samples=1)
         output_ids.append(next_token.item())
         generated = torch.cat((generated, next_token.unsqueeze(0)), dim=1)
-
         if next_token.item() in special_tokens_ids:
             break
 
     output_text = tokenizer.decode(output_ids, skip_special_tokens=True)
-    # output_text = output_text.replace("<|endoftext|>","")
+    output_text = output_text.replace("<|endoftext|>", "")
     # output_text = output_text.replace(" ", "")
     return output_text
