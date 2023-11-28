@@ -246,6 +246,8 @@ if __name__ == '__main__':
             history = instance["input_ids"]
             action_id = instance["action_id"]
             topic_id = instance["topic_id"]
+            label = instance["label"]
+
             # contrain the vocabulary
             output_text = sample_sequence(model, history, action_id, topic_id, tokenizer, device=device,
                                           max_dec_len=args.max_gen_length, top_k=args.top_k, top_p=args.top_p,

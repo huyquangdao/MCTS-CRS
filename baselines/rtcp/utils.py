@@ -268,17 +268,26 @@ def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None,
     generated = context
     n_ctx = model.plm.config.n_ctx
     output_ids = []
-    action_tensor = torch.LongTensor([action_id]).unsqueeze(0).to(device)
+    goal_tensor = torch.LongTensor([action_id]).unsqueeze(0).to(device)
     topic_tensor = torch.LongTensor([topic_id]).unsqueeze(0).to(device)
 
     for i in range(max_dec_len):
         input_ids = generated[0][-(n_ctx - 1):].unsqueeze(0)
-        batch = {
+        # batch = {
+        #     "input_ids": input_ids,
+        #     "goal_id": goal_tensor,
+        #     "topic_id": topic_tensor,
+        #     "labels": None
+        # }
+        #
+        batch = {}
+        batch['context'] = {
             "input_ids": input_ids,
-            "action_id": action_tensor,
-            "topic_id": topic_tensor,
-            "labels": None
+            "goal_ids": goal_tensor,
+            "topic_ids": topic_tensor
         }
+        batch['labels'] = None
+
         lm_output = model(batch)
         #### we only consider token that belong to the contrained vocabulary.
         logits = lm_output["logits"]
