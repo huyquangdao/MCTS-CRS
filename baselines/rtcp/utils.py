@@ -73,7 +73,6 @@ def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance,
     """
     dialogue_context = instance['dialogue_context']
     dialogue_str = ""
-    target = instance['task_background']['target_topic']
     for utt in dialogue_context:
         if utt['role'] == "user":
             dialogue_str += USER_TOKEN
@@ -111,12 +110,13 @@ def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance,
     return input_ids, label, goal_id, topic_id
 
 
-def predict_action_rtcp(generation_model, tokenizer, state, max_sequence_length, max_gen_length=50,
+def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_length, goal2id, topic2id,
+                        max_gen_length=50,
                         pad_to_multiple_of=True, padding='max_length', device=None):
     """
-    function that generates a knowledge utterance with unimind
-    @param generation_model: the finetuned huggingface pretrained PLM
-    @param tokenizer: a huggingface tokenizer.
+    function that predicts the action with RTCP policy model
+    @param policy_model: the finetuned huggingface pretrained PLM
+    @param policy_tokenizer: a huggingface tokenizer.
     @param state:  the current state of the env
     @param max_sequence_length: the maximum number of tokens in the input sequence.
     @param max_gen_length: the maximum number of tokens in the generated response.
@@ -126,54 +126,75 @@ def predict_action_rtcp(generation_model, tokenizer, state, max_sequence_length,
     @return: a generated knowledge utterance.
     """
     # convert state to input feature
-    input_features = defaultdict(list)
+    context_input_features = defaultdict(list)
+    path_input_features = defaultdict(list)
 
     # convert state to input features
-    input_ids, _ = convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer=tokenizer, instance=state,
-                                                                             max_sequence_length=max_sequence_length,
-                                                                             is_test=True)
-    input_features['input_ids'] = input_ids
-    # padding the input features
+    context_ids, path_ids, _, _ = convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer=policy_tokenizer,
+                                                                                            instance=state,
+                                                                                            max_sequence_length=max_sequence_length,
+                                                                                            goal2id=goal2id,
+                                                                                            topic2id=topic2id)
 
-    input_features = tokenizer.pad(
-        input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+    context_input_features['input_ids'] = context_ids
+    path_input_features['input_ids'] = path_ids
+
+    # padding the context features
+    context_input_features = policy_tokenizer.pad(
+        context_input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
         max_length=max_sequence_length
     )
     # convert features to torch tensors
-    for k, v in input_features.items():
+    for k, v in context_input_features.items():
         if not isinstance(v, torch.Tensor):
-            input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
+            context_input_features[k] = torch.as_tensor(v, device=device)
 
-    # forward the input features through the model
-    gen_seqs = generation_model.generate(
-        **input_features,
-        max_new_tokens=max_gen_length,
-        no_repeat_ngram_size=3
+    # padding the path features
+    path_input_features = policy_tokenizer.pad(
+        path_input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+        max_length=max_sequence_length
     )
-    # remove special tokens
-    gen_resp_ids = []
-    for gen_seq in gen_seqs:
-        gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-        gen_resp_ids.append(gen_seq)
+    # convert features to torch tensors
+    for k, v in path_input_features.items():
+        if not isinstance(v, torch.Tensor):
+            path_input_features[k] = torch.as_tensor(v, device=device)
 
-    decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
-    decoded_preds = [decoded_pred.replace('<pad>', '').replace('<s>', '').replace('</s>', '') for decoded_pred in
-                     decoded_preds]
-    decoded_preds = [pred.strip() for pred in decoded_preds]
+    # label goal, topic. Just using for computational convenience.
+    labels_goal = torch.LongTensor([0]).to(device)
+    labels_topic = torch.LongTensor([0]).to(device)
 
-    return decoded_preds[0]
+    batch = {
+        "context": context_input_features,
+        "path": path_input_features,
+        "labels_goal": labels_goal,
+        "labels_topic": labels_topic
+    }
+    # predict action
+    outputs = policy_model(batch)
+    goal_pred_id = outputs['goal_logits'].argmax(dim=-1).detach().cpu().numpy().tolist()[0]
+    topic_pred_id = outputs['topic_logits'].argmax(dim=-1).detach().cpu().numpy().tolist()[0]
+
+    id2goal = {v: k for k, v in goal2id.items()}
+    id2topic = {v: k for k, v in topic2id.items()}
+    goal = id2goal[goal_pred_id]
+    topic = id2topic[topic_pred_id]
+    return goal, topic
 
 
-def generate_response_rtcp(generation_model, tokenizer, action, topic, state, max_sequence_length, max_gen_length=50,
+def generate_response_rtcp(generation_model, generation_tokenizer, action, topic, state, max_sequence_length, goal2id,
+                           topic2id,
+                           max_gen_length=50,
                            pad_to_multiple_of=True, padding='max_length', device=None):
     """
     function that generates a response with the UNIMIND model.
     @param generation_model: the finetuned huggingface pretrained PLM
-    @param tokenizer: a huggingface tokenizer.
+    @param generation_tokenizer: a huggingface tokenizer.
     @param action: the predicted action
     @param topic: the predicted topic
     @param state:  the current state of the env
     @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param goal2id: dictionary that converts goals to indices
+    @param topic2id: dictionary that converts topics to indices
     @param max_gen_length: the maximum number of tokens in the generated response.
     @param pad_to_multiple_of: True if we pad to multiple instances.
     @param padding: type of padding default = 'max length"
@@ -181,45 +202,26 @@ def generate_response_rtcp(generation_model, tokenizer, action, topic, state, ma
     @return: a generated knowledge utterance.
     """
     # convert state to input feature
-    input_features = defaultdict(list)
-
     state['pred_goal'] = action
     state['pred_topic'] = topic
 
     # convert state to input features
-    input_ids, _ = convert_example_to_feature_for_rtcp_response_generation(tokenizer=tokenizer, instance=state,
-                                                                           max_sequence_length=max_sequence_length,
-                                                                           is_test=True)
-    input_features['input_ids'] = input_ids
-    # padding the input features
+    input_ids, label, goal_id, topic_id = convert_example_to_feature_for_rtcp_response_generation(
+        tokenizer=generation_tokenizer,
+        instance=state,
+        goal2id=goal2id,
+        topic2id=topic2id,
+        max_sequence_length=max_sequence_length,
+        is_test=True)
 
-    input_features = tokenizer.pad(
-        input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
-        max_length=max_sequence_length
-    )
-    # convert features to torch tensors
-    for k, v in input_features.items():
-        if not isinstance(v, torch.Tensor):
-            input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
+    # using RTCP's official decoding method
+    gen_resp_ids = sample_sequence(generation_model, input_ids, goal_id, topic_id, generation_tokenizer, device=device,
+                                   max_dec_len=max_gen_length)
 
-    # forward the input features through the model
-    gen_seqs = generation_model.generate(
-        **input_features,
-        max_new_tokens=max_gen_length,
-        no_repeat_ngram_size=3
-    )
-    # remove special tokens
-    gen_resp_ids = []
-    for gen_seq in gen_seqs:
-        gen_seq = [token_id for token_id in gen_seq if token_id != tokenizer.pad_token_id]
-        gen_resp_ids.append(gen_seq)
+    output_text = generation_tokenizer.decode(gen_resp_ids, skip_special_tokens=True)
+    output_text = output_text.replace("<|endoftext|>", "")
 
-    decoded_preds = tokenizer.batch_decode(gen_resp_ids, skip_special_tokens=False)
-    decoded_preds = [decoded_pred.replace('<pad>', '').replace('<s>', '').replace('</s>', '') for decoded_pred in
-                     decoded_preds]
-    decoded_preds = [pred.strip() for pred in decoded_preds]
-
-    return decoded_preds[0]
+    return output_text
 
 
 def top_filtering(logits, top_k=0, top_p=0.0, threshold=-float('Inf'), filter_value=-float('Inf')):

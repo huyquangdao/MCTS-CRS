@@ -153,7 +153,6 @@ class PrefixTuningTemplate(nn.Module):
             decoder_topic_values)  # (self.n_topic_toks * self.n_topics) * (self.n_decoder_layer * 2 * self.n_embd)
         b_action_values = []
         b_topic_values = []
-
         # lookup action tokens
         for i in range(batch['goal_ids'].size(0)):
             a_id = batch['goal_ids'][i]
