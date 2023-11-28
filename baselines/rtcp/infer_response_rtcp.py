@@ -23,7 +23,7 @@ from dataset.datasets import RTCPTorchDataset
 from dataset.durecdial import DuRecdial
 from eval.eval_generation import GenerationEvaluator
 from config.config import special_tokens_dict, PAD_TOKEN
-from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_response_generation
+from baselines.rtcp.utils import convert_example_to_feature_for_rtcp_response_generation, sample_sequence
 from dataset.data_utils import load_binary_file, load_policy_results, merge_predictions, merge_topic_predictions
 
 

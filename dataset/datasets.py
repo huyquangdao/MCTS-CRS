@@ -57,6 +57,13 @@ class GPTTorchDataset(BaseTorchDataset):
             context_length_batch.append(len(instance['input_ids']))
             labels_gen.append(instance['label'])
 
+        # if inference time, then input padding should be on the left hand side.
+        if self.is_test:
+            self.tokenizer.padding_size = 'left'
+        # if training time, then input padding should be on the right hand side.
+        else:
+            self.tokenizer.padding_size = 'right'
+
         # padding the input features
         input_features = self.tokenizer.pad(
             input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
@@ -108,6 +115,7 @@ class RTCPTorchDataset(BaseTorchDataset):
         @param max_target_length the maximum number of the target sequence (response generation only)
         @param is_test True if inference step False if training step
         @param is_gen True if response generation else False
+        @param is_inference True if testing time else False
         """
         self.topic2id = topic2id
         self.max_sequence_length = max_sequence_length
@@ -225,6 +233,13 @@ class RTCPTorchDataset(BaseTorchDataset):
                 topic_indices.append(instance['topic_id'])
 
             # padding the input features
+            # if inference time, then input padding should be on the left hand side.
+            if self.is_test:
+                self.tokenizer.padding_size = 'left'
+            # if training time, then input padding should be on the right hand side.
+            else:
+                self.tokenizer.padding_size = 'right'
+
             input_features = self.tokenizer.pad(
                 input_features, padding=self.padding, pad_to_multiple_of=self.pad_to_multiple_of,
                 max_length=self.max_sequence_length

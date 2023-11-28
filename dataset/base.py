@@ -28,6 +28,7 @@ class BaseTorchDataset(TorchDataset):
         @param max_target_length the maximum number of the target sequence (response generation only)
         @param is_test True if inference step False if training step
         @param is_gen True if response generation else False
+        @param is_inference True if testing time else False
         """
         super(BaseTorchDataset, self).__init__()
         self.max_sequence_length = max_sequence_length
