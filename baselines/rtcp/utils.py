@@ -287,9 +287,10 @@ def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None,
             "topic_ids": topic_tensor
         }
         batch['labels'] = None
+        batch = model(batch)
+        lm_output = model.plm(**batch)
 
-        lm_output = model(batch)
-        #### we only consider token that belong to the contrained vocabulary.
+        # we only consider token that belong to the contrained vocabulary.
         logits = lm_output["logits"]
         logits = logits[0, -1, :] / temperature
 
