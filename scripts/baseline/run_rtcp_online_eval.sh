@@ -1,7 +1,7 @@
 export CUDA_VISIBLE_DEVICES=5
 seed=1
 
-CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/train_policy_rtcp.py \
+CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/online_evaluation_rtcp.py \
     --train_data_path data/DuRecDial/data/en_train.txt \
     --dev_data_path data/DuRecDial/data/en_dev.txt \
     --test_data_path data/DuRecDial/data/en_test.txt \
