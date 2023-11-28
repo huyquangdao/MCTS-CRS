@@ -18,7 +18,7 @@ class PromptGPT2(nn.Module):
         batch = self.prefix_model(batch['context'])
         batch = {
             "input_ids": batch['input_ids'],
-            "attention_mask": batch['attention_mask'],
+            "attention_mask": batch['attention_mask'] if 'attention_mask' in batch else None,
             "labels": labels,
             "past_key_values": batch["past_key_values"],
         }

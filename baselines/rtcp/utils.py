@@ -283,6 +283,7 @@ def sample_sequence(model, context, action_id, topic_id, tokenizer, device=None,
         batch = {}
         batch['context'] = {
             "input_ids": input_ids,
+            "attention_mask": None,
             "goal_ids": goal_tensor,
             "topic_ids": topic_tensor
         }
