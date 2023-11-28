@@ -248,12 +248,14 @@ if __name__ == '__main__':
             topic_id = instance["topic_id"]
             label_ids = instance["label"]
 
-            # contrain the vocabulary
+            # using RTCP's official decoding method
             gen_resp_ids = sample_sequence(model, history, action_id, topic_id, tokenizer, device=device,
                                            max_dec_len=args.max_gen_length, top_k=args.top_k, top_p=args.top_p,
                                            temperature=args.temperature)
 
+            # evaluating the RTCP generation performance.
             evaluator.evaluate([gen_resp_ids], [label_ids], log=accelerator.is_local_main_process)
+
     # metric
     accelerator.wait_for_everyone()
     report, valid_decoded_preds, valid_decoded_labels = evaluator.report()
@@ -266,16 +268,24 @@ if __name__ == '__main__':
     if run:
         run.log(valid_report)
     evaluator.reset_metric()
+
     # test
     test_loss = []
     model.eval()
-    for batch in tqdm(test_dataloader, disable=not accelerator.is_local_main_process):
+    for instance in tqdm(test_torch_dataset.instances, disable=not accelerator.is_local_main_process):
         with torch.no_grad():
-            batch = model(batch)
-            outputs = model.plm(**batch, return_dict=True)
-            loss = outputs['loss']
-            logits = outputs['logits']
-            test_loss.append(float(loss))
+            history = instance["input_ids"]
+            action_id = instance["action_id"]
+            topic_id = instance["topic_id"]
+            label_ids = instance["label"]
+
+            # using RTCP's official decoding method
+            gen_resp_ids = sample_sequence(model, history, action_id, topic_id, tokenizer, device=device,
+                                           max_dec_len=args.max_gen_length, top_k=args.top_k, top_p=args.top_p,
+                                           temperature=args.temperature)
+
+            # evaluating the RTCP generation performance.
+            evaluator.evaluate([gen_resp_ids], [label_ids], log=accelerator.is_local_main_process)
 
     # metric
     accelerator.wait_for_everyone()
