@@ -46,13 +46,13 @@ def parse_args():
     parser.add_argument('--target_set_path', type=str, help="criterion for the selection step")
 
     # common
+    parser.add_argument("--plm_policy_model", type=str)
+    parser.add_argument("--policy_tokenizer", type=str)
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--lm_size", type=int)
     parser.add_argument("--use_rtcp_policy", action="store_true", help="whether to use wandb")
 
-    # model
-    parser.add_argument("--plm_policy_model", type=str)
-    parser.add_argument("--policy_tokenizer", type=str)
+    # greedy
     parser.add_argument("--plm_generation_model", type=str)
     parser.add_argument("--generation_tokenizer", type=str)
     parser.add_argument("--plm_know_generation_model", type=str)
@@ -61,7 +61,6 @@ def parse_args():
 
     # rtcp policy
     parser.add_argument("--plm_policy_model", type=str, default="")
-    parser.add_argument("--tokenizer", type=str, default="")
     parser.add_argument("--ffn_size", type=int, default=128)
     parser.add_argument("--fc_size", type=int, default=128)
     parser.add_argument("--n_layers", type=int, default=12)
