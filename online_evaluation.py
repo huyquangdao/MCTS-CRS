@@ -48,6 +48,8 @@ def parse_args():
     # common
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--lm_size", type=int)
+    parser.add_argument("--use_rtcp_policy", action="store_true", help="whether to use wandb")
+
 
     # model
     parser.add_argument("--plm_policy_model", type=str)
