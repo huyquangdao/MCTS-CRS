@@ -44,6 +44,11 @@ def parse_args():
     parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--know_generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--target_set_path', type=str, help="criterion for the selection step")
+
+    # common
+    parser.add_argument("--hidden_size", type=int)
+    parser.add_argument("--lm_size", type=int)
+
     # model
     parser.add_argument("--plm_policy_model", type=str)
     parser.add_argument("--policy_tokenizer", type=str)
@@ -52,18 +57,14 @@ def parse_args():
     parser.add_argument("--plm_know_generation_model", type=str)
     parser.add_argument("--know_generation_tokenizer", type=str)
     parser.add_argument("--offline_policy", action="store_true", help="whether to use offline policy")
-    # parser.add_argument("--lm_size", type=int)
 
-    #rtcp policy
+    # rtcp policy
     parser.add_argument("--plm_model", type=str)
     parser.add_argument("--tokenizer", type=str)
-    parser.add_argument("--hidden_size", type=int)
-    parser.add_argument("--lm_size", type=int)
     parser.add_argument("--ffn_size", type=int)
     parser.add_argument("--fc_size", type=int)
     parser.add_argument("--n_layers", type=int)
     parser.add_argument("--n_heads", type=int)
-
 
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
@@ -228,7 +229,7 @@ if __name__ == '__main__':
         max_gen_length=args.max_gen_length,
         model_generation_args=model_generation_args,
         should_plot_tree=True,  # plot the tree after generation,
-        use_rtcp_policy = args.use_rtcp_policy
+        use_rtcp_policy=args.use_rtcp_policy
     )
 
     # compute online evaluation metrics
