@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
         context_encoder = AutoModel.from_pretrained(args.plm_policy_model)
         path_encoder = AutoModel.from_pretrained(args.plm_policy_model)
-        policy_tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+        policy_tokenizer = AutoTokenizer.from_pretrained(args.policy_tokenizer)
 
         policy_tokenizer.add_special_tokens(special_tokens_dict)
         context_encoder.resize_token_embeddings(len(policy_tokenizer))
