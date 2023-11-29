@@ -52,7 +52,7 @@ def parse_args():
     parser.add_argument("--plm_know_generation_model", type=str)
     parser.add_argument("--know_generation_tokenizer", type=str)
     parser.add_argument("--offline_policy", action="store_true", help="whether to use offline policy")
-    parser.add_argument("--lm_size", type=int)
+    # parser.add_argument("--lm_size", type=int)
 
     #rtcp policy
     parser.add_argument("--plm_model", type=str)
