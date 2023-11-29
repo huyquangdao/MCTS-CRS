@@ -62,10 +62,10 @@ def parse_args():
     # rtcp policy
     parser.add_argument("--plm_model", type=str, default="")
     parser.add_argument("--tokenizer", type=str, default="")
-    parser.add_argument("--ffn_size", type=int, default="")
-    parser.add_argument("--fc_size", type=int, default="")
-    parser.add_argument("--n_layers", type=int, default="")
-    parser.add_argument("--n_heads", type=int,default="")
+    parser.add_argument("--ffn_size", type=int, default=128)
+    parser.add_argument("--fc_size", type=int, default=128)
+    parser.add_argument("--n_layers", type=int, default=12)
+    parser.add_argument("--n_heads", type=int,default=8)
 
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
