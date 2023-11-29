@@ -24,4 +24,9 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 online_evaluation.py \
     --generation_model_path ./generation_model/ \
     --know_generation_model_path ./know_generation_model/ \
     --seed 22 \
-    --use_rtcp_polict # if use the rtcp policy
+    --use_rtcp_polict \
+    --lm_size 768 \
+    --ffn_size 3072 \
+    --n_layers 12 \
+    --n_heads 8 \
+    --fc_size 128

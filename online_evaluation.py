@@ -54,6 +54,18 @@ def parse_args():
     parser.add_argument("--hidden_size", type=int)
     parser.add_argument("--offline_policy", action="store_true", help="whether to use offline policy")
     parser.add_argument("--lm_size", type=int)
+
+    #rtcp policy
+    parser.add_argument("--plm_model", type=str)
+    parser.add_argument("--tokenizer", type=str)
+    parser.add_argument("--hidden_size", type=int)
+    parser.add_argument("--lm_size", type=int)
+    parser.add_argument("--ffn_size", type=int)
+    parser.add_argument("--fc_size", type=int)
+    parser.add_argument("--n_layers", type=int)
+    parser.add_argument("--n_heads", type=int)
+
+
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
     parser.add_argument("--entity", type=str, help="wandb username")
