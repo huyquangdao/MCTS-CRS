@@ -133,8 +133,8 @@ if __name__ == '__main__':
         # goal2id = itertools.product(dataset.goals, dataset.topics)
         # goal2id = {k: v for v, k in enumerate(goal2id)}
 
-        context_encoder = AutoModel.from_pretrained(args.plm_model)
-        path_encoder = AutoModel.from_pretrained(args.plm_model)
+        context_encoder = AutoModel.from_pretrained(args.plm_policy_model)
+        path_encoder = AutoModel.from_pretrained(args.plm_policy_model)
         policy_tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
         policy_tokenizer.add_special_tokens(special_tokens_dict)
