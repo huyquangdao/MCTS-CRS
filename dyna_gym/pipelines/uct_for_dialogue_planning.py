@@ -7,6 +7,7 @@ import transformers
 
 from dyna_gym.agents import uct
 from dyna_gym.default_policy.offline_policy import OfflinePolicy
+from dyna_gym.default_policy.rtcp_offline_policy import RTCPOfflinePolicy
 from dyna_gym.utils.tree_search_utils import print_tree
 
 
@@ -27,7 +28,8 @@ def uct_for_dialogue_planning_pipeline(
         model_generation_args: dict = {},
         goal2id: dict = {},
         device=None,
-        should_plot_tree: bool = False
+        should_plot_tree: bool = False,
+        use_rtcp_policy: bool = False
 ) -> Callable:
     """
     function that implements the pipeline for MCTS dialogue planning
@@ -56,7 +58,7 @@ def uct_for_dialogue_planning_pipeline(
         generation_tokenizer=generation_tokenizer,
         know_generation_model=know_generation_model,
         know_tokenizer=know_tokenizer,
-        memory = memory,
+        memory=memory,
         terminal_act=terminal_act,
         horizon=horizon,
         reward_func=reward_func_,
@@ -66,26 +68,46 @@ def uct_for_dialogue_planning_pipeline(
         max_gen_length=max_gen_length,
     )
 
-    default_policy = OfflinePolicy(
-        env=env,
-        horizon=horizon,
-        generation_model=generation_model,
-        generation_tokenizer=generation_tokenizer,
-        know_generation_model=know_generation_model,
-        know_tokenizer=know_tokenizer,
-        policy_model=policy_model,
-        policy_tokenizer=policy_tokenizer,
-        max_sequence_length=max_sequence_length,
-        max_gen_length=max_gen_length,
-        generation_args=model_generation_args,
-        goal2id=goal2id,
-        terminated_act=terminal_act,
-        device=device
-    )
+    # we do not use rtcp as the default policy
+    if not use_rtcp_policy:
+        default_policy = OfflinePolicy(
+            env=env,
+            horizon=horizon,
+            generation_model=generation_model,
+            generation_tokenizer=generation_tokenizer,
+            know_generation_model=know_generation_model,
+            know_tokenizer=know_tokenizer,
+            policy_model=policy_model,
+            policy_tokenizer=policy_tokenizer,
+            max_sequence_length=max_sequence_length,
+            max_gen_length=max_gen_length,
+            generation_args=model_generation_args,
+            goal2id=goal2id,
+            terminated_act=terminal_act,
+            device=device
+        )
+    # if we use rtcp as default policy
+    else:
+        default_policy = RTCPOfflinePolicy(
+            env=env,
+            horizon=horizon,
+            generation_model=generation_model,
+            generation_tokenizer=generation_tokenizer,
+            know_generation_model=know_generation_model,
+            know_tokenizer=know_tokenizer,
+            policy_model=policy_model,
+            policy_tokenizer=policy_tokenizer,
+            max_sequence_length=max_sequence_length,
+            max_gen_length=max_gen_length,
+            generation_args=model_generation_args,
+            goal2id=goal2id,
+            terminated_act=terminal_act,
+            device=device
+        )
 
     agent = uct.UCT(
         default_policy=default_policy,
-        memory = memory,
+        memory=memory,
         **uct_args
     )
 

@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 
 from dyna_gym.pipelines import uct_for_dialogue_planning_pipeline
 from dyna_gym.models.policy import PolicyModel, load_model
+from baselines.rtcp.policy import PolicyModel as RTCPPolicyModel
 from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, DURECDIALGOALS
 from dataset.data_utils import create_target_set, load_binary_file, save_binary_file
@@ -96,20 +97,51 @@ if __name__ == '__main__':
         save_train_convs=True  # for demonstration retrieval
     )
     # goal2id = {k: v for v, k in enumerate(DURECDIALGOALS)}
-    goal2id = load_binary_file(os.path.join(policy_model_path, "goal2id.pkl"))
 
-    # create and load the weights for policy model
-    policy_plm = AutoModel.from_pretrained(plm_policy_model)
-    policy_tokenizer = AutoTokenizer.from_pretrained(args.policy_tokenizer)
-    policy_tokenizer.add_special_tokens(special_tokens_dict)
-    policy_plm.resize_token_embeddings(len(policy_tokenizer))
+    # use greedy policy as the default policy
+    if not args.use_rtcp_policy:
+        goal2id = load_binary_file(os.path.join(policy_model_path, "goal2id.pkl"))
+        # create and load the weights for policy model
+        policy_plm = AutoModel.from_pretrained(plm_policy_model)
+        policy_tokenizer = AutoTokenizer.from_pretrained(args.policy_tokenizer)
+        policy_tokenizer.add_special_tokens(special_tokens_dict)
+        policy_plm.resize_token_embeddings(len(policy_tokenizer))
 
-    policy_model = PolicyModel(
-        plm=policy_plm,
-        n_goals=len(goal2id),
-        hidden_size=args.hidden_size,
-        lm_size=args.lm_size
-    )
+        policy_model = PolicyModel(
+            plm=policy_plm,
+            n_goals=len(goal2id),
+            hidden_size=args.hidden_size,
+            lm_size=args.lm_size
+        )
+    # if we use RTCP as the default policy
+    else:
+        goal2id = load_binary_file(os.path.join(policy_model_path, 'rtcp_goal2id.pkl'))
+        topic2id = load_binary_file(os.path.join(policy_model_path, 'rtcp_topic2id.pkl'))
+
+        # switch from predicting a goal to predicting a pair of a goal and a topic
+        # goal2id = itertools.product(dataset.goals, dataset.topics)
+        # goal2id = {k: v for v, k in enumerate(goal2id)}
+
+        context_encoder = AutoModel.from_pretrained(args.plm_model)
+        path_encoder = AutoModel.from_pretrained(args.plm_model)
+        policy_tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+
+        policy_tokenizer.add_special_tokens(special_tokens_dict)
+        context_encoder.resize_token_embeddings(len(policy_tokenizer))
+        path_encoder.resize_token_embeddings(len(policy_tokenizer))
+
+        policy_model = RTCPPolicyModel(
+            context_encoder=context_encoder,
+            path_encoder=path_encoder,
+            knowledge_encoder=None,  # do not have knowledge,
+            n_layers=args.n_layers,
+            n_topics=len(dataset.topics),
+            n_goals=len(dataset.goals),
+            n_heads=args.n_heads,
+            lm_hidden_size=args.lm_size,
+            ffn_size=args.ffn_size,
+            fc_hidden_size=args.fc_size
+        )
 
     policy_model = load_model(policy_model, os.path.join(policy_model_path, policy_model_name))
     policy_model.to(device)
@@ -184,7 +216,8 @@ if __name__ == '__main__':
         max_sequence_length=args.max_sequence_length,
         max_gen_length=args.max_gen_length,
         model_generation_args=model_generation_args,
-        should_plot_tree=True,  # plot the tree after generation
+        should_plot_tree=True,  # plot the tree after generation,
+        use_rtcp_policy = args.use_rtcp_policy
     )
 
     # compute online evaluation metrics

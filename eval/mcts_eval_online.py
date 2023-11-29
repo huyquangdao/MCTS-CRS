@@ -14,7 +14,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
                  know_generation_tokenizer,
                  policy_model, policy_tokenizer, memory, horizon, reward_func, uct_args, goal2id, device=None,
                  max_sequence_length=512, offline_policy=False, pad_to_multiple_of=True, padding='max_length',
-                 max_gen_length=50, model_generation_args=None, should_plot_tree=True
+                 max_gen_length=50, model_generation_args=None, should_plot_tree=True, use_rtcp_policy=False,
                  ):
         """
         constructor for class MCTSCRSOnlineEval
@@ -58,6 +58,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
         self.max_gen_length = max_gen_length
         self.model_generation_args = model_generation_args
         self.should_plot_tree = should_plot_tree
+        self.use_rtcp_policy = use_rtcp_policy
 
         self.mcts_agent = self.init_agent()
 
@@ -74,7 +75,7 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             know_tokenizer=self.know_generation_tokenizer,
             policy_model=self.policy_model,
             policy_tokenizer=self.policy_tokenizer,
-            memory = self.memory,
+            memory=self.memory,
             horizon=self.horizon,
             reward_func=self.reward_func,
             uct_args=self.uct_args,
@@ -83,7 +84,8 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
             max_sequence_length=self.max_sequence_length,
             max_gen_length=self.max_gen_length,
             model_generation_args=self.model_generation_args,
-            should_plot_tree=True,  # plot the tree after generation
+            should_plot_tree=True,  # plot the tree after generation,
+            use_rtcp_policy=self.use_rtcp_policy
         )
 
         return mcts_agent
