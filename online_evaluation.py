@@ -60,7 +60,6 @@ def parse_args():
     parser.add_argument("--offline_policy", action="store_true", help="whether to use offline policy")
 
     # rtcp policy
-    parser.add_argument("--plm_policy_model", type=str, default="")
     parser.add_argument("--ffn_size", type=int, default=128)
     parser.add_argument("--fc_size", type=int, default=128)
     parser.add_argument("--n_layers", type=int, default=12)
