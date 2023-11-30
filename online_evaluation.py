@@ -137,12 +137,12 @@ if __name__ == '__main__':
         all_topics = []
 
         # loop overall goal
-        for id in range(len(goal2id.keys)):
+        for id in range(len(goal2id.keys())):
             goal = id2goal[id]
             all_goals.append(goal)
 
         # loop overall topic
-        for id in range(len(topic2id.keys)):
+        for id in range(len(topic2id.keys())):
             topic = id2topic[id]
             all_topics.append(topic)
 
