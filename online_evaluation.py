@@ -1,3 +1,4 @@
+import itertools
 import math
 import os
 import argparse
@@ -63,7 +64,7 @@ def parse_args():
     parser.add_argument("--ffn_size", type=int, default=128)
     parser.add_argument("--fc_size", type=int, default=128)
     parser.add_argument("--n_layers", type=int, default=12)
-    parser.add_argument("--n_heads", type=int,default=8)
+    parser.add_argument("--n_heads", type=int, default=8)
 
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
@@ -128,6 +129,26 @@ if __name__ == '__main__':
     else:
         goal2id = load_binary_file(os.path.join(policy_model_path, 'rtcp_goal2id.pkl'))
         topic2id = load_binary_file(os.path.join(policy_model_path, 'rtcp_topic2id.pkl'))
+
+        id2goal = {v: k for k, v in goal2id.items()}
+        id2topic = {v: k for k, v in topic2id.items()}
+
+        all_goals = []
+        all_topics = []
+
+        # loop overall goal
+        for id in range(len(goal2id.keys)):
+            goal = id2goal[id]
+            all_goals.append(goal)
+
+        # loop overall topic
+        for id in range(len(topic2id.keys)):
+            topic = id2topic[id]
+            all_topics.append(topic)
+
+        # combine goal and topic
+        goal2id = list(itertools.product(all_goals, all_topics))
+        goal2id = {k: v for v, k in enumerate(goal2id)}
 
         # switch from predicting a goal to predicting a pair of a goal and a topic
         # goal2id = itertools.product(dataset.goals, dataset.topics)
