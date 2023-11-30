@@ -177,7 +177,12 @@ def update_state(state, action, sys_response, user_response):
     new_state['dialogue_context'].append(
         {"role": "user", "content": user_response}
     )
-    new_state['pre_goals'].append(action)
+    if isinstance(action, tuple):
+        goal, topic = action
+        new_state['pre_goals'].append(goal)
+        new_state['pre_topics'].append(topic)
+    else:
+        new_state['pre_goals'].append(action)
     return new_state
 
 

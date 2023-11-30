@@ -19,7 +19,7 @@ class DialogueEnv(gym.Env):
     def __init__(self, generation_model, generation_tokenizer, know_generation_model, know_tokenizer, memory,
                  terminal_act, horizon=5, max_sequence_length=512, max_gen_length=50, pad_to_multiple_of=True,
                  padding='max_length', device=None,
-                 reward_func=None, goal2id=None):
+                 reward_func=None, goal2id=None, use_rtcp_policy=False):
         """
 
         @param generation_model:
@@ -52,6 +52,7 @@ class DialogueEnv(gym.Env):
         self.pad_to_multiple_of = pad_to_multiple_of
         self.padding = padding
         self.device = device
+        self.use_rtcp_policy = use_rtcp_policy
 
     def reset(self, state):
         self.state = state
@@ -113,6 +114,7 @@ class DialogueEnv(gym.Env):
 
         # update the current state.
         new_state = update_state(state, action, resp, user_resp)
+
         return new_state, reward, done
 
     def step(self, action):
