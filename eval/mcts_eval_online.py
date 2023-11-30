@@ -6,6 +6,7 @@ from dyna_gym.envs.utils import update_state, predict_action, generate_knowledge
     generate_sys_response_with_plm, get_user_resp
 from eval.base import BaseOnlineEval
 from dyna_gym.pipelines.uct_for_dialogue_planning import uct_for_dialogue_planning_pipeline
+from baselines.rtcp.utils import predict_action_rtcp_mcts
 
 
 class MCTSCRSOnlineEval(BaseOnlineEval):
@@ -118,19 +119,31 @@ class MCTSCRSOnlineEval(BaseOnlineEval):
         @param state: the current state of the conversation
         @return: generated system response and predicted system action
         """
-        if not self.offline_policy:
-            # predict system action using monte-carlo tree search
-            action = self.mcts_agent(state)
+        # if not using the rtcp policy
+        if not self.use_rtcp_policy:
+            if not self.offline_policy:
+                # predict system action using monte-carlo tree search
+                action = self.mcts_agent(state)
+            else:
+                # predict the system action using the greedy search model
+                action = predict_action(self.policy_model,
+                                        self.policy_tokenizer,
+                                        state,
+                                        self.max_sequence_length,
+                                        self.goal2id,
+                                        self.pad_to_multiple_of,
+                                        self.padding,
+                                        device=self.device)
         else:
-            # predict the system action using the greedy search model
-            action = predict_action(self.policy_model,
-                                    self.policy_tokenizer,
-                                    state,
-                                    self.max_sequence_length,
-                                    self.goal2id,
-                                    self.pad_to_multiple_of,
-                                    self.padding,
-                                    device=self.device)
+            action = predict_action_rtcp_mcts(policy_model=self.policy_model,
+                                              policy_tokenizer=self.policy_tokenizer,
+                                              state=state,
+                                              goal2id=self.goal2id,
+                                              pad_to_multiple_of=self.pad_to_multiple_of,
+                                              padding=self.padding,
+                                              device=self.device,
+                                              max_sequence_length=self.max_sequence_length
+                                              )
 
         # generate relevant knowledge
         knowledge = generate_knowledge_with_plm(generation_model=self.know_generation_model,

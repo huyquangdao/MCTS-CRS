@@ -136,8 +136,8 @@ def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_leng
     context_ids, path_ids, _, _ = convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer=policy_tokenizer,
                                                                                             instance=state,
                                                                                             max_sequence_length=max_sequence_length,
-                                                                                            goal2id=goal2id,
-                                                                                            topic2id=topic2id)
+                                                                                            goal2id=None,
+                                                                                            topic2id=None)
 
     context_input_features['input_ids'] = context_ids
     path_input_features['input_ids'] = path_ids
@@ -179,9 +179,90 @@ def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_leng
 
     id2goal = {v: k for k, v in goal2id.items()}
     id2topic = {v: k for k, v in topic2id.items()}
+
     goal = id2goal[goal_pred_id]
     topic = id2topic[topic_pred_id]
     return goal, topic
+
+
+def predict_action_rtcp_mcts(policy_model, policy_tokenizer, state, max_sequence_length, goal2id,
+                             max_gen_length=50,
+                             pad_to_multiple_of=True, padding='max_length', device=None):
+    """
+    function that predicts the action with RTCP policy model
+    @param policy_model: the finetuned huggingface pretrained PLM
+    @param policy_tokenizer: a huggingface tokenizer.
+    @param state:  the current state of the env
+    @param max_sequence_length: the maximum number of tokens in the input sequence.
+    @param max_gen_length: the maximum number of tokens in the generated response.
+    @param pad_to_multiple_of: True if we pad to multiple instances.
+    @param padding: type of padding default = 'max length"
+    @param device: device to allocate tensors
+    @return: a generated knowledge utterance.
+    """
+    # convert state to input feature
+    context_input_features = defaultdict(list)
+    path_input_features = defaultdict(list)
+
+    # convert state to input features
+    context_ids, path_ids, _, _ = convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer=policy_tokenizer,
+                                                                                            instance=state,
+                                                                                            max_sequence_length=max_sequence_length,
+                                                                                            goal2id=goal2id,
+                                                                                            topic2id=topic2id)
+
+    context_input_features['input_ids'] = context_ids
+    path_input_features['input_ids'] = path_ids
+
+    # padding the context features
+    context_input_features = policy_tokenizer.pad(
+        context_input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+        max_length=max_sequence_length
+    )
+    # convert features to torch tensors
+    for k, v in context_input_features.items():
+        if not isinstance(v, torch.Tensor):
+            context_input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
+
+    # padding the path features
+    path_input_features = policy_tokenizer.pad(
+        path_input_features, padding=padding, pad_to_multiple_of=pad_to_multiple_of,
+        max_length=max_sequence_length
+    )
+    # convert features to torch tensors
+    for k, v in path_input_features.items():
+        if not isinstance(v, torch.Tensor):
+            path_input_features[k] = torch.as_tensor(v, device=device).unsqueeze(0)
+
+    # label goal, topic. Just using for computational convenience.
+    labels_goal = torch.LongTensor([0]).to(device)
+    labels_topic = torch.LongTensor([0]).to(device)
+
+    batch = {
+        "context": context_input_features,
+        "path": path_input_features,
+        "labels_goal": labels_goal,
+        "labels_topic": labels_topic
+    }
+    # predict action
+    outputs = policy_model(batch)
+    goal_logits = outputs['goal_logits']
+    topic_logits = outputs['topic_logits']
+
+    # convert logits to probabilities
+    all_goal_probs = torch.softmax(goal_logits, dim=-1)
+    all_topic_probs = torch.softmax(topic_logits, dim=-1)
+
+    # combining goal and topic probabilities
+    all_probs = all_goal_probs.unsqueeze(-1).repeat(1, 1, all_topic_probs.size(-1)) * all_topic_probs.unsqueeze(
+        1).repeat(1, all_goal_probs.size(-1), 1)
+    all_probs = all_probs.view(all_probs.size(0), -1)
+
+    # get the index of the most probable goal and topic
+    action_id = all_probs.argmax(dim=-1).detach().cpu().numpy().tolist()[0]
+    id2goal = {v: k for k, v in goal2id.items()}
+    action = id2goal[action_id]
+    return action
 
 
 def generate_response_rtcp(generation_model, generation_tokenizer, action, topic, state, max_sequence_length, goal2id,
