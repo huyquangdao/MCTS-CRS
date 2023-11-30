@@ -208,8 +208,8 @@ def predict_action_rtcp_mcts(policy_model, policy_tokenizer, state, max_sequence
     context_ids, path_ids, _, _ = convert_example_to_feature_for_rtcp_goal_topic_prediction(tokenizer=policy_tokenizer,
                                                                                             instance=state,
                                                                                             max_sequence_length=max_sequence_length,
-                                                                                            goal2id=goal2id,
-                                                                                            topic2id=topic2id)
+                                                                                            goal2id=None,
+                                                                                            topic2id=None)
 
     context_input_features['input_ids'] = context_ids
     path_input_features['input_ids'] = path_ids
