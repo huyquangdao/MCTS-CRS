@@ -152,6 +152,7 @@ class BaseOnlineEval(object):
         if self.use_llm_score:
             # compute success rate based on LLMs
             sr = self.is_llm_based_successful(generated_conversation, target_item, demonstrations)
+            turn = len(generated_conversation)
             return sr, turn
         return int(sr), turn
 
