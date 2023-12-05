@@ -404,7 +404,7 @@ def save_generated_conversations(generated_conversations, file_path):
     @param file_path: the string that is the path to the file.
     @return: None
     """
-    with open(file_path, 'r') as f:
+    with open(file_path, 'w') as f:
         for generated_conv in generated_conversations:
             out_str = json.dumps(generated_conv)
             f.write(out_str + '\n')
