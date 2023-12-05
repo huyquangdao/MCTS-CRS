@@ -139,7 +139,7 @@ class RTCPBartOnlineEval(BaseOnlineEval):
     Online evaluation class for RTCP with Bart knowledge and text generation model
     """
 
-    def __init__(self, target_set, terminal_act, use_llm_score, generation_model, generation_tokenizer,
+    def __init__(self, target_set, terminal_act, use_llm_score, n, generation_model, generation_tokenizer,
                  know_generation_model,
                  know_generation_tokenizer,
                  policy_model, policy_tokenizer, horizon, goal2id, topic2id, device=None,
@@ -162,7 +162,7 @@ class RTCPBartOnlineEval(BaseOnlineEval):
         @param max_gen_length:
         """
 
-        super().__init__(target_set, terminal_act, horizon, use_llm_score)
+        super().__init__(target_set, terminal_act, horizon, use_llm_score, n)
         self.generation_model = generation_model
         self.generation_tokenizer = generation_tokenizer
         self.know_generation_model = know_generation_model

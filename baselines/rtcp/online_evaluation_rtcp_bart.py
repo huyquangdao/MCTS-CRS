@@ -49,6 +49,7 @@ def parse_args():
     parser.add_argument('--horizon', type=int, default=5, help="max length of both encoder and decoder input.")
 
     parser.add_argument("--use_llm_score", action="store_true", help="whether to use llm based assessment")
+    parser.add_argument("--n", default=5, type=int, help="whether to use llm based assessment")
 
     # paths to pretrained models.
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
@@ -202,6 +203,7 @@ if __name__ == '__main__':
         target_set=target_set,
         terminal_act=terminal_act,
         use_llm_score=args.use_llm_score,
+        n=args.n,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
         know_generation_model=know_generation_model,

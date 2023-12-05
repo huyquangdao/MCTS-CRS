@@ -7,12 +7,13 @@ from dataset.data_utils import save_generated_conversations
 
 class BaseOnlineEval(object):
 
-    def __init__(self, target_set, terminal_act, horizon, use_llm_score=False, epsilon=1.0):
+    def __init__(self, target_set, terminal_act, horizon, use_llm_score=False, epsilon=1.0, n=5):
         self.terminal_act = terminal_act
         self.target_set = target_set
         self.horizon = horizon
         self.use_llm_score = use_llm_score
         self.epsilon = epsilon
+        self.n = n
 
     def pipeline(self, state):
         raise NotImplementedError()
@@ -170,7 +171,7 @@ class BaseOnlineEval(object):
         @param target_item: the target item
         @return: a float score
         """
-        score = get_llm_based_assessment(target_item, generated_conversation, demonstrations)
+        score = get_llm_based_assessment(target_item, generated_conversation, demonstrations, n=self.n)
         return 1.0 if score >= self.epsilon else 0.0
 
     def compute_turn(self, generated_conversation):

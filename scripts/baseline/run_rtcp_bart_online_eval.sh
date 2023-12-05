@@ -24,4 +24,5 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/online_evalu
     --target_set_path ./target_set_${seed}/ \
     --horizon 5 \
     --use_llm_score \
+    --n 5 \
     --seed ${seed}
