@@ -724,7 +724,7 @@ def reformat_simulated_conversation(simulated_conversation):
     return instances
 
 
-def get_llm_based_assessment(target_topic, simulated_conversation, demonstration=None, n=10, thresh=6):
+def get_llm_based_assessment(target_topic, simulated_conversation, demonstration=None, n=10):
     """
     function that evaluate if a target-driven conversation is successful with LLM.
     @param target_topic: the targe item
