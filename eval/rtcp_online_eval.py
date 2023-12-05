@@ -4,7 +4,7 @@ from eval.base import BaseOnlineEval
 from baselines.rtcp.utils import predict_action_rtcp, generate_response_rtcp
 
 from dyna_gym.envs.utils import generate_knowledge_with_plm, \
-    generate_sys_response_with_plm
+    generate_sys_response_with_plm, get_system_response_with_LLama
 
 
 class RTCPOnlineEval(BaseOnlineEval):
@@ -242,4 +242,89 @@ class RTCPBartOnlineEval(BaseOnlineEval):
                                                      pad_to_multiple_of=self.pad_to_multiple_of,
                                                      padding=self.padding,
                                                      device=self.device)
+        return system_resp, action
+
+
+class RTCPLLamaOnlineEval(BaseOnlineEval):
+    """
+    Online evaluation class for RTCP with Llama
+    """
+
+    def __init__(self, target_set, terminal_act, use_llm_score, n, epsilon, use_demonstration,
+                 policy_model, policy_tokenizer, horizon, goal2id, topic2id, device=None,
+                 max_sequence_length=512, pad_to_multiple_of=True, padding='max_length',
+                 max_gen_length=50
+                 ):
+        """
+        constructor for class MCTSCRSOnlineEval
+        @param target_set:
+        @param policy_model:
+        @param policy_tokenizer:
+        @param horizon:
+        @param goal2id:
+        @param device:
+        @param max_sequence_length:
+        @param max_gen_length:
+        """
+
+        super().__init__(target_set, terminal_act, horizon, use_llm_score, epsilon, n, use_demonstration)
+        self.policy_model = policy_model
+        self.policy_tokenizer = policy_tokenizer
+        self.topic2id = topic2id
+        self.horizon = horizon
+        self.goal2id = goal2id
+        self.device = device
+        self.max_sequence_length = max_sequence_length
+        self.pad_to_multiple_of = pad_to_multiple_of
+        self.padding = padding
+        self.max_gen_length = max_gen_length
+
+    def update(self, state, system_response, system_action, user_response):
+        # update state
+        new_state = copy.deepcopy(state)
+        new_state['dialogue_context'].append(
+            {"role": "assistant", "content": system_response}
+        )
+        new_state['dialogue_context'].append(
+            {"role": "user", "content": user_response}
+        )
+        goal, topic = system_action
+        new_state['pre_goals'].append(goal)
+        new_state['pre_topics'].append(topic)
+        return new_state
+
+    def check_terminated_condition(self, system_action):
+        """
+        function that check if the conversation is terminated
+        @param system_action: the input system action (goal)
+        @return: True if the conversation is terminated else False
+        """
+        return system_action[0] == self.terminal_act
+
+    def pipeline(self, state):
+        """
+        method that perform one system pipeline including action prediction, knowledge generation and response generation
+        @param state: the current state of the conversation
+        @return: generated system response and predicted system action
+        """
+        # predict action with RTCP policy
+        action = predict_action_rtcp(policy_model=self.policy_model,
+                                     policy_tokenizer=self.policy_tokenizer,
+                                     state=state,
+                                     max_sequence_length=self.max_sequence_length,
+                                     goal2id=self.goal2id,
+                                     topic2id=self.topic2id,
+                                     pad_to_multiple_of=self.pad_to_multiple_of,
+                                     padding=self.padding,
+                                     device=self.device)
+
+        """
+        note: you need to implement the following
+         get_system_response_with_LLama function that produces a text string as output.
+        the inputs are (1): the current state of the conversation, which contains dialogue context, previous goals
+        previous topics and a demonstration.
+        (2) the predicted action which is a tuple of two elements, one is a goal, the other is the topic.
+        For prompt and instructions, please take a look at the generate_sys_resp function in dynagym/envs/utils.py file
+        """
+        system_resp = get_system_response_with_LLama(state, action)
         return system_resp, action

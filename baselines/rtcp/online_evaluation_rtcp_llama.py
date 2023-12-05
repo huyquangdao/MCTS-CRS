@@ -22,7 +22,7 @@ from baselines.rtcp.gen_model import PromptGPT2
 from dataset.durecdial import DuRecdial
 from config.config import special_tokens_dict, PAD_TOKEN
 from dataset.data_utils import load_binary_file, create_target_set, save_binary_file
-from eval.rtcp_online_eval import RTCPBartOnlineEval
+from eval.rtcp_online_eval import RTCPLLamaOnlineEval
 from baselines.rtcp.policy import PolicyModel
 
 
@@ -55,8 +55,6 @@ def parse_args():
 
     # paths to pretrained models.
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
-    parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
-    parser.add_argument('--know_generation_model_path', type=str, help="criterion for the selection step")
 
     # policy moodel
     parser.add_argument("--plm_policy_model", type=str)
@@ -67,14 +65,6 @@ def parse_args():
     parser.add_argument("--fc_size", type=int)
     parser.add_argument("--n_layers", type=int)
     parser.add_argument("--n_heads", type=int)
-
-    # know generation model
-    parser.add_argument("--plm_know_generation_model", type=str)
-    parser.add_argument("--know_generation_tokenizer", type=str)
-
-    # generation model
-    parser.add_argument("--plm_generation_model", type=str)
-    parser.add_argument("--generation_tokenizer", type=str)
 
     # wandb
     parser.add_argument("--use_wandb", action="store_true", help="whether to use wandb")
@@ -164,32 +154,6 @@ if __name__ == '__main__':
     policy_model = load_model(policy_model, os.path.join(args.policy_model_path, policy_model_name))
     policy_model.to(device)
 
-    # load the response generation model for RTCP
-    # create and load the weights for knowledge generation model
-    plm_know_generation_model = args.plm_know_generation_model
-    know_generation_model_path = args.know_generation_model_path
-    know_generation_model_name = 'know_generation.pth'
-    know_generation_model = BartForConditionalGeneration.from_pretrained(plm_know_generation_model)
-
-    know_generation_tokenizer = AutoTokenizer.from_pretrained(args.know_generation_tokenizer)
-    know_generation_tokenizer.add_special_tokens(special_tokens_dict)
-    know_generation_model.resize_token_embeddings(len(know_generation_tokenizer))
-    know_generation_model = load_model(know_generation_model,
-                                       os.path.join(know_generation_model_path, know_generation_model_name))
-    know_generation_model.to(device)
-
-    # create and load the weights for generation model
-    plm_generation_model = args.plm_generation_model
-    generation_model_path = args.generation_model_path
-    generation_model_name = 'response_generation.pth'
-    generation_model = BartForConditionalGeneration.from_pretrained(plm_generation_model)
-
-    generation_tokenizer = AutoTokenizer.from_pretrained(args.generation_tokenizer)
-    generation_tokenizer.add_special_tokens(special_tokens_dict)
-    generation_model.resize_token_embeddings(len(generation_tokenizer))
-    generation_model = load_model(generation_model, os.path.join(generation_model_path, generation_model_name))
-    generation_model.to(device)
-
     if not os.path.exists(args.target_set_path):
         os.mkdir(args.target_set_path)
 
@@ -201,7 +165,7 @@ if __name__ == '__main__':
         save_binary_file(target_set, os.path.join(args.target_set_path, "target.pkl"))
 
     terminal_act = "Say goodbye"
-    rtcp_online_eval = RTCPBartOnlineEval(
+    rtcp_online_eval = RTCPLLamaOnlineEval(
         target_set=target_set,
         terminal_act=terminal_act,
         use_llm_score=args.use_llm_score,
@@ -210,10 +174,6 @@ if __name__ == '__main__':
         use_demonstration=args.use_demonstration,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
-        know_generation_model=know_generation_model,
-        know_generation_tokenizer=know_generation_tokenizer,
-        generation_model=generation_model,
-        generation_tokenizer=generation_tokenizer,
         horizon=args.horizon,
         goal2id=goal2id,
         topic2id=topic2id,
@@ -226,11 +186,10 @@ if __name__ == '__main__':
     saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}")
     if not os.path.exists(saved_file_path):
         os.mkdir(saved_file_path)
-    saved_file_path - os.path.join(saved_file_path, "bart")
+    saved_file_path - os.path.join(saved_file_path, "llama")
     if not os.path.exists(saved_file_path):
         os.mkdir(saved_file_path)
     saved_file_path = os.path.join(saved_file_path, "generated_conversations.txt")
-
     # compute online evaluation metrics
     sr, avg_turn = rtcp_online_eval.eval(saved_file_path=saved_file_path)
 

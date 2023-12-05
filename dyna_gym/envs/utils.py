@@ -799,3 +799,12 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
             is_successful += 1
 
     return float(is_successful) / n
+
+
+def get_system_response_with_LLama(state, action):
+    """
+    function that generate a system response with the LLama model
+    @param state: the current state of the conversation
+    @param action: the predicted action from the policy model which is a tuple consisting a goal and a topic.
+    @return: a text string which is the system response.
+    """
