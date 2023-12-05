@@ -18,7 +18,6 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/online_evalu
     --fc_size 128 \
     --max_sequence_length 512 \
     --policy_model_path ./rtcp/ \
-    --policy_model_path ./policy_model/ \
     --generation_model_path ./generation_model/ \
     --know_generation_model_path ./know_generation_model/ \
     --num_items 100 \
