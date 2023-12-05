@@ -125,6 +125,8 @@ class BaseOnlineEval(object):
             generated_conversation = self.run(initial_state)
             srk, sr, turn = self.compute_metrics(copy.deepcopy(generated_conversation), target_item['topic'],
                                                  initial_state['demonstration'] if self.use_demonstration else None)
+
+            generated_conversation = initial_state['dialogue_context'].extend(generated_conversation)
             all_generated_convs.append(generated_conversation)
             avg_sr.append(sr)
             avg_turn.append(turn)
