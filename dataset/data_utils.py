@@ -395,3 +395,16 @@ def save_simulated_results(f, state, dialogue_continuation):
         "continuation": dialogue_continuation
     }
     f.write(json.dumps(dic) + "\n")
+
+
+def save_generated_conversations(generated_conversations, file_path):
+    """
+    function that save generated conversations to a text file
+    @param generated_conversations: list of generated conversations.
+    @param file_path: the string that is the path to the file.
+    @return: None
+    """
+    with open(file_path, 'r') as f:
+        for generated_conv in generated_conversations:
+            out_str = json.dumps(generated_conv)
+            f.write(out_str + '\n')

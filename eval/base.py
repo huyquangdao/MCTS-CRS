@@ -2,6 +2,7 @@ import os
 
 from tqdm import tqdm
 from dyna_gym.envs.utils import simulate_conversation, update_state, get_user_resp, get_llm_based_assessment
+from dataset.data_utils import save_generated_conversations
 
 
 class BaseOnlineEval(object):
@@ -103,19 +104,26 @@ class BaseOnlineEval(object):
             ])
         return generated_conversation
 
-    def eval(self):
+    def eval(self, saved_file_path):
         """
         method that perform online evaluation on a predefined set of items
         @return: computed metrics
         """
         avg_sr = []
         avg_turn = []
+        all_generated_convs = []
         for target_item in tqdm(self.target_set):
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
             sr, turn = self.compute_metrics(generated_conversation, target_item['topic'])
+            all_generated_convs.append(generated_conversation)
             avg_sr.append(sr)
             avg_turn.append(turn)
+
+        # saving generated conversations to file
+        save_generated_conversations(all_generated_convs, saved_file_path)
+
+        # return success rate metrics and averaged conversation turns.
         return sum(avg_sr) / len(self.target_set), sum(avg_turn) / len(self.target_set)
 
     def check_terminated_condition(self, system_action):

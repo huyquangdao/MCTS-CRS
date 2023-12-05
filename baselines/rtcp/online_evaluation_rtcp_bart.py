@@ -213,8 +213,11 @@ if __name__ == '__main__':
         max_gen_length=args.max_gen_length,
     )
 
+    # policy model / target_set_id / generated_conversations.txt
+    saved_file_path = f"{args.policy_model_path}/{args.target_set_path}/generated_conversations.txt"
+
     # compute online evaluation metrics
-    sr, avg_turn = rtcp_online_eval.eval()
+    sr, avg_turn = rtcp_online_eval.eval(saved_file_path=saved_file_path)
 
     print("Success rate:", sr)
     print("Avg turn: ", avg_turn)
