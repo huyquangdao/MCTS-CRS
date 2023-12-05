@@ -114,7 +114,6 @@ def convert_example_to_feature_for_rtcp_response_generation(tokenizer, instance,
 
 
 def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_length, goal2id, topic2id,
-                        max_gen_length=50,
                         pad_to_multiple_of=True, padding='max_length', device=None):
     """
     function that predicts the action with RTCP policy model
@@ -186,7 +185,6 @@ def predict_action_rtcp(policy_model, policy_tokenizer, state, max_sequence_leng
 
 
 def predict_action_rtcp_mcts(policy_model, policy_tokenizer, state, max_sequence_length, goal2id,
-                             max_gen_length=50,
                              pad_to_multiple_of=True, padding='max_length', device=None):
     """
     function that predicts the action with RTCP policy model
@@ -194,7 +192,6 @@ def predict_action_rtcp_mcts(policy_model, policy_tokenizer, state, max_sequence
     @param policy_tokenizer: a huggingface tokenizer.
     @param state:  the current state of the env
     @param max_sequence_length: the maximum number of tokens in the input sequence.
-    @param max_gen_length: the maximum number of tokens in the generated response.
     @param pad_to_multiple_of: True if we pad to multiple instances.
     @param padding: type of padding default = 'max length"
     @param device: device to allocate tensors
