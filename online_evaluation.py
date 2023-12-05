@@ -266,9 +266,14 @@ if __name__ == '__main__':
     model_name = "offline" if args.offline_policy else "mcts"
 
     # policy model / target_set_id / mcts (offline)/ generated_conversations.txt
-    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}", model_name)
+    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}")
     if not os.path.exists(saved_file_path):
         os.mkdir(saved_file_path)
+
+    saved_file_path = os.path.join(saved_file_path, model_name)
+    if not os.path.exists(saved_file_path):
+        os.mkdir(saved_file_path)
+
     saved_file_path = os.path.join(saved_file_path, "generated_conversations.txt")
 
     # compute online evaluation metrics
