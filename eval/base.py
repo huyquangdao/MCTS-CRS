@@ -198,6 +198,9 @@ class BaseOnlineEval(object):
                 else:
                     return False, True, idx + 1
 
+        # failed to recommend the target item
+        return False, False, len(generated_conversation)
+
     def compute_turn(self, generated_conversation):
         """
         method that compute the number of turn needed to end the conversation
