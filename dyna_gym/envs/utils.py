@@ -770,7 +770,7 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
     reject_string = "reject"
 
     # assessment instruction
-    system_instruction_3 = '''Based on the given conversation and the attitude of the user towards the 
+    system_instruction_3 = '''Based on the given conversation, you need to infer the attitude of the user towards the 
     target item : {}. You need to predict if the user is happy or willing to accept the target item. 
     If the user is convinced and happy, you need to generate the word: {}
     If the user is confused or unhappy or if the target item :{} is not in the given conversation, 
@@ -795,7 +795,7 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
 
     is_successful = 0
     for response in responses:
-        if response.lower() == accept_string:
+        if response.lower() == accept_string.lower():
             is_successful += 1
 
     return float(is_successful) / n

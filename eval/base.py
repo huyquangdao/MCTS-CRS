@@ -117,7 +117,8 @@ class BaseOnlineEval(object):
         for target_item in tqdm(self.target_set):
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
-            sr, turn = self.compute_metrics(generated_conversation, target_item['topic'])
+            sr, turn = self.compute_metrics(generated_conversation, target_item['topic'],
+                                            initial_state['demonstration'])
             all_generated_convs.append(generated_conversation)
             avg_sr.append(sr)
             avg_turn.append(turn)
@@ -136,7 +137,7 @@ class BaseOnlineEval(object):
         """
         return system_action == self.terminal_act
 
-    def compute_metrics(self, generated_conversation, target_item):
+    def compute_metrics(self, generated_conversation, target_item, demonstrations=None):
         """
         method that compute the dialogue-level SR and avg number of conversational turn
         @param generated_conversation: set of generated conversations between user and system
@@ -145,7 +146,8 @@ class BaseOnlineEval(object):
         """
         sr, turn = self.is_successful(generated_conversation, target_item)
         if self.use_llm_score:
-            sr = self.is_llm_based_successful(generated_conversation, target_item)
+            # compute success rate based on LLMs
+            sr = self.is_llm_based_successful(generated_conversation, target_item, demonstrations)
             return sr, turn
         return int(sr), turn
 
@@ -161,14 +163,14 @@ class BaseOnlineEval(object):
                 return True, idx + 1
         return False, len(generated_conversation)
 
-    def is_llm_based_successful(self, generated_conversation, target_item):
+    def is_llm_based_successful(self, generated_conversation, target_item, demonstrations):
         """
         method that return a score which is a LLM-based assessment
         @param generated_conversation: the generated conversation
         @param target_item: the target item
         @return: a float score
         """
-        score = get_llm_based_assessment(target_item, generated_conversation)
+        score = get_llm_based_assessment(target_item, generated_conversation, demonstrations)
         return 1.0 if score >= self.epsilon else 0.0
 
     def compute_turn(self, generated_conversation):
