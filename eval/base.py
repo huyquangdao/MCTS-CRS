@@ -116,23 +116,26 @@ class BaseOnlineEval(object):
         method that perform online evaluation on a predefined set of items
         @return: computed metrics
         """
+        avg_srk = []
         avg_sr = []
         avg_turn = []
         all_generated_convs = []
         for target_item in tqdm(self.target_set):
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
-            sr, turn = self.compute_metrics(copy.deepcopy(generated_conversation), target_item['topic'],
-                                            initial_state['demonstration'] if self.use_demonstration else None)
+            srk, sr, turn = self.compute_metrics(copy.deepcopy(generated_conversation), target_item['topic'],
+                                                 initial_state['demonstration'] if self.use_demonstration else None)
             all_generated_convs.append(generated_conversation)
             avg_sr.append(sr)
             avg_turn.append(turn)
+            avg_srk.append(srk)
 
         # saving generated conversations to file
         save_generated_conversations(all_generated_convs, saved_file_path)
 
         # return success rate metrics and averaged conversation turns.
-        return sum(avg_sr) / len(self.target_set), sum(avg_turn) / len(self.target_set)
+        return sum(avg_srk) / len(self.target_set), sum(avg_sr) / len(self.target_set), sum(avg_turn) / len(
+            self.target_set)
 
     def check_terminated_condition(self, system_action):
         """
@@ -149,12 +152,12 @@ class BaseOnlineEval(object):
         @param target_item: set of target item
         @return: dialogue-level SR and averaged number of conversational turn
         """
-        sr, turn = self.is_successful(generated_conversation, target_item)
         if self.use_llm_score:
             # compute success rate based on LLMs
-            sr = self.is_llm_based_successful(generated_conversation, target_item, demonstrations)
-            return sr, turn
-        return int(sr), turn
+            srk, sr, turn = self.is_llm_based_successful(generated_conversation, target_item, demonstrations)
+        else:
+            srk, sr, turn = self.is_successful(generated_conversation, target_item)
+        return int(srk), int(sr), turn
 
     def is_successful(self, generated_conversation, target_item):
         """
@@ -165,8 +168,13 @@ class BaseOnlineEval(object):
         """
         for idx, utt in enumerate(generated_conversation):
             if utt['role'] == 'system' and target_item.lower() in utt['content'].lower():
-                return True, idx + 1
-        return False, len(generated_conversation)
+                # successful before the k-th turn
+                if idx + 1 <= self.k:
+                    return True, True, idx + 1
+                # the other case.
+                else:
+                    return False, True, idx + 1
+        return False, False, len(generated_conversation)
 
     def is_llm_based_successful(self, generated_conversation, target_item, demonstrations):
         """
@@ -176,7 +184,19 @@ class BaseOnlineEval(object):
         @return: a float score
         """
         score = get_llm_based_assessment(target_item, generated_conversation, demonstrations, n=self.n)
-        return 1.0 if score >= self.epsilon else 0.0
+        # failed case.
+        if score <= self.epsilon:
+            return False, False, len(generated_conversation)
+
+        # identify the turn which the target is achieved.
+        for idx, utt in enumerate(generated_conversation):
+            if utt['role'] == 'system' and target_item.lower() in utt['content'].lower():
+                # successful before the k-th turn
+                if idx + 1 <= self.k:
+                    return True, True, idx + 1
+                # the other case.
+                else:
+                    return False, True, idx + 1
 
     def compute_turn(self, generated_conversation):
         """

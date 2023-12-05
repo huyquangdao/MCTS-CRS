@@ -139,7 +139,7 @@ class RTCPBartOnlineEval(BaseOnlineEval):
     Online evaluation class for RTCP with Bart knowledge and text generation model
     """
 
-    def __init__(self, target_set, terminal_act, use_llm_score, n, epsilon, use_demonstration, generation_model,
+    def __init__(self, target_set, terminal_act, use_llm_score, n, k, epsilon, use_demonstration, generation_model,
                  generation_tokenizer,
                  know_generation_model,
                  know_generation_tokenizer,
@@ -163,7 +163,7 @@ class RTCPBartOnlineEval(BaseOnlineEval):
         @param max_gen_length:
         """
 
-        super().__init__(target_set, terminal_act, horizon, use_llm_score, epsilon, n, use_demonstration)
+        super().__init__(target_set, terminal_act, horizon, use_llm_score, epsilon, n, use_demonstration, k)
         self.generation_model = generation_model
         self.generation_tokenizer = generation_tokenizer
         self.know_generation_model = know_generation_model
@@ -250,7 +250,7 @@ class RTCPLLamaOnlineEval(BaseOnlineEval):
     Online evaluation class for RTCP with Llama
     """
 
-    def __init__(self, target_set, terminal_act, use_llm_score, n, epsilon, use_demonstration,
+    def __init__(self, target_set, terminal_act, use_llm_score, n, k, epsilon, use_demonstration,
                  policy_model, policy_tokenizer, horizon, goal2id, topic2id, device=None,
                  max_sequence_length=512, pad_to_multiple_of=True, padding='max_length',
                  max_gen_length=50
@@ -267,7 +267,7 @@ class RTCPLLamaOnlineEval(BaseOnlineEval):
         @param max_gen_length:
         """
 
-        super().__init__(target_set, terminal_act, horizon, use_llm_score, epsilon, n, use_demonstration)
+        super().__init__(target_set, terminal_act, horizon, use_llm_score, epsilon, n, use_demonstration, k)
         self.policy_model = policy_model
         self.policy_tokenizer = policy_tokenizer
         self.topic2id = topic2id

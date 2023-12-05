@@ -50,6 +50,7 @@ def parse_args():
 
     parser.add_argument("--use_llm_score", action="store_true", help="whether to use llm based assessment")
     parser.add_argument("--n", default=5, type=int, help="whether to use llm based assessment")
+    parser.add_argument("--k", default=3, type=int, help="whether to use llm based assessment")
     parser.add_argument("--epsilon", default=1.0, type=float, help="whether to use llm based assessment")
     parser.add_argument("--use_demonstration", action="store_true", help="whether to use llm based assessment")
 
@@ -171,6 +172,7 @@ if __name__ == '__main__':
         use_llm_score=args.use_llm_score,
         epsilon=args.epsilon,
         n=args.n,
+        k=args.k,
         use_demonstration=args.use_demonstration,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
@@ -183,15 +185,13 @@ if __name__ == '__main__':
     )
 
     # policy model / target_set_id / text_generation_model/ generated_conversations.txt
-    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}")
-    if not os.path.exists(saved_file_path):
-        os.mkdir(saved_file_path)
-    saved_file_path - os.path.join(saved_file_path, "llama")
+    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}", "llama")
     if not os.path.exists(saved_file_path):
         os.mkdir(saved_file_path)
     saved_file_path = os.path.join(saved_file_path, "generated_conversations.txt")
     # compute online evaluation metrics
-    sr, avg_turn = rtcp_online_eval.eval(saved_file_path=saved_file_path)
+    srk, sr, avg_turn = rtcp_online_eval.eval(saved_file_path=saved_file_path)
 
+    print(f"success rate @ {args.k}: ", srk)
     print("Success rate:", sr)
     print("Avg turn: ", avg_turn)
