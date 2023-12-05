@@ -131,8 +131,8 @@ if __name__ == '__main__':
         test_data_path=args.test_data_path
     )
 
-    goal2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_goal2id.pkl'))
-    topic2id = load_binary_file(os.path.join(args.output_dir, 'rtcp_topic2id.pkl'))
+    goal2id = load_binary_file(os.path.join(args.policy_model_path, 'rtcp_goal2id.pkl'))
+    topic2id = load_binary_file(os.path.join(args.policy_model_path, 'rtcp_topic2id.pkl'))
 
     # load the policy model
     policy_model_name = "policy.pth"
