@@ -263,8 +263,17 @@ if __name__ == '__main__':
         use_rtcp_policy=args.use_rtcp_policy
     )
 
-    # compute online evaluation metrics
-    sr, avg_turn = mcts_online_eval.eval()
+    model_name = "offline" if args.offline_policy else "mcts"
 
+    # policy model / target_set_id / mcts (offline)/ generated_conversations.txt
+    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}", model_name)
+    if not os.path.exists(saved_file_path):
+        os.mkdir(saved_file_path)
+    saved_file_path = os.path.join(saved_file_path, "generated_conversations.txt")
+
+    # compute online evaluation metrics
+    srk, sr, avg_turn = mcts_online_eval.eval(saved_file_path)
+
+    print(f"Success rate @ {args.k}:", srk)
     print("Success rate:", sr)
     print("Avg turn: ", avg_turn)
