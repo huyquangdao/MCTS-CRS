@@ -39,12 +39,18 @@ def parse_args():
     parser.add_argument('--rollouts', type=int, default=20, help="number of rollout in MCT")
     parser.add_argument('--width', type=int, default=3, help="abc")
     parser.add_argument('--gamma', type=float, default=1., help="abc")
-    parser.add_argument('--k', type=int, default=10, help="abc")
+
     parser.add_argument('--alg', type=str, default='p_uct', help="criterion for the selection step")
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--know_generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--target_set_path', type=str, help="criterion for the selection step")
+
+    parser.add_argument("--use_llm_score", action="store_true", help="whether to use llm based assessment")
+    parser.add_argument("--n", default=5, type=int, help="number of time prompting the llms")
+    parser.add_argument("--k", default=3, type=int, help="number of turn used to compute the sr@k")
+    parser.add_argument("--epsilon", default=1.0, type=float, help="whether to use llm based assessment")
+    parser.add_argument("--use_demonstration", action="store_true", help="whether to use llm based assessment")
 
     # common
     parser.add_argument("--plm_policy_model", type=str)
@@ -220,18 +226,23 @@ if __name__ == '__main__':
     # build memory for mcts using the training dataset.
     # raw_memory = construct_mcts_memory(dataset.train_instances)
     raw_memory = load_memory_from_file(args.memory_path)
-    raw_states, raw_continations = construct_memory_loaded_from_file(raw_memory)
+    raw_states, raw_continuations = construct_memory_loaded_from_file(raw_memory)
 
     memory = Memory(
         embedding_model=embedding_model,
         raw_memory=raw_states,
-        instances=raw_continations,
+        instances=raw_continuations,
         d_model=384
     )
     terminal_act = "Say goodbye"
     mcts_online_eval = MCTSCRSOnlineEval(
         target_set=target_set,
         terminal_act=terminal_act,
+        use_llm_score=args.use_llm_score,
+        epsilon=args.epsilon,
+        n=args.n,
+        k=args.k,
+        use_demonstration=args.use_demonstration,
         generation_model=generation_model,
         generation_tokenizer=generation_tokenizer,
         know_generation_model=know_generation_model,

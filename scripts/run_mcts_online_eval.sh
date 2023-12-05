@@ -23,4 +23,8 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 online_evaluation.py \
     --policy_model_path ./policy_model/ \
     --generation_model_path ./generation_model/ \
     --know_generation_model_path ./know_generation_model/ \
+    --use_llm_score \
+    --n 5 \
+    --k 3 \
+    --epsilon 1.0 \
     --seed 22
