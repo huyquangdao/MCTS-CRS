@@ -808,3 +808,4 @@ def get_system_response_with_LLama(state, action):
     @param action: the predicted action from the policy model which is a tuple consisting a goal and a topic.
     @return: a text string which is the system response.
     """
+    pass

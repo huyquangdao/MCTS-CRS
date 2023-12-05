@@ -320,7 +320,7 @@ class RTCPLLamaOnlineEval(BaseOnlineEval):
 
         """
         note: you need to implement the following
-         get_system_response_with_LLama function that produces a text string as output.
+        get_system_response_with_LLama function that produces a text string as output.
         the inputs are (1): the current state of the conversation, which contains dialogue context, previous goals
         previous topics and a demonstration.
         (2) the predicted action which is a tuple of two elements, one is a goal, the other is the topic.
