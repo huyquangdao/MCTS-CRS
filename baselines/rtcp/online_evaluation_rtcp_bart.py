@@ -214,7 +214,10 @@ if __name__ == '__main__':
     )
 
     # policy model / target_set_id / generated_conversations.txt
-    saved_file_path = f"{args.policy_model_path}/{args.target_set_path}/generated_conversations.txt"
+    saved_file_path = os.path.join(args.policy_model_path, args.target_set_path)
+    if not os.path.exists(saved_file_path):
+        os.mkdir(saved_file_path)
+    saved_file_path = os.path.join(saved_file_path, "generated_conversations.txt")
 
     # compute online evaluation metrics
     sr, avg_turn = rtcp_online_eval.eval(saved_file_path=saved_file_path)
