@@ -7,10 +7,12 @@ from dataset.data_utils import save_generated_conversations
 
 class BaseOnlineEval(object):
 
-    def __init__(self, target_set, terminal_act, horizon, use_llm_score=False, epsilon=1.0, n=5):
+    def __init__(self, target_set, terminal_act, horizon, use_llm_score=False, epsilon=1.0, n=5,
+                 use_demonstration=False):
         self.terminal_act = terminal_act
         self.target_set = target_set
         self.horizon = horizon
+        self.use_demonstration = use_demonstration
         self.use_llm_score = use_llm_score
         self.epsilon = epsilon
         self.n = n
@@ -119,7 +121,7 @@ class BaseOnlineEval(object):
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
             sr, turn = self.compute_metrics(generated_conversation, target_item['topic'],
-                                            initial_state['demonstration'])
+                                            initial_state['demonstration'] if self.use_demonstration else None)
             all_generated_convs.append(generated_conversation)
             avg_sr.append(sr)
             avg_turn.append(turn)

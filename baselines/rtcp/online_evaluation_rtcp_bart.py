@@ -50,6 +50,7 @@ def parse_args():
 
     parser.add_argument("--use_llm_score", action="store_true", help="whether to use llm based assessment")
     parser.add_argument("--n", default=5, type=int, help="whether to use llm based assessment")
+    parser.add_argument("--use_demonstration", action="store_true", help="whether to use llm based assessment")
 
     # paths to pretrained models.
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
@@ -204,6 +205,7 @@ if __name__ == '__main__':
         terminal_act=terminal_act,
         use_llm_score=args.use_llm_score,
         n=args.n,
+        use_demonstration=args.use_demonstration,
         policy_model=policy_model,
         policy_tokenizer=policy_tokenizer,
         know_generation_model=know_generation_model,
