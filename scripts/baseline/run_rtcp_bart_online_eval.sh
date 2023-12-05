@@ -16,7 +16,6 @@ CUDA_VISIBLE_DEVICES=5 accelerate launch --gpu_ids 5 baselines/rtcp/online_evalu
     --n_layers 12 \
     --n_heads 8 \
     --fc_size 128 \
-    --num_warmup_steps 6345   \
     --max_sequence_length 512 \
     --policy_model_path ./rtcp/ \
     --policy_model_path ./policy_model/ \
