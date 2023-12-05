@@ -760,7 +760,7 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
     # simulated conversation
     for utt in simulated_conversation:
         # switch role
-        if utt['role'] == 'user':
+        if utt['role'] == 'system':
             utt['role'] = 'assistant'
         else:
             utt['role'] = 'user'
@@ -779,7 +779,7 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
 
     # the new generate response.
     messages.append(
-        {'role': 'user', 'content': system_instruction_3}
+        {'role': 'system', 'content': system_instruction_3}
     )
 
     responses = []

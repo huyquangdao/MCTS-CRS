@@ -1,3 +1,4 @@
+import copy
 import os
 
 from tqdm import tqdm
@@ -120,7 +121,7 @@ class BaseOnlineEval(object):
         for target_item in tqdm(self.target_set):
             initial_state = self.init_state(target_item)
             generated_conversation = self.run(initial_state)
-            sr, turn = self.compute_metrics(generated_conversation, target_item['topic'],
+            sr, turn = self.compute_metrics(copy.deepcopy(generated_conversation), target_item['topic'],
                                             initial_state['demonstration'] if self.use_demonstration else None)
             all_generated_convs.append(generated_conversation)
             avg_sr.append(sr)
