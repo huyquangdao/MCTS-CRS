@@ -185,7 +185,7 @@ class BaseOnlineEval(object):
         """
         score = get_llm_based_assessment(target_item, generated_conversation, demonstrations, n=self.n)
         # failed case.
-        if score <= self.epsilon:
+        if score < self.epsilon:
             return False, False, len(generated_conversation)
 
         # identify the turn which the target is achieved.
