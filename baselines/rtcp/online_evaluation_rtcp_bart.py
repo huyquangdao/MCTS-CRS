@@ -223,10 +223,7 @@ if __name__ == '__main__':
     )
 
     # policy model / target_set_id / text_generation_model/ generated_conversations.txt
-    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}")
-    if not os.path.exists(saved_file_path):
-        os.mkdir(saved_file_path)
-    saved_file_path - os.path.join(saved_file_path, "bart")
+    saved_file_path = os.path.join(args.policy_model_path, f"target_set_{args.seed}", "bart")
     if not os.path.exists(saved_file_path):
         os.mkdir(saved_file_path)
     saved_file_path = os.path.join(saved_file_path, "generated_conversations.txt")
