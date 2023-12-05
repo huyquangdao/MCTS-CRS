@@ -7,10 +7,12 @@ from dataset.data_utils import save_generated_conversations
 
 class BaseOnlineEval(object):
 
-    def __init__(self, target_set, terminal_act, horizon):
+    def __init__(self, target_set, terminal_act, horizon, use_llm_score=False, epsilon=1.0):
         self.terminal_act = terminal_act
         self.target_set = target_set
         self.horizon = horizon
+        self.use_llm_score = use_llm_score
+        self.epsilon = epsilon
 
     def pipeline(self, state):
         raise NotImplementedError()
@@ -141,11 +143,11 @@ class BaseOnlineEval(object):
         @param target_item: set of target item
         @return: dialogue-level SR and averaged number of conversational turn
         """
-        # score = self.is_llm_based_successful(generated_conversation, target_item)
         sr, turn = self.is_successful(generated_conversation, target_item)
-        # turn = self.compute_turn(generated_conversation)
+        if self.use_llm_score:
+            sr = self.is_llm_based_successful(generated_conversation, target_item)
+            return sr, turn
         return int(sr), turn
-        # return score, len(generated_conversation)
 
     def is_successful(self, generated_conversation, target_item):
         """
@@ -167,7 +169,7 @@ class BaseOnlineEval(object):
         @return: a float score
         """
         score = get_llm_based_assessment(target_item, generated_conversation)
-        return score
+        return 1.0 if score >= self.epsilon else 0.0
 
     def compute_turn(self, generated_conversation):
         """
