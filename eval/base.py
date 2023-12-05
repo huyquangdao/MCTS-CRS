@@ -183,7 +183,8 @@ class BaseOnlineEval(object):
         @param target_item: the target item
         @return: a float score
         """
-        score = get_llm_based_assessment(target_item, generated_conversation, demonstrations, n=self.n)
+        score = get_llm_based_assessment(target_item, copy.deepcopy(generated_conversation), demonstrations, n=self.n)
+
         # failed case.
         if score < self.epsilon:
             return False, False, len(generated_conversation)
