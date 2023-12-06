@@ -8,6 +8,7 @@ import openai
 import torch
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
+import replicate
 from tqdm import tqdm
 
 from dataset.data_utils import convert_list_to_str, convert_dict_to_str, convert_example_to_feature_for_goal_prediction, \
@@ -811,4 +812,45 @@ def get_system_response_with_LLama(state, action):
     @param action: the predicted action from the policy model which is a tuple consisting a goal and a topic.
     @return: a text string which is the system response.
     """
-    pass
+    demonstration = state['demonstration']['conversation']
+    target_topic = state['task_background']['target_topic']
+    goal, topic = action
+    demonstration_context = ""
+    # 1-shot demonstration
+    for utt in reformat_demonstration(demonstration,
+                                      is_agent_start=state['demonstration']['goal_type_list'][0] == 'Greetings'):
+        demonstration_context += utt['role'] + ": " + utt['content'] + "."
+
+    # the second instruction prompt
+    # current conversation
+    dialogue_context = ""
+    for utt in state['dialogue_context']:
+        role = utt['role']
+        if utt['role'] == 'assistant':
+            role = 'system'
+        dialogue_context += role + ": " + utt['content'] + "."
+
+    system_instruction_1 = '''You are playing the role of a recommender system. 
+    You need to generate a response to the user.'''
+    system_instruction_2 = '''You are a recommender system chatting with a user for recommendation. 
+    You are playing the system role. Your target items: {}. You must follow the instructions below during chat.
+    You should never directly tell the target item title.
+    The following is an example conversation between a recommender (you) and an user: {}.
+    You are playing the system role.
+    you goal is : {}.
+    you must to {} about {}
+    Given the following conversation between you (system) and an user, you need to generate a response to the user: {}
+    '''.format(target_topic, demonstration_context, goal, goal, topic, dialogue_context)
+
+    output = replicate.run(
+        "meta/llama-2-7b-chat:f1d50bb24186c52daae319ca8366e53debdaa9e0ae7ff976e918df752732ccc4",
+        input={
+            "top_p": 1,
+            "prompt": system_instruction_1,
+            "temperature": 0,
+            "system_prompt": system_instruction_2,
+            "max_new_tokens": 50,
+            "repetition_penalty": 3
+        }
+    )
+    print(output)
