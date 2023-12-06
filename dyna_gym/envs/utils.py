@@ -699,7 +699,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
             )
 
             # compute LLM-based assessment
-            score = get_llm_based_assessment(target_item, simulated_conversation, demonstration=None, n=n)
+            score = get_llm_based_assessment(target_item['topic'], simulated_conversation, demonstration=None, n=n)
 
             memory_instances.extend(reformat_simulated_conversation([state, simulated_conversation, score]))
     return memory_instances
