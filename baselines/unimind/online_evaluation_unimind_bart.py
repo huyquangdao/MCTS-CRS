@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     # create and load the weights for generation model
     plm_model = args.policy_plm_model
-    model_path = args.model_path
+    model_path = args.policy_model_path
     model_name = 'unimind.pth'
     model = BartForConditionalGeneration.from_pretrained(plm_model)
 
