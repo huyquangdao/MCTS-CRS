@@ -383,7 +383,7 @@ def split_goal_topic(preds, goal2id):
     return goals, topics
 
 
-def save_simulated_results(f, state, dialogue_continuation):
+def save_simulated_results(f, state, dialogue_continuation, score):
     """
     function that saves dialogue state and its corresponding dialogue continuation
     @param state: an input dialogue state
@@ -392,7 +392,8 @@ def save_simulated_results(f, state, dialogue_continuation):
     """
     dic = {
         "state": state,
-        "continuation": dialogue_continuation
+        "continuation": dialogue_continuation,
+        "score": score
     }
     f.write(json.dumps(dic) + "\n")
 

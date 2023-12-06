@@ -644,7 +644,7 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                     policy_tokenizer, horizon=5,
                     max_sequence_length=512, max_gen_length=50, padding='max_length',
                     pad_to_multiple_of=True, goal2id=None, terminated_action=None, device=None,
-                    greedy_search=True, top_k=3, epsilon=0.1):
+                    greedy_search=True, top_k=3, epsilon=0.1, n=5):
     """
     function that simulates a conversation between an user and a system starting from a given input state.
     @param num_simulations: number of simulations used to run each target item
@@ -697,7 +697,10 @@ def self_simulation(num_simulations, target_set, generation_model, generation_to
                 epsilon=epsilon
             )
 
-            memory_instances.extend(reformat_simulated_conversation([state, simulated_conversation]))
+            # compute LLM-based assessment
+            score = get_llm_based_assessment(target_item, simulated_conversation, demonstration=None, n=n)
+
+            memory_instances.extend(reformat_simulated_conversation([state, simulated_conversation, score]))
     return memory_instances
 
 
@@ -707,7 +710,7 @@ def reformat_simulated_conversation(simulated_conversation):
     @param simulated_conversation: a list with two elements the initial state and the simulated conversation
     @return: a list of state - continuation elements
     """
-    state, conversation = simulated_conversation
+    state, conversation, score = simulated_conversation
     instances = []
     for idx, utt in enumerate(conversation):
         if utt['role'] == "user":
@@ -718,7 +721,7 @@ def reformat_simulated_conversation(simulated_conversation):
         new_state['pre_goals'].append(utt['goal'][0])
         new_state['pre_topics'].append(utt['goal'][1])
         new_state['dialogue_context'].append({'role': 'assistant', 'content': utt['content']})
-        instance = {'state': new_state, 'continuation': conversation[idx:]}
+        instance = {'state': new_state, 'continuation': conversation[idx:], 'score': score}
         instances.append(instance)
         state = new_state
     return instances

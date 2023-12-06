@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('--width', type=int, default=3, help="abc")
     parser.add_argument('--gamma', type=float, default=1., help="abc")
     parser.add_argument('--top_k', type=int, default=10, help="abc")
+    parser.add_argument('--n', type=int, default=5, help="abc")
     parser.add_argument('--epsilon', type=float, default=0.1, help="abc")
     parser.add_argument('--alg', type=str, default='p_uct', help="criterion for the selection step")
     parser.add_argument('--policy_model_path', type=str, help="criterion for the selection step")
@@ -157,9 +158,10 @@ if __name__ == '__main__':
                                        greedy_search=args.greedy_search,
                                        top_k=args.top_k,
                                        device=device,
-                                       epsilon=args.epsilon
+                                       epsilon=args.epsilon,
+                                       n=args.n
                                        )
 
     with open("self_simulations.txt", 'r') as f:
         for instance in memory_instances:
-            save_simulated_results(f, instance['state'], instance['continuation'])
+            save_simulated_results(f, instance['state'], instance['continuation'], instance['score'])
