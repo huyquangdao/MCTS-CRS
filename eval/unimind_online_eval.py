@@ -280,4 +280,4 @@ class UnimindBartOnlineEval(BaseOnlineEval):
                                                      padding=self.padding,
                                                      device=self.device)
 
-        return system_resp, action, topic
+        return system_resp, goal, topic
