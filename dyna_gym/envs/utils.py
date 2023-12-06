@@ -768,7 +768,8 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
             utt['role'] = 'assistant'
         else:
             utt['role'] = 'user'
-        messages.append(utt)
+        temp = {'role': utt['role'], 'content': utt['content']}
+        messages.append(temp)
 
     accept_string = "accept"
     reject_string = "reject"
