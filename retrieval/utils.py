@@ -42,7 +42,8 @@ def load_memory_from_file(file_path):
             dic = json.loads(line)
             state = dic['state']
             continuation = dic['continuation']
-            raw_memory.append((state, continuation))
+            score = dic['score']
+            raw_memory.append((state, continuation, score))
     return raw_memory
 
 
@@ -54,8 +55,10 @@ def construct_memory_loaded_from_file(raw_memory):
     """
     raw_states = []
     raw_continations = []
-    for state, continuation in raw_memory:
+    raw_scores = []
+    for state, continuation, score in raw_memory:
         raw_state = concatenate_sentences(state['dialogue_context'])
         raw_states.append(raw_state)
         raw_continations.append(continuation)
-    return raw_states, raw_continations
+        raw_scores.append(score)
+    return raw_states, raw_continations, raw_scores

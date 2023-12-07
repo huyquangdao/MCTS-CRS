@@ -5,7 +5,7 @@ import numpy as np
 
 class Memory:
 
-    def __init__(self, embedding_model, raw_memory, instances, d_model=384):
+    def __init__(self, embedding_model, raw_memory, instances, scores, d_model=384):
         """
         constructor for class me memory
         @param embedding_model: the sentence embedding model
@@ -17,6 +17,7 @@ class Memory:
         self.raw_memory = raw_memory
         self.d_model = d_model
         self.instances = instances
+        self.scores = scores
         self.index = self.build_index()
 
     def __len__(self):

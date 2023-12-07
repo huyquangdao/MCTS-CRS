@@ -534,7 +534,7 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     return reward
 
 
-def compute_reward(outcome, conv_length, alpha=3.0, lamda=1.0, temperature=1):
+def compute_reward(outcome, llm_score, conv_length, alpha=3.0, lamda=1.0, temperature=1):
     """
     function that maps outcome to reward
     @param outcome: the outcome of the conversation
@@ -544,7 +544,7 @@ def compute_reward(outcome, conv_length, alpha=3.0, lamda=1.0, temperature=1):
     @param temperature: the temperature
     @return:
     """
-    return outcome * alpha + lamda * math.exp(-1.0 * conv_length / temperature)
+    return (outcome * alpha) * llm_score + lamda * math.exp(-1.0 * conv_length / temperature)
 
 
 def compute_reward_based_on_memory(state, memory, pos_reward=1, neg_reward=-1, k=10):
@@ -571,6 +571,8 @@ def compute_reward_based_on_memory(state, memory, pos_reward=1, neg_reward=-1, k
     for score, idx in list(zip(scores[0], indices[0])):
         # dialogue continuation
         instance = memory.instances[idx]
+        # llm score
+        llm_score = memory.scores[idx]
         # conv_id = instance['conv_id']
         # only considering one conversation.
         # if conv_id not in check:
@@ -582,10 +584,10 @@ def compute_reward_based_on_memory(state, memory, pos_reward=1, neg_reward=-1, k
             if state['task_background']['target_topic'].lower() in utt['content'].lower():
                 check = True
         if check:
-            reward_scores.append(compute_reward(pos_reward, len(instance)))
+            reward_scores.append(compute_reward(pos_reward, llm_score, len(instance)))
         # failed conversations.
         else:
-            reward_scores.append(compute_reward(neg_reward, len(instance)))
+            reward_scores.append(compute_reward(neg_reward, llm_score, len(instance)))
         # get the retrieval scores.
 
         prob_scores.append(score)
