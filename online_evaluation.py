@@ -45,6 +45,7 @@ def parse_args():
     parser.add_argument('--generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--know_generation_model_path', type=str, help="criterion for the selection step")
     parser.add_argument('--target_set_path', type=str, help="criterion for the selection step")
+    parser.add_argument("--top_k", default=10, type=int, help="number of retrieval used for computing the memory reward")
 
     parser.add_argument("--use_llm_score", action="store_true", help="whether to use llm based assessment")
     parser.add_argument("--n", default=5, type=int, help="number of time prompting the llms")
@@ -96,7 +97,7 @@ if __name__ == '__main__':
         gamma=args.gamma,
         width=args.width,
         alg=args.alg,  # or p_uct
-        k=args.k  # num retrieval
+        k=args.top_k  # num retrieval
     )
 
     # will be passed to huggingface model.generate()

@@ -534,7 +534,7 @@ def reward_func(conversations, target_topic, target_goal, delta=1, temperature=1
     return reward
 
 
-def compute_reward(outcome, llm_score, conv_length, alpha=3.0, lamda=1.0, temperature=1):
+def compute_reward(outcome, llm_score, conv_length, alpha=3.0, lamda=0.1, temperature=1):
     """
     function that maps outcome to reward
     @param outcome: the outcome of the conversation
@@ -737,7 +737,6 @@ def get_llm_based_assessment(target_topic, simulated_conversation, demonstration
     @param simulated_conversation:
     @param demonstration: the given 1-shot demonstration.
     @param n: number of times to prompt the LLM.
-    @param thresh: the threshold to determine if a conversation is successful.
     @return: 1 if the conversation is successful or 0 if it is failed.
     """
     messages = []
